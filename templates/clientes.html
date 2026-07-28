@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newex · Clientes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul-escuro: #0c1b33;
+  --azul-card: #2d6fb0;
+  --azul-claro: #4a8fd4;
+  --verde-card: #28a745;
+  --lilas-card: #6f42c1;
+  --amarelo-card: #ffc107;
+  --cinza-fundo: #f0f2f5;
+  --branco: #ffffff;
+  --cinza-borda: #dce1e8;
+  --cinza-texto: #495057;
+  --cinza-claro: #6c757d;
+  --vermelho: #dc3545;
+  --fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Aptos Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fonte);
+  font-size: 11px;
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.5;
+}
+
+.sidebar {
+  width: 210px;
+  min-height: 100vh;
+  background: var(--azul-escuro);
+  color: #b0c4de;
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo h1 span { color: var(--azul-card); }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+
+.sidebar-nav { list-style: none; padding: 0 10px; }
+.sidebar-nav li {
+  padding: 6px 10px;
+  margin: 1px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8aa3c9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-nav li:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-nav li.active { background: var(--azul-card); color: #fff; }
+.sidebar-nav li .icone { font-size: 12px; width: 16px; text-align: center; }
+.sidebar-nav .grupo { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #4a6a8f; padding: 10px 10px 3px; font-weight: 700; }
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer .label { font-size: 8px; color: #5a7a9e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-footer .valor { font-size: 14px; font-weight: 800; color: #fff; }
+.sidebar-footer .delta { font-size: 9px; color: var(--verde-card); font-weight: 600; }
+
+.topbar {
+  background: var(--branco);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--cinza-borda);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar .logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-card);
+}
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
+.topbar .spacer { flex: 1; }
+.topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
+.topbar .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-card); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+.main { margin-left: 210px; padding: 0; min-height: 100vh; }
+.content { padding: 14px 20px 32px; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi-card {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--cinza-borda);
+}
+.kpi-card .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-card .valor { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-card .delta { font-size: 9.5px; font-weight: 700; }
+.kpi-card .delta small { font-weight: 400; color: var(--cinza-claro); }
+
+.kpi-top { display: flex; justify-content: space-between; align-items: center; }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-ic { font-size: 14px; padding: 4px 8px; border-radius: 6px; }
+.kpi-value { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-delta { font-size: 9.5px; font-weight: 700; }
+.kpi-delta.up { color: var(--verde-card); }
+.kpi-delta.down { color: var(--vermelho); }
+
+.card-azul .valor { color: var(--azul-card); }
+.card-verde .valor { color: var(--verde-card); }
+.card-lilas .valor { color: var(--lilas-card); }
+.card-amarelo .valor { color: var(--amarelo-card); }
+
+.panel {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cinza-borda);
+  margin-bottom: 14px;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
+
+.table-wrap { overflow-x: auto; margin: 0 -2px; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+table th { text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--cinza-claro); font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table td { padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table tr:last-child td { border-bottom: none; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--fonte);
+}
+.btn-primary { background: var(--azul-card); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-ghost:hover { background: #f8f9fa; }
+.btn-success { background: var(--verde-card); color: #fff; }
+.btn-success:hover { opacity: 0.9; }
+.btn-danger { background: var(--vermelho); color: #fff; }
+.btn-danger:hover { opacity: 0.9; }
+.btn-sm { padding: 2px 6px; font-size: 7.5px; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+.badge-success { background: #d4edda; color: #155724; }
+.badge-danger { background: #f8d7da; color: #721c24; }
+.badge-warning { background: #fff3cd; color: #856404; }
+.badge-info { background: #d1ecf1; color: #0c5460; }
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 460px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 12px; }
+.modal .form-group label { display: block; font-size: 9px; font-weight: 700; color: var(--cinza-claro); margin-bottom: 3px; }
+.modal .form-group input, .modal .form-group select, .modal .form-group textarea {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+.modal .form-group input:focus, .modal .form-group select:focus, .modal .form-group textarea:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+.modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal .btn-group { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.modal .btn-group .btn { padding: 6px 16px; font-size: 10px; }
+
+.editable-value {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  color: var(--azul-escuro);
+  font-weight: 600;
+}
+.editable-value:hover { background: #eef2f7; }
+
+.editable-value-inicial {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  color: #b8790f;
+  font-weight: 700;
+}
+.editable-value-inicial:hover { background: #fff4e0; }
+
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .sidebar { width: 56px; }
+  .sidebar .logo h1, .sidebar .logo small, .sidebar-nav li span, .sidebar-footer { display: none; }
+  .sidebar-nav li { justify-content: center; padding: 8px; }
+  .main { margin-left: 56px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .modal .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CARTEIRA<span>PESSOAL</span></h1>
+    <small>GESTÃO PATRIMONIAL</small>
+  </div>
+  <ul class="sidebar-nav">
+    <li class="grupo">GERAL</li>
+    <li onclick="window.location.href='/'"><span class="icone">📊</span> Dashboard</li>
+    <li class="grupo">CARTEIRAS</li>
+    <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
+    <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
+    <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+    <li class="grupo">GESTÃO</li>
+    <li class="active"><span class="icone">👥</span> Clientes</li>
+    <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
+    <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
+    <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
+    <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
+  </ul>
+  <div class="sidebar-footer">
+    <div class="label">Patrimônio Total</div>
+    <div class="valor">R$ 178.605,56</div>
+    <div class="delta">↑ 18,96% no ano</div>
+  </div>
+</aside>
+
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <h2 id="modalClienteTitle">👤 Novo Cliente</h2>
+    <form id="formCliente">
+      <input type="hidden" id="editClienteId">
+      <div class="form-group"><label>Nome Completo</label><input type="text" id="inputNome" placeholder="Ex: João Silva" required></div>
+      <div class="form-row"><div class="form-group"><label>CPF/CNPJ</label><input type="text" id="inputDocumento" placeholder="000.000.000-00"></div><div class="form-group"><label>Data de Entrada</label><input type="date" id="inputDataEntrada"></div></div>
+      <div class="form-row"><div class="form-group"><label>Participação (%)</label><input type="number" id="inputParticipacao" placeholder="0,00" step="0.0001" min="0" max="100"></div><div class="form-group"><label>Valor Inicial (R$)</label><input type="number" id="inputValorInicial" placeholder="0,00" step="0.01" min="0"></div></div>
+      <div class="form-row"><div class="form-group"><label>Status</label><select id="inputStatus"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option><option value="Suspenso">Suspenso</option></select></div><div class="form-group"><label>Patrimônio (R$)</label><input type="number" id="inputPatrimonio" placeholder="0,00" step="0.01" min="0"></div></div>
+      <div class="form-group"><label>Observações</label><textarea id="inputObservacoes" rows="2" placeholder="Informações adicionais..."></textarea></div>
+      <div class="btn-group"><button type="button" class="btn btn-ghost" onclick="fecharModalCliente()">Cancelar</button><button type="submit" class="btn btn-success" id="btnSalvarCliente">💾 Salvar</button></div>
+    </form>
+  </div>
+</div>
+
+<main class="main">
+  <header class="topbar">
+    <div class="logo-img">👥</div>
+    <div><h2>Clientes</h2><p>Gestão de cotistas da carteira geral · Participação e acompanhamento</p></div>
+    <div class="spacer"></div>
+    <div class="usuario"><div class="avatar">RS</div><div><div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div><div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div></div></div>
+  </header>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card card-azul"><div class="kpi-top"><span class="kpi-label">Total de Clientes</span><span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">👥</span></div><div class="kpi-value" style="color:var(--azul-card);" id="totalClientes">0</div><div class="kpi-delta" style="color:var(--cinza-claro);">Cadastrados no sistema</div></div>
+      <div class="kpi-card card-verde"><div class="kpi-top"><span class="kpi-label">Ativos</span><span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">✅</span></div><div class="kpi-value" style="color:var(--verde-card);" id="clientesAtivos">0</div><div class="kpi-delta" style="color:var(--cinza-claro);">Em atividade</div></div>
+      <div class="kpi-card card-lilas"><div class="kpi-top"><span class="kpi-label">Patrimônio Total</span><span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">💰</span></div><div class="kpi-value" style="color:var(--lilas-card);" id="patrimonioClientes">R$ 0,00</div><div class="kpi-delta" style="color:var(--cinza-claro);">Soma dos patrimônios</div></div>
+      <div class="kpi-card card-amarelo"><div class="kpi-top"><span class="kpi-label">Maior Cliente</span><span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">🏆</span></div><div class="kpi-value" style="color:#b8790f;" id="maiorCliente">—</div><div class="kpi-delta" style="color:var(--cinza-claro);" id="maiorClienteValor">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Lista de Clientes <small>Cotistas da carteira geral</small></h3>
+        <div><button class="btn btn-ghost" onclick="exportarClientes()">📤 Exportar</button><button class="btn btn-primary" onclick="abrirModalCliente()">+ Novo Cliente</button></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cliente</th><th>CPF/CNPJ</th><th>Data Entrada</th><th>Participação</th><th>Valor Inicial</th><th>Patrimônio</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="clientesTableBody"><tr><td colspan="8" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum cliente cadastrado.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+var clientesData = [
+    { id: 1, nome: 'Rogério Simieri', documento: '111.111.111-11', dataEntrada: '2020-01-15', participacao: 33.78, valorInicial: 50958.37, status: 'Ativo', patrimonio: 61609.38 },
+    { id: 2, nome: 'Vitória Simieri', documento: '222.222.222-22', dataEntrada: '2020-06-10', participacao: 55.04, valorInicial: 85814.40, status: 'Ativo', patrimonio: 97243.21 },
+    { id: 3, nome: 'Manuella Cardoso', documento: '333.333.333-33', dataEntrada: '2021-03-01', participacao: 4.14, valorInicial: 6230.46, status: 'Ativo', patrimonio: 7318.93 },
+    { id: 4, nome: 'João Paulo Simieri', documento: '444.444.444-44', dataEntrada: '2022-07-20', participacao: 0.02, valorInicial: 27.09, status: 'Ativo', patrimonio: 29.45 },
+    { id: 5, nome: 'Pedro Henrique Simieri', documento: '555.555.555-55', dataEntrada: '2022-07-20', participacao: 0.86, valorInicial: 1396.04, status: 'Ativo', patrimonio: 1516.63 },
+    { id: 6, nome: 'Josepha Simieri', documento: '666.666.666-66', dataEntrada: '2022-07-20', participacao: 6.16, valorInicial: 10698.91, status: 'Ativo', patrimonio: 10887.96 }
+];
+
+var proximoId = 7;
+
+function fmtMoeda(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
+    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,00%';
+    return (valor > 0 ? '+' : '') + valor.toFixed(2) + '%';
+}
+
+function formatarData(data) {
+    if (!data) return '-';
+    var d = new Date(data);
+    return d.toLocaleDateString('pt-BR');
+}
+
+function badgeStatus(status) {
+    var classes = { 'Ativo': 'badge-success', 'Inativo': 'badge-danger', 'Suspenso': 'badge-warning' };
+    return '<span class="badge ' + (classes[status] || 'badge-info') + '">' + status + '</span>';
+}
+
+function carregarClientes() {
+    var salvos = localStorage.getItem('clientes');
+    if (salvos) {
+        try {
+            var parsed = JSON.parse(salvos);
+            if (parsed.length > 0) {
+                clientesData = parsed;
+                for (var i = 0; i < clientesData.length; i++) {
+                    if (clientesData[i].id >= proximoId) {
+                        proximoId = clientesData[i].id + 1;
+                    }
+                }
+            }
+        } catch(e) {}
+    }
+    renderizarClientes();
+    atualizarKPIs();
+}
+
+function salvarClientes() {
+    try { localStorage.setItem('clientes', JSON.stringify(clientesData)); } catch(e) {}
+}
+
+function salvarCliente(nome, documento, dataEntrada, participacao, valorInicial, status, patrimonio, observacoes) {
+    var novoCliente = { id: proximoId++, nome: nome || 'Sem nome', documento: documento || '-', dataEntrada: dataEntrada || '', participacao: parseFloat(participacao) || 0, valorInicial: parseFloat(valorInicial) || 0, status: status || 'Ativo', patrimonio: parseFloat(patrimonio) || 0, observacoes: observacoes || '' };
+    clientesData.push(novoCliente);
+    salvarClientes();
+    renderizarClientes();
+    atualizarKPIs();
+    return novoCliente;
+}
+
+function atualizarCliente(id, nome, documento, dataEntrada, participacao, valorInicial, status, patrimonio, observacoes) {
+    for (var i = 0; i < clientesData.length; i++) {
+        if (clientesData[i].id === id) {
+            clientesData[i].nome = nome || 'Sem nome';
+            clientesData[i].documento = documento || '-';
+            clientesData[i].dataEntrada = dataEntrada || '';
+            clientesData[i].participacao = parseFloat(participacao) || 0;
+            clientesData[i].valorInicial = parseFloat(valorInicial) || 0;
+            clientesData[i].status = status || 'Ativo';
+            clientesData[i].patrimonio = parseFloat(patrimonio) || 0;
+            clientesData[i].observacoes = observacoes || '';
+            break;
+        }
+    }
+    salvarClientes();
+    renderizarClientes();
+    atualizarKPIs();
+}
+
+function excluirCliente(id) {
+    if (confirm('Deseja realmente excluir este cliente?')) {
+        for (var i = 0; i < clientesData.length; i++) {
+            if (clientesData[i].id === id) {
+                clientesData.splice(i, 1);
+                break;
+            }
+        }
+        salvarClientes();
+        renderizarClientes();
+        atualizarKPIs();
+    }
+}
+
+function getClienteById(id) {
+    for (var i = 0; i < clientesData.length; i++) {
+        if (clientesData[i].id === id) return clientesData[i];
+    }
+    return null;
+}
+
+function renderizarClientes() {
+    var tbody = document.getElementById('clientesTableBody');
+    if (!tbody) return;
+    if (clientesData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum cliente cadastrado.</td></tr>';
+        return;
+    }
+    var html = '';
+    var sorted = [...clientesData].sort(function(a, b) { return b.participacao - a.participacao; });
+    for (var i = 0; i < sorted.length; i++) {
+        var c = sorted[i];
+        html += '<tr><td class="tk"><span class="editable-value" onclick="abrirModalCliente(' + c.id + ')">' + c.nome + '</span></td><td>' + c.documento + '</td><td>' + formatarData(c.dataEntrada) + '</td><td><strong>' + fmtPct(c.participacao) + '</strong></td><td><span class="editable-value-inicial" onclick="editarValorInicial(' + c.id + ')" title="Clique para editar o valor inicial">' + fmtMoeda(c.valorInicial || 0) + ' ✏️</span></td><td>' + fmtMoeda(c.patrimonio || 0) + '</td><td>' + badgeStatus(c.status) + '</td><td><button class="btn btn-sm btn-ghost" onclick="abrirModalCliente(' + c.id + ')" title="Editar">✏️</button><button class="btn btn-sm btn-danger" onclick="excluirCliente(' + c.id + ')" title="Remover">✕</button></td></tr>';
+    }
+    tbody.innerHTML = html;
+}
+
+function atualizarKPIs() {
+    var total = clientesData.length;
+    var ativos = 0;
+    var patrimonioTotal = 0;
+    var maiorPatrimonio = 0;
+    var maiorNome = '';
+    for (var i = 0; i < clientesData.length; i++) {
+        var c = clientesData[i];
+        if (c.status === 'Ativo') ativos++;
+        patrimonioTotal += c.patrimonio || 0;
+        if ((c.patrimonio || 0) > maiorPatrimonio) {
+            maiorPatrimonio = c.patrimonio || 0;
+            maiorNome = c.nome;
+        }
+    }
+    document.getElementById('totalClientes').textContent = total;
+    document.getElementById('clientesAtivos').textContent = ativos;
+    document.getElementById('patrimonioClientes').textContent = fmtMoeda(patrimonioTotal);
+    if (maiorNome) {
+        document.getElementById('maiorCliente').textContent = maiorNome;
+        document.getElementById('maiorClienteValor').textContent = fmtMoeda(maiorPatrimonio);
+    } else {
+        document.getElementById('maiorCliente').textContent = '—';
+        document.getElementById('maiorClienteValor').textContent = '—';
+    }
+}
+
+function editarValorInicial(id) {
+    var cliente = getClienteById(id);
+    if (!cliente) { alert('Cliente não encontrado.'); return; }
+    var novoValor = prompt('✏️ Editar Valor Inicial\n\nCliente: ' + cliente.nome + '\nValor atual: ' + fmtMoeda(cliente.valorInicial) + '\n\nDigite o novo valor (R$):', cliente.valorInicial);
+    if (novoValor === null) return;
+    var valorNum = parseFloat(novoValor.replace(',', '.'));
+    if (isNaN(valorNum) || valorNum < 0) { alert('❌ Digite um valor válido.'); return; }
+    cliente.valorInicial = valorNum;
+    salvarClientes();
+    renderizarClientes();
+    atualizarKPIs();
+    alert('✅ Valor Inicial de ' + cliente.nome + ' atualizado para ' + fmtMoeda(valorNum));
+}
+
+var editClienteId = null;
+
+function abrirModalCliente(id) {
+    editClienteId = id || null;
+    var modal = document.getElementById('modalCliente');
+    var title = document.getElementById('modalClienteTitle');
+    var btn = document.getElementById('btnSalvarCliente');
+    if (id) {
+        title.textContent = '✏️ Editar Cliente';
+        btn.textContent = '💾 Atualizar';
+        var cliente = getClienteById(id);
+        if (cliente) {
+            document.getElementById('editClienteId').value = cliente.id;
+            document.getElementById('inputNome').value = cliente.nome;
+            document.getElementById('inputDocumento').value = cliente.documento || '';
+            document.getElementById('inputDataEntrada').value = cliente.dataEntrada || '';
+            document.getElementById('inputParticipacao').value = cliente.participacao || '';
+            document.getElementById('inputValorInicial').value = cliente.valorInicial || '';
+            document.getElementById('inputStatus').value = cliente.status || 'Ativo';
+            document.getElementById('inputPatrimonio').value = cliente.patrimonio || '';
+            document.getElementById('inputObservacoes').value = cliente.observacoes || '';
+        }
+    } else {
+        title.textContent = '👤 Novo Cliente';
+        btn.textContent = '💾 Salvar';
+        document.getElementById('formCliente').reset();
+        document.getElementById('editClienteId').value = '';
+        document.getElementById('inputStatus').value = 'Ativo';
+        document.getElementById('inputDataEntrada').value = new Date().toISOString().split('T')[0];
+    }
+    modal.classList.add('active');
+    document.getElementById('inputNome').focus();
+}
+
+function fecharModalCliente() {
+    document.getElementById('modalCliente').classList.remove('active');
+    editClienteId = null;
+}
+
+document.getElementById('formCliente').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var id = parseInt(document.getElementById('editClienteId').value);
+    var nome = document.getElementById('inputNome').value.trim();
+    var documento = document.getElementById('inputDocumento').value.trim();
+    var dataEntrada = document.getElementById('inputDataEntrada').value;
+    var participacao = parseFloat(document.getElementById('inputParticipacao').value);
+    var valorInicial = parseFloat(document.getElementById('inputValorInicial').value);
+    var status = document.getElementById('inputStatus').value;
+    var patrimonio = parseFloat(document.getElementById('inputPatrimonio').value);
+    var observacoes = document.getElementById('inputObservacoes').value.trim();
+    if (!nome) { alert('Digite o nome do cliente.'); return; }
+    if (isNaN(participacao) || participacao < 0) { alert('Digite uma participação válida.'); return; }
+    if (isNaN(valorInicial) || valorInicial < 0) { alert('Digite um valor inicial válido.'); return; }
+    var btn = document.getElementById('btnSalvarCliente');
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+    try {
+        if (id) { atualizarCliente(id, nome, documento, dataEntrada, participacao, valorInicial, status, patrimonio, observacoes); alert('✅ Cliente atualizado com sucesso!'); }
+        else { salvarCliente(nome, documento, dataEntrada, participacao, valorInicial, status, patrimonio, observacoes); alert('✅ Cliente salvo com sucesso!'); }
+        fecharModalCliente();
+    } catch (error) { alert('❌ Erro ao salvar cliente. Tente novamente.'); console.error(error); }
+    btn.textContent = id ? '💾 Atualizar' : '💾 Salvar';
+    btn.disabled = false;
+});
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharModalCliente(); });
+document.getElementById('modalCliente').addEventListener('click', function(e) { if (e.target === this) fecharModalCliente(); });
+
+function exportarClientes() {
+    if (clientesData.length === 0) { alert('Nenhum cliente para exportar.'); return; }
+    var csv = 'Nome,CPF/CNPJ,Data Entrada,Participação,Valor Inicial,Patrimônio,Status\n';
+    for (var i = 0; i < clientesData.length; i++) {
+        var c = clientesData[i];
+        csv += '"' + c.nome + '","' + c.documento + '","' + formatarData(c.dataEntrada) + '",' + c.participacao + ',"' + fmtMoeda(c.valorInicial || 0) + '","' + fmtMoeda(c.patrimonio || 0) + '","' + c.status + '"\n';
+    }
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'clientes_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+carregarClientes();
+console.log('👥 Módulo Clientes carregado!');
+console.log('✏️ Clique no Valor Inicial (em laranja) para editar diretamente.');
+</script>
+</body>
+</html>

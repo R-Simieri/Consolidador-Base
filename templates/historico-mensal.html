@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newex · Histórico Mensal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   FONTE
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul-escuro: #0c1b33;
+  --azul-card: #2d6fb0;
+  --azul-claro: #4a8fd4;
+  --verde-card: #28a745;
+  --lilas-card: #6f42c1;
+  --amarelo-card: #ffc107;
+  --cinza-fundo: #f0f2f5;
+  --branco: #ffffff;
+  --cinza-borda: #dce1e8;
+  --cinza-texto: #495057;
+  --cinza-claro: #6c757d;
+  --vermelho: #dc3545;
+  --fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Aptos Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fonte);
+  font-size: 11px;
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: 210px;
+  min-height: 100vh;
+  background: var(--azul-escuro);
+  color: #b0c4de;
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo h1 span { color: var(--azul-card); }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+
+.sidebar-nav { list-style: none; padding: 0 10px; }
+.sidebar-nav li {
+  padding: 6px 10px;
+  margin: 1px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8aa3c9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-nav li:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-nav li.active { background: var(--azul-card); color: #fff; }
+.sidebar-nav li .icone { font-size: 12px; width: 16px; text-align: center; }
+.sidebar-nav .grupo { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #4a6a8f; padding: 10px 10px 3px; font-weight: 700; }
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer .label { font-size: 8px; color: #5a7a9e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-footer .valor { font-size: 14px; font-weight: 800; color: #fff; }
+.sidebar-footer .delta { font-size: 9px; color: var(--verde-card); font-weight: 600; }
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  background: var(--branco);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--cinza-borda);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar .logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-card);
+}
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
+.topbar .spacer { flex: 1; }
+.topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
+.topbar .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-card); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+/* ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ */
+.main { margin-left: 210px; padding: 0; min-height: 100vh; }
+.content { padding: 14px 20px 32px; }
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi-card {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--cinza-borda);
+}
+.kpi-card .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-card .valor { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-card .delta { font-size: 9.5px; font-weight: 700; }
+.kpi-card .delta small { font-weight: 400; color: var(--cinza-claro); }
+
+.kpi-top { display: flex; justify-content: space-between; align-items: center; }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-ic { font-size: 14px; padding: 4px 8px; border-radius: 6px; }
+.kpi-value { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-delta { font-size: 9.5px; font-weight: 700; }
+.kpi-delta.up { color: var(--verde-card); }
+.kpi-delta.down { color: var(--vermelho); }
+
+.card-azul .valor { color: var(--azul-card); }
+.card-verde .valor { color: var(--verde-card); }
+.card-lilas .valor { color: var(--lilas-card); }
+.card-amarelo .valor { color: var(--amarelo-card); }
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+.panel {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cinza-borda);
+  margin-bottom: 14px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
+
+/* ============================================================
+   TABELAS
+   ============================================================ */
+.table-wrap { overflow-x: auto; margin: 0 -2px; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+table th { text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--cinza-claro); font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table td { padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table tr:last-child td { border-bottom: none; }
+table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px solid var(--cinza-borda); }
+
+/* ============================================================
+   CORES PARA VALORES NEGATIVOS E POSITIVOS
+   ============================================================ */
+.col-positivo { color: var(--verde-card); font-weight: 700; }
+.col-negativo { color: var(--vermelho); font-weight: 700; }
+.valor-negativo { color: var(--vermelho) !important; font-weight: 700; }
+.valor-positivo { color: var(--verde-card) !important; font-weight: 700; }
+.col-total { color: var(--azul-escuro); font-weight: 700; }
+.col-entrada { color: var(--azul-card); font-weight: 600; }
+.col-aporte { color: var(--verde-card); font-weight: 600; }
+.col-tx-adm { color: #b8790f; font-weight: 600; }
+.col-ir { color: var(--vermelho); font-weight: 600; }
+.col-liquido { color: #0000B8; font-weight: 700; }
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--fonte);
+}
+.btn-primary { background: var(--azul-card); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-ghost:hover { background: #f8f9fa; }
+.btn-success { background: var(--verde-card); color: #fff; }
+.btn-success:hover { opacity: 0.9; }
+.btn-danger { background: var(--vermelho); color: #fff; }
+.btn-danger:hover { opacity: 0.9; }
+.btn-sm { padding: 2px 6px; font-size: 7.5px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+.badge-success { background: #d4edda; color: #155724; }
+.badge-danger { background: #f8d7da; color: #721c24; }
+.badge-warning { background: #fff3cd; color: #856404; }
+.badge-info { background: #d1ecf1; color: #0c5460; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 12px; }
+.modal .form-group label { display: block; font-size: 9px; font-weight: 700; color: var(--cinza-claro); margin-bottom: 3px; }
+.modal .form-group input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+.modal .form-group input:focus { outline: none; border-color: var(--azul-card); }
+.modal .btn-group { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.modal .btn-group .btn { padding: 6px 16px; font-size: 10px; }
+.modal .info-text { font-size: 9px; color: var(--cinza-claro); background: #f8f9fa; padding: 8px 12px; border-radius: 6px; margin-top: 8px; }
+
+/* ============================================================
+   SELECT
+   ============================================================ */
+.select-cliente {
+  padding: 4px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 10px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+  font-weight: 600;
+}
+.select-cliente:focus { outline: none; border-color: var(--azul-card); }
+
+/* ============================================================
+   CHART CONTAINER
+   ============================================================ */
+.chart-container { position: relative; width: 100%; min-height: 200px; }
+
+/* ============================================================
+   INFO BOX
+   ============================================================ */
+.info-box {
+  font-size: 9px;
+  color: var(--cinza-claro);
+  background: #eef2f7;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ============================================================
+   CLIQUE PARA EDITAR
+   ============================================================ */
+.editable-cell {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.2s;
+  color: var(--azul-card);
+  font-weight: 600;
+}
+.editable-cell:hover { background: #eef2f7; }
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .sidebar { width: 56px; }
+  .sidebar .logo h1, .sidebar .logo small, .sidebar-nav li span, .sidebar-footer { display: none; }
+  .sidebar-nav li { justify-content: center; padding: 8px; }
+  .main { margin-left: 56px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .modal .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+   SIDEBAR
+   ============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CARTEIRA<span>PESSOAL</span></h1>
+    <small>GESTÃO PATRIMONIAL</small>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li class="grupo">GERAL</li>
+    <li onclick="window.location.href='/'"><span class="icone">📊</span> Dashboard</li>
+
+    <li class="grupo">CARTEIRAS</li>
+    <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
+    <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
+    <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+
+    <li class="grupo">GESTÃO</li>
+    <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
+    <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
+    <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
+    <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
+    <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
+</ul>
+
+  <div class="sidebar-footer">
+    <div class="label">Patrimônio Total</div>
+    <div class="valor">R$ 178.605,56</div>
+    <div class="delta">↑ 18,96% no ano</div>
+  </div>
+</aside>
+
+<!-- ============================================================
+   MODAL: EDITAR APORTE OU TAXA
+   ============================================================ -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <h2 id="modalEditarTitle">✏️ Editar</h2>
+    <form id="formEditar">
+      <input type="hidden" id="editClienteId">
+      <input type="hidden" id="editMesIndex">
+      <input type="hidden" id="editCampo">
+      <div class="form-group">
+        <label id="editLabel">Valor</label>
+        <input type="number" id="editValor" step="0.01" min="0">
+      </div>
+      <div class="info-text" id="editInfo">Digite o novo valor para este campo.</div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalEditar()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ -->
+<main class="main">
+
+  <header class="topbar">
+    <div class="logo-img">📅</div>
+    <div>
+      <h2>Histórico Mensal</h2>
+      <p>Acompanhamento mensal do patrimônio por cliente</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="usuario">
+      <div class="avatar">RS</div>
+      <div>
+        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- SELETOR DE CLIENTE E ANO -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>📊 Cliente:
+          <select id="selectCliente" class="select-cliente" onchange="carregarCliente()">
+            <!-- Será preenchido dinamicamente -->
+          </select>
+          &nbsp;&nbsp;Ano:
+          <select id="selectAno" class="select-cliente" onchange="carregarCliente()">
+            <option value="2024">2024</option>
+            <option value="2025" selected>2025</option>
+            <option value="2026">2026</option>
+          </select>
+        </h3>
+        <div>
+          <button class="btn btn-ghost" onclick="exportarHistorico()">📤 Exportar</button>
+          <button class="btn btn-ghost" onclick="recarregarDados()">🔄 Recarregar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" id="kpiCliente">
+      <div class="kpi-card card-azul">
+        <div class="kpi-top">
+          <span class="kpi-label">Resultado Mensal</span>
+          <span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">📈</span>
+        </div>
+        <div class="kpi-value" style="color:var(--azul-card);" id="resultadoMensalPct">0,00%</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);" id="resultadoMensalValor">R$ 0,00</div>
+      </div>
+      <div class="kpi-card card-verde">
+        <div class="kpi-top">
+          <span class="kpi-label">Cotas</span>
+          <span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">🪙</span>
+        </div>
+        <div class="kpi-value" style="color:var(--verde-card);" id="totalCotas">0,0000</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);" id="valorCotas">R$ 0,00</div>
+      </div>
+      <div class="kpi-card card-lilas">
+        <div class="kpi-top">
+          <span class="kpi-label">Patrimônio Líquido</span>
+          <span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">💰</span>
+        </div>
+        <div class="kpi-value" style="color:var(--lilas-card);" id="patrimonioLiquido">R$ 0,00</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);" id="patrimonioBruto">R$ 0,00</div>
+      </div>
+      <div class="kpi-card card-amarelo">
+        <div class="kpi-top">
+          <span class="kpi-label">Tx. Adm. + I.R.</span>
+          <span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">📊</span>
+        </div>
+        <div class="kpi-value" style="color:#b8790f;" id="totalTxAdmIR">R$ 0,00</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);" id="totalTxAdm">Tx. Adm: R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Histórico Mensal <small id="clienteNome">Carregando...</small></h3>
+        <div>
+          <span style="font-size:8px;color:var(--cinza-claro);">Clique nos valores em <strong style="color:var(--azul-card);">azul</strong> para editar</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Entrada</th>
+              <th>Aporte</th>
+              <th>Tx./Mês</th>
+              <th>Total</th>
+              <th>Tx. Adm.</th>
+              <th>I.R. (20%)</th>
+              <th>Líquido</th>
+              <th>Tx. Nominal</th>
+            </tr>
+          </thead>
+          <tbody id="historicoTableBody">
+            <tr><td colspan="9" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum dado disponível.</td></tr>
+          </tbody>
+          <tfoot id="historicoTableFoot">
+            <tr class="total-row">
+              <td><strong>T. GERAL</strong></td>
+              <td id="totalEntrada"><strong>R$ 0,00</strong></td>
+              <td id="totalAporte"><strong>R$ 0,00</strong></td>
+              <td></td>
+              <td id="totalResultado"><strong>R$ 0,00</strong></td>
+              <td id="totalTxAdmFoot"><strong>R$ 0,00</strong></td>
+              <td id="totalIRFoot"><strong>R$ 0,00</strong></td>
+              <td id="totalLiquidoFoot"><strong>R$ 0,00</strong></td>
+              <td id="totalTxNominalFoot"><strong>0,00%</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h3>Evolução do Patrimônio</h3></div>
+        <div class="chart-container"><canvas id="chartEvolucao" height="220"></canvas></div>
+        <div class="info-box"><span>ℹ️</span><div>Evolução mensal do patrimônio líquido do cliente.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Composição do Rendimento</h3></div>
+        <div class="chart-container"><canvas id="chartComposicao" height="220"></canvas></div>
+        <div class="info-box"><span>ℹ️</span><div>Distribuição do rendimento total entre Líquido, Tx. Adm. e I.R.</div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ============================================================
+// DADOS DOS CLIENTES - CARREGAR DO LOCALSTORAGE
+// ============================================================
+var meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+// ============================================================
+// DADOS INICIAIS DOS CLIENTES (FIXOS)
+// ============================================================
+var dadosClientesIniciais = {
+    vitoria: {
+        nome: "Vitória Simieri",
+        b5: 175253.61,
+        b17: 178605.56,
+        valorInicial: 85814.40,
+        dados: [
+            [85814.40, 722.66, 2.7907, 2394.82, 1197.41, 239.48, 957.93, 1.12],
+            [87523.17, 750.84, 2.5490, 2230.93, 1115.47, 223.09, 892.37, 1.02],
+            [89166.38, 750.84, 4.1515, 3701.76, 1850.88, 370.18, 1480.70, 1.66],
+            [91397.92, 750.84, 3.1911, 2916.58, 1458.29, 291.66, 1166.63, 1.28],
+            [93087.36, 522.80, 3.2135, 2991.34, 1495.67, 299.13, 1196.53, 1.29],
+            [94549.48, 265.59, 3.0640, 2897.03, 1448.51, 289.70, 1158.81, 1.23],
+            [96459.13, 750.84, 0, 0, 0, 0, 0, 0],
+            [96459.13, 0, 0, 0, 0, 0, 0, 0],
+            [96459.13, 0, 0, 0, 0, 0, 0, 0],
+            [96459.13, 0, 0, 0, 0, 0, 0, 0],
+            [96459.13, 0, 0, 0, 0, 0, 0, 0],
+            [96459.13, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    },
+    rogerio: {
+        nome: "Rogério Simieri",
+        b5: 175253.61,
+        b17: 178605.56,
+        valorInicial: 50958.37,
+        dados: [
+            [50958.37, -3700.00, 2.7907, 1422.09, 711.05, 142.21, 568.84, 1.12],
+            [51268.30, -2856.35, 2.5490, 1306.81, 653.41, 130.68, 522.73, 1.02],
+            [51378.85, -2824.83, 4.1515, 2133.00, 1066.50, 213.30, 853.20, 1.66],
+            [52147.17, -4058.55, 3.1911, 1664.06, 832.03, 166.41, 665.63, 1.28],
+            [54218.25, -1716.37, 3.2135, 1742.29, 871.15, 174.23, 696.92, 1.29],
+            [57568.91, -577.77, 3.0640, 1763.93, 881.97, 176.39, 705.57, 1.23],
+            [59139.33, -2319.08, 0, 0, 0, 0, 0, 0],
+            [59200.78, 61.45, 0, 0, 0, 0, 0, 0],
+            [59200.78, 0, 0, 0, 0, 0, 0, 0],
+            [59200.78, 0, 0, 0, 0, 0, 0, 0],
+            [59200.78, 0, 0, 0, 0, 0, 0, 0],
+            [59200.78, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    },
+    manuella: {
+        nome: "Manuella Cardoso",
+        b5: 175253.61,
+        b17: 178605.56,
+        valorInicial: 6230.46,
+        dados: [
+            [6230.46, 72.27, 2.7907, 173.87, 86.94, 17.39, 69.55, 1.12],
+            [6375.09, 75.08, 2.5490, 162.50, 81.25, 16.25, 65.00, 1.02],
+            [6515.17, 75.08, 4.1515, 270.48, 135.24, 27.05, 108.19, 1.66],
+            [6698.44, 75.08, 3.1911, 213.75, 106.88, 21.38, 85.50, 1.28],
+            [6896.57, 112.63, 3.2135, 221.62, 110.81, 22.16, 88.65, 1.29],
+            [7097.85, 112.63, 3.0640, 217.48, 108.74, 21.75, 86.99, 1.23],
+            [7259.92, 75.08, 0, 0, 0, 0, 0, 0],
+            [7259.92, 0, 0, 0, 0, 0, 0, 0],
+            [7259.92, 0, 0, 0, 0, 0, 0, 0],
+            [7259.92, 0, 0, 0, 0, 0, 0, 0],
+            [7259.92, 0, 0, 0, 0, 0, 0, 0],
+            [7259.92, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    },
+    joao: {
+        nome: "João Paulo Simieri",
+        b5: 175253.61,
+        b17: 178605.56,
+        valorInicial: 27.09,
+        dados: [
+            [27.09, 0, 2.7907, 0.76, 0.38, 0.08, 0.30, 1.12],
+            [27.39, 0, 2.5490, 0.70, 0.35, 0.07, 0.28, 1.02],
+            [27.67, 0, 4.1515, 1.15, 0.57, 0.11, 0.46, 1.66],
+            [28.13, 0, 3.1911, 0.90, 0.45, 0.09, 0.36, 1.28],
+            [28.49, 0, 3.2135, 0.92, 0.46, 0.09, 0.37, 1.29],
+            [28.86, 0, 3.0640, 0.88, 0.44, 0.09, 0.35, 1.23],
+            [29.21, 0, 0, 0, 0, 0, 0, 0],
+            [29.21, 0, 0, 0, 0, 0, 0, 0],
+            [29.21, 0, 0, 0, 0, 0, 0, 0],
+            [29.21, 0, 0, 0, 0, 0, 0, 0],
+            [29.21, 0, 0, 0, 0, 0, 0, 0],
+            [29.21, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    },
+    pedro: {
+        nome: "Pedro Henrique Simieri",
+        b5: 175253.61,
+        b17: 178605.56,
+        valorInicial: 1396.04,
+        dados: [
+            [1396.04, 108.40, 2.7907, 38.96, 19.48, 3.90, 15.58, 1.12],
+            [1524.25, 112.63, 2.5490, 38.85, 19.43, 3.89, 15.54, 1.02],
+            [1000.00, -539.79, 4.1515, 41.52, 20.76, 4.15, 16.61, 1.66],
+            [1129.24, 112.63, 3.1911, 36.03, 18.02, 3.60, 14.41, 1.28],
+            [1312.59, 168.94, 3.2135, 42.18, 21.09, 4.22, 16.87, 1.29],
+            [1498.41, 168.94, 3.0640, 45.91, 22.96, 4.59, 18.36, 1.23],
+            [1504.40, -12.37, 0, 0, 0, 0, 0, 0],
+            [1504.40, 0, 0, 0, 0, 0, 0, 0],
+            [1504.40, 0, 0, 0, 0, 0, 0, 0],
+            [1504.40, 0, 0, 0, 0, 0, 0, 0],
+            [1504.40, 0, 0, 0, 0, 0, 0, 0],
+            [1504.40, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    },
+    josepha: {
+        nome: "Josepha Simieri",
+        b5: 175253.61,
+        b17: 178605.56,
+        valorInicial: 10698.91,
+        dados: [
+            [10698.91, 96.67, 2.7907, 298.57, 149.29, 29.86, 119.43, 1.12],
+            [11036.14, 217.80, 2.5490, 281.31, 140.65, 28.13, 112.52, 1.02],
+            [11438.66, 290.00, 4.1515, 474.88, 237.44, 47.49, 189.95, 1.66],
+            [11648.61, 20.00, 3.1911, 371.72, 185.86, 37.17, 148.69, 1.28],
+            [12059.30, 262.00, 3.2135, 387.52, 193.76, 38.75, 155.01, 1.29],
+            [12444.92, 230.61, 3.0640, 381.32, 190.66, 38.13, 152.53, 1.23],
+            [10800.17, -1797.28, 0, 0, 0, 0, 0, 0],
+            [10800.17, 0, 0, 0, 0, 0, 0, 0],
+            [10800.17, 0, 0, 0, 0, 0, 0, 0],
+            [10800.17, 0, 0, 0, 0, 0, 0, 0],
+            [10800.17, 0, 0, 0, 0, 0, 0, 0],
+            [10800.17, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    }
+};
+
+// ============================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================
+var dadosClientes = {};
+var clienteAtual = 'vitoria';
+var anoAtual = 2025;
+var chartEvolucao = null;
+var chartComposicao = null;
+
+// ============================================================
+// FUNÇÃO fmtMoeda CORRIGIDA - VALORES NEGATIVOS EM VERMELHO
+// ============================================================
+function fmtMoeda(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
+    var negativo = valor < 0;
+    var abs = Math.abs(valor);
+    var formatado = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (negativo) {
+        return '-R$ ' + formatado;
+    }
+    return 'R$ ' + formatado;
+}
+
+// ============================================================
+// CARREGAR DADOS DO LOCALSTORAGE
+// ============================================================
+function carregarDadosDoLocalStorage() {
+    // 1. Primeiro, carregar os dados fixos
+    dadosClientes = JSON.parse(JSON.stringify(dadosClientesIniciais));
+    
+    // 2. Tentar carregar dados salvos do localStorage
+    var salvos = localStorage.getItem('dadosClientes');
+    if (salvos) {
+        try {
+            var parsed = JSON.parse(salvos);
+            for (var key in dadosClientes) {
+                if (parsed[key] && parsed[key].dados) {
+                    for (var i = 0; i < dadosClientes[key].dados.length; i++) {
+                        if (parsed[key].dados[i]) {
+                            dadosClientes[key].dados[i] = parsed[key].dados[i];
+                        }
+                    }
+                    if (parsed[key].valorInicial !== undefined) {
+                        dadosClientes[key].valorInicial = parsed[key].valorInicial;
+                    }
+                }
+            }
+            console.log('📂 Dados carregados do localStorage');
+        } catch(e) {
+            console.warn('Erro ao carregar dados salvos:', e);
+        }
+    }
+    
+    // 3. ============================================================
+    // INTEGRAÇÃO COM O MÓDULO CLIENTES
+    // ============================================================
+    var clientesSalvos = localStorage.getItem('clientes');
+    if (clientesSalvos) {
+        try {
+            var listaClientes = JSON.parse(clientesSalvos);
+            console.log('📂 Clientes encontrados:', listaClientes.length);
+            
+            for (var i = 0; i < listaClientes.length; i++) {
+                var c = listaClientes[i];
+                // Criar uma chave única para o cliente
+                var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
+                
+                // Verificar se o cliente já existe no sistema
+                if (!dadosClientes[key]) {
+                    // Criar um novo cliente com dados padrão
+                    dadosClientes[key] = {
+                        nome: c.nome,
+                        b5: 175253.61,
+                        b17: 178605.56,
+                        valorInicial: c.valorInicial || 0,
+                        dados: []
+                    };
+                    
+                    // Inicializar 12 meses com dados padrão
+                    for (var mes = 0; mes < 12; mes++) {
+                        dadosClientes[key].dados.push([
+                            c.valorInicial || 0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ]);
+                    }
+                    
+                    console.log('🆕 Novo cliente integrado:', c.nome, 'chave:', key);
+                }
+            }
+            
+            // Salvar os dados integrados no localStorage
+            salvarDadosClientes();
+            
+        } catch(e) {
+            console.warn('Erro ao integrar clientes:', e);
+        }
+    }
+    
+    // 4. Atualizar o seletor de clientes
+    atualizarSeletorClientes();
+    
+    console.log('📂 Total de clientes carregados:', Object.keys(dadosClientes).length);
+}
+
+// ============================================================
+// ATUALIZAR SELETOR DE CLIENTES
+// ============================================================
+function atualizarSeletorClientes() {
+    var select = document.getElementById('selectCliente');
+    if (!select) return;
+    
+    var html = '';
+    var keys = Object.keys(dadosClientes);
+    var clienteSelecionado = clienteAtual || keys[0] || 'vitoria';
+    
+    for (var i = 0; i < keys.length; i++) {
+        var c = dadosClientes[keys[i]];
+        if (c && c.nome) {
+            var selected = (keys[i] === clienteSelecionado) ? 'selected' : '';
+            html += '<option value="' + keys[i] + '" ' + selected + '>' + c.nome + '</option>';
+        }
+    }
+    
+    select.innerHTML = html;
+    clienteAtual = clienteSelecionado;
+}
+
+// ============================================================
+// SALVAR DADOS NO LOCALSTORAGE
+// ============================================================
+function salvarDadosClientes() {
+    try {
+        localStorage.setItem('dadosClientes', JSON.stringify(dadosClientes));
+        console.log('✅ Dados salvos no localStorage');
+    } catch(e) {
+        console.warn('Erro ao salvar dados:', e);
+    }
+}
+
+// ============================================================
+// FUNÇÕES AUXILIARES
+// ============================================================
+function fmtPct(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,00%';
+    return (valor > 0 ? '+' : '') + valor.toFixed(2) + '%';
+}
+
+function fmtNum(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,0000';
+    return valor.toFixed(4);
+}
+
+// ============================================================
+// CÁLCULOS
+// ============================================================
+function calcularHistorico(cliente, ano) {
+    var dados = cliente.dados;
+    var b5 = cliente.b5 || 175253.61;
+    var b17 = cliente.b17 || 0;
+    var resultado = [];
+    var totalEntrada = 0;
+    var totalAporte = 0;
+    var totalTxAdm = 0;
+    var totalIR = 0;
+    var totalLiquido = 0;
+    var entradaInicial = 0;
+    
+    // Determinar quantos meses mostrar com base no ano
+    var mesesCount = 12;
+    
+    for (var i = 0; i < mesesCount && i < dados.length; i++) {
+        var entrada = dados[i][0] || 0;
+        var aporte = dados[i][1] || 0;
+        var txMes = dados[i][2] || 0;
+        var total = dados[i][3] || 0;
+        var txAdm = dados[i][4] || 0;
+        var ir = dados[i][5] || 0;
+        var liquido = dados[i][6] || 0;
+        var txNominal = dados[i][7] || 0;
+        
+        if (i === 0) entradaInicial = entrada;
+        totalEntrada = entrada;
+        totalAporte += aporte;
+        totalTxAdm += txAdm;
+        totalIR += ir;
+        totalLiquido += liquido;
+        
+        resultado.push({
+            mes: meses[i],
+            entrada: entrada,
+            aporte: aporte,
+            txMes: txMes,
+            total: total,
+            txAdm: txAdm,
+            ir: ir,
+            liquido: liquido,
+            txNominal: txNominal
+        });
+    }
+    
+    var b78 = resultado.length > 0 ? resultado[resultado.length - 1].entrada : 0;
+    
+    var cotas = b78 / b5;
+    var patrimonioLiquido = cotas * b17;
+    
+    var resultadoMensalPct = 0;
+    var resultadoMensalValor = 0;
+    if (b78 > 0) {
+        resultadoMensalPct = (patrimonioLiquido / b78) - 1;
+        resultadoMensalValor = patrimonioLiquido - b78;
+    }
+    
+    var totalTxAdmIR = totalTxAdm + totalIR;
+    
+    var txNominalTotal = entradaInicial > 0 ? ((patrimonioLiquido - entradaInicial) / entradaInicial * 100) : 0;
+    
+    return {
+        resultado: resultado,
+        resultadoMensalPct: resultadoMensalPct * 100,
+        resultadoMensalValor: resultadoMensalValor,
+        b78: b78,
+        cotas: cotas,
+        patrimonio: patrimonioLiquido,
+        totalAporte: totalAporte,
+        totalTxAdm: totalTxAdm,
+        totalIR: totalIR,
+        totalLiquido: totalLiquido,
+        totalTxAdmIR: totalTxAdmIR,
+        txNominalTotal: txNominalTotal,
+        entradaInicial: entradaInicial
+    };
+}
+
+// ============================================================
+// RENDERIZAÇÃO
+// ============================================================
+function carregarCliente() {
+    var select = document.getElementById('selectCliente');
+    var selectAno = document.getElementById('selectAno');
+    clienteAtual = select.value;
+    anoAtual = parseInt(selectAno.value);
+    renderizarCliente();
+}
+
+function renderizarCliente() {
+    var cliente = dadosClientes[clienteAtual];
+    if (!cliente) {
+        document.getElementById('clienteNome').textContent = 'Cliente não encontrado';
+        return;
+    }
+    
+    document.getElementById('clienteNome').textContent = cliente.nome;
+    var calc = calcularHistorico(cliente, anoAtual);
+    
+    // Atualiza KPIs com cores
+    document.getElementById('resultadoMensalPct').textContent = fmtPct(calc.resultadoMensalPct);
+    document.getElementById('resultadoMensalPct').style.color = calc.resultadoMensalPct >= 0 ? '#28a745' : '#dc3545';
+    
+    document.getElementById('resultadoMensalValor').textContent = fmtMoeda(calc.resultadoMensalValor);
+    document.getElementById('resultadoMensalValor').style.color = calc.resultadoMensalValor >= 0 ? '#28a745' : '#dc3545';
+    
+    document.getElementById('totalCotas').textContent = fmtNum(calc.cotas);
+    document.getElementById('valorCotas').textContent = fmtMoeda(calc.cotas * (cliente.b17 || 0));
+    document.getElementById('patrimonioLiquido').textContent = fmtMoeda(calc.patrimonio);
+    document.getElementById('patrimonioBruto').textContent = 'B17: ' + fmtMoeda(cliente.b17 || 0);
+    document.getElementById('totalTxAdmIR').textContent = fmtMoeda(calc.totalTxAdmIR);
+    document.getElementById('totalTxAdm').textContent = 'Tx. Adm: ' + fmtMoeda(calc.totalTxAdm);
+    
+    var tbody = document.getElementById('historicoTableBody');
+    var html = '';
+    for (var i = 0; i < calc.resultado.length; i++) {
+        var r = calc.resultado[i];
+        
+        // Formata os valores
+        var entradaDisplay = fmtMoeda(r.entrada);
+        var aporteDisplay = fmtMoeda(r.aporte);
+        var totalDisplay = fmtMoeda(r.total);
+        var txAdmDisplay = fmtMoeda(r.txAdm);
+        var irDisplay = fmtMoeda(r.ir);
+        var liquidoDisplay = fmtMoeda(r.liquido);
+        var txNominalDisplay = fmtPct(r.txNominal);
+        
+        // Define as classes de cor
+        var clsEntrada = r.entrada >= 0 ? 'col-entrada' : 'valor-negativo';
+        var clsAporte = r.aporte >= 0 ? 'col-aporte' : 'valor-negativo';
+        var clsTotal = r.total >= 0 ? 'col-total' : 'valor-negativo';
+        var clsTxAdm = r.txAdm >= 0 ? 'col-tx-adm' : 'valor-negativo';
+        var clsIr = r.ir >= 0 ? 'col-ir' : 'valor-negativo';
+        var clsLiquido = r.liquido >= 0 ? 'col-positivo' : 'valor-negativo';
+        var clsNominal = r.txNominal >= 0 ? 'col-positivo' : 'valor-negativo';
+        
+        html += '<tr>' +
+            '<td class="col-total">' + r.mes + '</td>' +
+            '<td class="' + clsEntrada + '">' + entradaDisplay + '</td>' +
+            '<td class="' + clsAporte + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'aporte\')">' + aporteDisplay + '</span></td>' +
+            '<td class="col-total"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')">' + fmtPct(r.txMes) + '</span></td>' +
+            '<td class="' + clsTotal + '">' + totalDisplay + '</td>' +
+            '<td class="' + clsTxAdm + '">' + txAdmDisplay + '</td>' +
+            '<td class="' + clsIr + '">' + irDisplay + '</td>' +
+            '<td class="' + clsLiquido + '">' + liquidoDisplay + '</td>' +
+            '<td class="' + clsNominal + '">' + txNominalDisplay + '</td>' +
+        '</tr>';
+    }
+    tbody.innerHTML = html;
+    
+    // Rodapé com cores
+    var totalResultado = calc.resultado.reduce(function(s, r) { return s + r.total; }, 0);
+    
+    var clsTotalEntrada = calc.b78 >= 0 ? 'col-entrada' : 'valor-negativo';
+    var clsTotalAporte = calc.totalAporte >= 0 ? 'col-aporte' : 'valor-negativo';
+    var clsTotalResultado = totalResultado >= 0 ? 'col-total' : 'valor-negativo';
+    var clsTotalTxAdm = calc.totalTxAdm >= 0 ? 'col-tx-adm' : 'valor-negativo';
+    var clsTotalIR = calc.totalIR >= 0 ? 'col-ir' : 'valor-negativo';
+    var clsTotalLiquido = calc.totalLiquido >= 0 ? 'col-positivo' : 'valor-negativo';
+    var clsTotalNominal = calc.txNominalTotal >= 0 ? 'col-positivo' : 'valor-negativo';
+    
+    document.getElementById('totalEntrada').innerHTML = '<strong class="' + clsTotalEntrada + '">' + fmtMoeda(calc.b78) + '</strong>';
+    document.getElementById('totalAporte').innerHTML = '<strong class="' + clsTotalAporte + '">' + fmtMoeda(calc.totalAporte) + '</strong>';
+    document.getElementById('totalResultado').innerHTML = '<strong class="' + clsTotalResultado + '">' + fmtMoeda(totalResultado) + '</strong>';
+    document.getElementById('totalTxAdmFoot').innerHTML = '<strong class="' + clsTotalTxAdm + '">' + fmtMoeda(calc.totalTxAdm) + '</strong>';
+    document.getElementById('totalIRFoot').innerHTML = '<strong class="' + clsTotalIR + '">' + fmtMoeda(calc.totalIR) + '</strong>';
+    document.getElementById('totalLiquidoFoot').innerHTML = '<strong class="' + clsTotalLiquido + '">' + fmtMoeda(calc.totalLiquido) + '</strong>';
+    document.getElementById('totalTxNominalFoot').innerHTML = '<strong class="' + clsTotalNominal + '">' + fmtPct(calc.txNominalTotal) + '</strong>';
+    
+    atualizarGraficos(cliente, calc);
+}
+
+// ============================================================
+// GRÁFICOS
+// ============================================================
+function atualizarGraficos(cliente, calc) {
+    if (typeof Chart === 'undefined') return;
+    
+    var ctxEvolucao = document.getElementById('chartEvolucao');
+    if (ctxEvolucao) {
+        if (chartEvolucao) { chartEvolucao.destroy(); chartEvolucao = null; }
+        var labels = [], data = [];
+        for (var i = 0; i < calc.resultado.length; i++) {
+            labels.push(meses[i].substring(0, 3));
+            data.push(calc.resultado[i].entrada);
+        }
+        try {
+            chartEvolucao = new Chart(ctxEvolucao, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Patrimônio',
+                        data: data,
+                        borderColor: '#2d6fb0',
+                        backgroundColor: 'rgba(45, 111, 176, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#2d6fb0'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return fmtMoeda(context.parsed.y); } } } },
+                    scales: {
+                        y: { ticks: { callback: function(value) { return fmtMoeda(value); }, font: { size: 8 } }, grid: { color: '#e6e9f2' } },
+                        x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+                    }
+                }
+            });
+        } catch(e) { console.warn('Erro gráfico evolução:', e); }
+    }
+    
+    var ctxComposicao = document.getElementById('chartComposicao');
+    if (ctxComposicao) {
+        if (chartComposicao) { chartComposicao.destroy(); chartComposicao = null; }
+        var totalGeral = calc.totalLiquido + calc.totalTxAdm + calc.totalIR;
+        if (totalGeral > 0) {
+            try {
+                chartComposicao = new Chart(ctxComposicao, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Líquido', 'Tx. Administração', 'I.R. (20%)'],
+                        datasets: [{ data: [calc.totalLiquido, calc.totalTxAdm, calc.totalIR], backgroundColor: ['#28a745', '#b8790f', '#dc3545'], borderWidth: 0 }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '60%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 12 } },
+                            tooltip: { callbacks: { label: function(context) {
+                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0;
+                                return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct + '%)';
+                            } } }
+                        }
+                    }
+                });
+            } catch(e) { console.warn('Erro gráfico composição:', e); }
+        }
+    }
+}
+
+// ============================================================
+// MODAL EDITAR
+// ============================================================
+var editIndex = -1;
+var editCampo = '';
+
+function abrirModalEditar(index, campo) {
+    editIndex = index;
+    editCampo = campo;
+    var cliente = dadosClientes[clienteAtual];
+    var dados = cliente.dados[index];
+    
+    if (index === 0 && campo === 'aporte') {
+        alert('⚠️ O valor de Janeiro é o VALOR INICIAL do cliente e não pode ser alterado aqui.\n\nPara alterar o valor inicial, edite o cliente no módulo "Clientes".');
+        return;
+    }
+    
+    document.getElementById('editClienteId').value = clienteAtual;
+    document.getElementById('editMesIndex').value = index;
+    document.getElementById('editCampo').value = campo;
+    
+    var titulo = campo === 'aporte' ? '✏️ Editar Aporte' : '✏️ Editar Tx./Mês';
+    document.getElementById('modalEditarTitle').textContent = titulo;
+    var label = campo === 'aporte' ? 'Valor do Aporte (R$)' : 'Taxa do Mês (%)';
+    document.getElementById('editLabel').textContent = label;
+    var valorAtual = campo === 'aporte' ? dados[1] : dados[2];
+    document.getElementById('editValor').value = valorAtual;
+    var mes = meses[index];
+    document.getElementById('editInfo').textContent = (campo === 'aporte' ? 'Digite o novo valor de aporte para ' : 'Digite a nova taxa para ') + mes + '.';
+    
+    document.getElementById('modalEditar').classList.add('active');
+    document.getElementById('editValor').focus();
+}
+
+function fecharModalEditar() {
+    document.getElementById('modalEditar').classList.remove('active');
+    editIndex = -1;
+    editCampo = '';
+}
+
+document.getElementById('formEditar').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var clienteId = document.getElementById('editClienteId').value;
+    var index = parseInt(document.getElementById('editMesIndex').value);
+    var campo = document.getElementById('editCampo').value;
+    var valor = parseFloat(document.getElementById('editValor').value);
+    
+    if (isNaN(valor)) { alert('Digite um valor válido.'); return; }
+    var cliente = dadosClientes[clienteId];
+    if (!cliente) { alert('Cliente não encontrado.'); return; }
+    
+    if (index === 0 && campo === 'aporte') {
+        alert('⚠️ O valor de Janeiro é o VALOR INICIAL do cliente e não pode ser alterado aqui.');
+        return;
+    }
+    
+    if (campo === 'aporte') { 
+        cliente.dados[index][1] = valor;
+    } else if (campo === 'txMes') { 
+        cliente.dados[index][2] = valor;
+    }
+    
+    var entrada = cliente.dados[index][0] || 0;
+    var aporte = cliente.dados[index][1] || 0;
+    var txMes = cliente.dados[index][2] || 0;
+    var total = entrada * (txMes / 100);
+    var txAdm = total / 2;
+    var ir = txAdm * 0.2;
+    var liquido = total - txAdm - ir;
+    var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
+    
+    cliente.dados[index][3] = total;
+    cliente.dados[index][4] = txAdm;
+    cliente.dados[index][5] = ir;
+    cliente.dados[index][6] = liquido;
+    cliente.dados[index][7] = txNominal;
+    
+    if (index < cliente.dados.length - 1) {
+        var proxEntrada = cliente.dados[index][0] + cliente.dados[index][1];
+        cliente.dados[index + 1][0] = proxEntrada;
+    }
+    
+    for (var i = index + 1; i < cliente.dados.length; i++) {
+        var entradaAtual = cliente.dados[i][0] || 0;
+        var aporteAtual = cliente.dados[i][1] || 0;
+        var txMesAtual = cliente.dados[i][2] || 0;
+        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
+        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual;
+        var totalAtual = cliente.dados[i][0] * (txMesAtual / 100);
+        var txAdmAtual = totalAtual / 2;
+        var irAtual = txAdmAtual * 0.2;
+        var liquidoAtual = totalAtual - txAdmAtual - irAtual;
+        var txNominalAtual = cliente.dados[i][0] > 0 ? (liquidoAtual / cliente.dados[i][0] * 100) : 0;
+        cliente.dados[i][3] = totalAtual;
+        cliente.dados[i][4] = txAdmAtual;
+        cliente.dados[i][5] = irAtual;
+        cliente.dados[i][6] = liquidoAtual;
+        cliente.dados[i][7] = txNominalAtual;
+    }
+    
+    salvarDadosClientes();
+    fecharModalEditar();
+    renderizarCliente();
+    alert('✅ Dados atualizados com sucesso!');
+});
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharModalEditar(); });
+document.getElementById('modalEditar').addEventListener('click', function(e) { if (e.target === this) fecharModalEditar(); });
+
+// ============================================================
+// EXPORTAR
+// ============================================================
+function exportarHistorico() {
+    var cliente = dadosClientes[clienteAtual];
+    if (!cliente) return;
+    var calc = calcularHistorico(cliente, anoAtual);
+    var csv = 'Mês,Entrada,Aporte,Tx./Mês,Total,Tx. Adm.,I.R. (20%),Líquido,Tx. Nominal\n';
+    for (var i = 0; i < calc.resultado.length; i++) {
+        var r = calc.resultado[i];
+        csv += r.mes + ',' + r.entrada.toFixed(2) + ',' + r.aporte.toFixed(2) + ',' + r.txMes.toFixed(4) + ',' + r.total.toFixed(2) + ',' + r.txAdm.toFixed(2) + ',' + r.ir.toFixed(2) + ',' + r.liquido.toFixed(2) + ',' + r.txNominal.toFixed(2) + '\n';
+    }
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'historico_' + cliente.nome.replace(' ', '_') + '_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+function recarregarDados() { 
+    carregarDadosDoLocalStorage();
+    renderizarCliente(); 
+    alert('✅ Dados recarregados com sucesso!'); 
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+carregarDadosDoLocalStorage();
+renderizarCliente();
+
+console.log('📅 Módulo Histórico Mensal carregado!');
+console.log('👤 Clientes disponíveis:', Object.keys(dadosClientes).length);
+console.log('🔗 Integração com módulo Clientes: ATIVADA');
+console.log('✅ Novos clientes são integrados automaticamente!');
+console.log('🔴 Valores negativos aparecem em VERMELHO!');
+</script>
+
+</body>
+</html>

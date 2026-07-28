@@ -1,0 +1,3353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carteira Pessoal · Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   FONTE
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul-escuro: #0c1b33;
+  --azul-card: #2d6fb0;
+  --azul-claro: #4a8fd4;
+  --verde-card: #28a745;
+  --lilas-card: #6f42c1;
+  --amarelo-card: #ffc107;
+  --cinza-fundo: #f0f2f5;
+  --branco: #ffffff;
+  --cinza-borda: #dce1e8;
+  --cinza-texto: #495057;
+  --cinza-claro: #6c757d;
+  --vermelho: #dc3545;
+  --fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Aptos Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fonte);
+  font-size: 11px;
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: 210px;
+  min-height: 100vh;
+  background: var(--azul-escuro);
+  color: #b0c4de;
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo h1 span { color: var(--azul-card); }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+
+.sidebar-nav { list-style: none; padding: 0 10px; }
+.sidebar-nav li {
+  padding: 6px 10px;
+  margin: 1px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8aa3c9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-nav li:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-nav li.active { background: var(--azul-card); color: #fff; }
+.sidebar-nav li .icone { font-size: 12px; width: 16px; text-align: center; }
+.sidebar-nav .grupo { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #4a6a8f; padding: 10px 10px 3px; font-weight: 700; }
+.sidebar-nav .sub { padding-left: 26px; font-size: 9.5px; }
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer .label { font-size: 8px; color: #5a7a9e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-footer .valor { font-size: 14px; font-weight: 800; color: #fff; }
+.sidebar-footer .delta { font-size: 9px; color: var(--verde-card); font-weight: 600; }
+
+/* ============================================================
+   TOPBAR COM LOGO
+   ============================================================ */
+.topbar {
+  background: var(--branco);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--cinza-borda);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar .logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-card);
+}
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
+.topbar .spacer { flex: 1; }
+.topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
+.topbar .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-card); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+/* ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ */
+.main { margin-left: 210px; padding: 0; min-height: 100vh; }
+.content { padding: 14px 20px 32px; }
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi-card {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--cinza-borda);
+}
+.kpi-card .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-card .valor { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-card .delta { font-size: 9.5px; font-weight: 700; }
+.kpi-card .delta small { font-weight: 400; color: var(--cinza-claro); }
+
+.kpi-top { display: flex; justify-content: space-between; align-items: center; }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-ic { font-size: 14px; padding: 4px 8px; border-radius: 6px; }
+.kpi-value { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-delta { font-size: 9.5px; font-weight: 700; }
+.kpi-delta.up { color: var(--verde-card); }
+.kpi-delta.down { color: var(--vermelho); }
+
+.card-azul .valor { color: var(--azul-card); }
+.card-azul .delta { color: var(--azul-card); }
+.card-verde .valor { color: var(--verde-card); }
+.card-verde .delta { color: var(--verde-card); }
+.card-lilas .valor { color: var(--lilas-card); }
+.card-lilas .delta { color: var(--lilas-card); }
+.card-amarelo .valor { color: var(--amarelo-card); }
+.card-amarelo .delta { color: var(--amarelo-card); }
+
+.verde { color: var(--verde-card); }
+.vermelho { color: var(--vermelho); }
+.azul-escuro { color: var(--azul-escuro); }
+.azul-claro { color: var(--azul-claro); }
+.azul-card { color: var(--azul-card); }
+
+/* ============================================================
+   GRID PRINCIPAL - NOVO LAYOUT
+   ============================================================ */
+.dash-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cinza-borda);
+}
+
+.panel-titulo {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--azul-escuro);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.panel-titulo small {
+  font-weight: 400;
+  color: var(--cinza-claro);
+  font-size: 8.5px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
+
+/* ============================================================
+   GRÁFICOS SVG
+   ============================================================ */
+.chart-svg {
+  width: 100%;
+  height: 120px;
+}
+
+.chart-svg-donut {
+  width: 130px;
+  height: 130px;
+}
+
+.donut-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.donut-legend {
+  font-size: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.donut-legend .item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.donut-legend .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.donut-legend .pct {
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* ============================================================
+   TABELAS
+   ============================================================ */
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 -2px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5px;
+}
+
+table th {
+  text-align: left;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--cinza-claro);
+  font-weight: 700;
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--cinza-borda);
+  white-space: nowrap;
+}
+
+table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--cinza-borda);
+  white-space: nowrap;
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+table .total-row td {
+  font-weight: 700;
+  background: #f8f9fa;
+  border-top: 2px solid var(--cinza-borda);
+}
+
+/* CORES DA RENDA VARIÁVEL */
+.col-ativo { color: var(--azul-escuro); font-weight: 700; }
+.col-qtd { color: #000000; font-weight: 600; }
+.col-preco-medio { color: var(--vermelho); font-weight: 600; }
+.col-custo-total { color: var(--verde-card); font-weight: 600; }
+.col-preco-atual { color: var(--azul-card); font-weight: 600; }
+.col-valor-atual { color: #0000B8; font-weight: 600; }
+.col-positivo { color: var(--azul-card); font-weight: 700; }
+.col-negativo { color: var(--vermelho); font-weight: 700; }
+.col-porcentagem-positiva { color: var(--verde-card); font-weight: 700; }
+.col-porcentagem-negativa { color: var(--vermelho); font-weight: 700; }
+
+/* CORES DO HISTÓRICO MENSAL */
+.col-mes { color: var(--azul-escuro); font-weight: 700; }
+.col-entrada { color: var(--verde-card); font-weight: 700; }
+.col-aporte { color: var(--azul-claro); font-weight: 700; }
+.col-tx-mes { color: var(--verde-card); font-weight: 600; }
+.col-total { color: var(--azul-escuro); font-weight: 600; }
+.col-tx-adm { color: var(--vermelho); font-weight: 600; }
+.col-ir { color: var(--amarelo-card); font-weight: 600; }
+.col-liquido-positivo { color: #0000B8; font-weight: 700; }
+.col-liquido-negativo { color: var(--vermelho); font-weight: 700; }
+.col-tx-nominal { color: var(--verde-card); font-weight: 600; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+
+.badge-acao { background: #d4edda; color: #155724; }
+.badge-fii { background: #cce5ff; color: #004085; }
+.badge-etf { background: #fff3cd; color: #856404; }
+.badge-cdb { background: #d1ecf1; color: #0c5460; }
+
+/* ============================================================
+   HISTÓRICO MENSAL + RESUMO
+   ============================================================ */
+.resumo-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 12px;
+}
+
+.resumo-grid .panel {
+  background: var(--branco);
+}
+
+.panel-historico {
+  background: #f8fbff !important;
+  border-color: #d4e2f0 !important;
+}
+
+.panel-historico .panel-titulo {
+  color: var(--azul-escuro);
+}
+
+.panel-historico table th {
+  color: var(--azul-card);
+}
+
+.resumo-periodo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px 12px;
+}
+
+.resumo-periodo .item {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 9.5px;
+  border-bottom: 1px dashed var(--cinza-borda);
+}
+
+.resumo-periodo .item:last-child {
+  border-bottom: none;
+}
+
+.resumo-periodo .item .label {
+  color: var(--cinza-claro);
+}
+
+.resumo-periodo .item .valor {
+  font-weight: 700;
+}
+
+.info-box {
+  font-size: 9px;
+  color: var(--cinza-claro);
+  background: #eef2f7;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--fonte);
+}
+.btn-primary { background: var(--azul-card); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-success { background: var(--verde-card); color: #fff; }
+.btn-danger { background: var(--vermelho); color: #fff; }
+.btn-sm { padding: 2px 6px; font-size: 7.5px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+
+/* ============================================================
+   MODAIS
+   ============================================================ */
+.modal-overlay, .modal-overlay-rf, .modal-overlay-edit-rv, 
+.modal-overlay-edit-rf, .modal-overlay-caixa, .modal-overlay-edit-caixa {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active, .modal-overlay-rf.active, .modal-overlay-edit-rv.active,
+.modal-overlay-edit-rf.active, .modal-overlay-caixa.active, .modal-overlay-edit-caixa.active {
+  display: flex;
+}
+
+.modal, .modal-rf, .modal-edit-rv, .modal-edit-rf, .modal-caixa, .modal-edit-caixa {
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 460px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h2, .modal-rf h2, .modal-edit-rv h2, .modal-edit-rf h2, 
+.modal-caixa h2, .modal-edit-caixa h2 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--azul-escuro);
+  margin-bottom: 16px;
+}
+
+.modal .form-group, .modal-rf .form-group, .modal-edit-rv .form-group,
+.modal-edit-rf .form-group, .modal-caixa .form-group, .modal-edit-caixa .form-group {
+  margin-bottom: 12px;
+}
+
+.modal .form-group label, .modal-rf .form-group label, .modal-edit-rv .form-group label,
+.modal-edit-rf .form-group label, .modal-caixa .form-group label, .modal-edit-caixa .form-group label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--cinza-claro);
+  margin-bottom: 3px;
+}
+
+.modal .form-group input, .modal-rf .form-group input, .modal-edit-rv .form-group input,
+.modal-edit-rf .form-group input, .modal-caixa .form-group input, .modal-edit-caixa .form-group input,
+.modal-rf .form-group select, .modal-edit-rf .form-group select,
+.modal-caixa .form-group select, .modal-edit-caixa .form-group select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+
+.modal .form-group input:focus, .modal-rf .form-group input:focus,
+.modal-edit-rv .form-group input:focus, .modal-edit-rf .form-group input:focus,
+.modal-caixa .form-group input:focus, .modal-edit-caixa .form-group input:focus,
+.modal-rf .form-group select:focus, .modal-edit-rf .form-group select:focus,
+.modal-caixa .form-group select:focus, .modal-edit-caixa .form-group select:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+
+.modal .form-row, .modal-rf .form-row, .modal-edit-rv .form-row,
+.modal-edit-rf .form-row, .modal-caixa .form-row, .modal-edit-caixa .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.modal .btn-group, .modal-rf .btn-group, .modal-edit-rv .btn-group,
+.modal-edit-rf .btn-group, .modal-caixa .btn-group, .modal-edit-caixa .btn-group {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.modal .btn-group .btn, .modal-rf .btn-group .btn, .modal-edit-rv .btn-group .btn,
+.modal-edit-rf .btn-group .btn, .modal-caixa .btn-group .btn, .modal-edit-caixa .btn-group .btn {
+  padding: 6px 16px;
+  font-size: 10px;
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+.view { display: none; }
+.view.active { display: block; animation: fade .25s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-grid-3 { grid-template-columns: 1fr 1fr; }
+  .dash-grid-2 { grid-template-columns: 1fr; }
+  .resumo-grid { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .sidebar { width: 56px; }
+  .sidebar .logo h1, .sidebar .logo small, .sidebar-nav li span, .sidebar-footer { display: none; }
+  .sidebar-nav li { justify-content: center; padding: 8px; }
+  .main { margin-left: 56px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .dash-grid-3 { grid-template-columns: 1fr; }
+  .modal .form-row, .modal-rf .form-row, .modal-edit-rv .form-row,
+  .modal-edit-rf .form-row, .modal-caixa .form-row, .modal-edit-caixa .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   CLIQUE PARA EDITAR - SEM PONTILHADO
+   ============================================================ */
+.editable-value {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  color: var(--azul-escuro);
+  font-weight: 600;
+}
+.editable-value:hover {
+  background: #eef2f7;
+}
+
+.editable-cell {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.2s;
+  color: var(--azul-card);
+  font-weight: 600;
+}
+.editable-cell:hover {
+  background: #eef2f7;
+}
+
+/* ============================================================
+   STATUS DE ATUALIZAÇÃO
+   ============================================================ */
+.status-atualizacao {
+  font-size: 8px;
+  color: var(--cinza-claro);
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #eef2f7;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.status-atualizacao .ponto {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verde-card);
+  animation: piscar 1.5s infinite;
+}
+@keyframes piscar {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================================
+   GRÁFICOS - CONTAINER
+   ============================================================ */
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+   SIDEBAR
+   ============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CARTEIRA<span>PESSOAL</span></h1>
+    <small>GESTÃO PATRIMONIAL</small>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li class="grupo">GERAL</li>
+    <li class="active" data-view="dashboard"><span class="icone">📊</span> Dashboard</li>
+
+    <li class="grupo">CARTEIRAS</li>
+    <li data-view="renda-variavel" class="sub"><span class="icone">📈</span> Renda Variável</li>
+    <li data-view="renda-fixa" class="sub"><span class="icone">🏦</span> Renda Fixa</li>
+    <li data-view="caixa" class="sub"><span class="icone">💳</span> Caixa</li>
+
+    <li class="grupo">GESTÃO</li>
+    <li data-view="clientes"><span class="icone">👥</span> Clientes</li>
+    <li data-view="movimentacoes"><span class="icone">💵</span> Movimentações</li>
+    <li data-view="proventos"><span class="icone">📊</span> Proventos</li>
+    <li data-view="historico"><span class="icone">📅</span> Histórico Mensal</li>
+    <li data-view="instituicoes"><span class="icone">🏛️</span> Instituições</li>
+    <li data-view="relatorios"><span class="icone">📄</span> Relatórios</li>
+    <li data-view="config"><span class="icone">⚙️</span> Configurações</li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="label">Patrimônio Total</div>
+    <div class="valor" id="patrimonioTotal">R$ 178.605,56</div>
+    <div class="delta">↑ 18,96% no ano</div>
+  </div>
+</aside>
+
+<!-- ============================================================
+   MODAL: NOVO ATIVO (RENDA VARIÁVEL)
+   ============================================================ -->
+<div class="modal-overlay" id="modalNovoAtivo">
+  <div class="modal">
+    <h2>📈 Novo Ativo</h2>
+    <form id="formNovoAtivo">
+      <div class="form-group">
+        <label>Código do Ativo (ex: VALE3, PETR4, ITUB4)</label>
+        <input type="text" id="inputAtivo" placeholder="Ex: VALE3" required style="text-transform:uppercase;">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantidade</label>
+          <input type="number" id="inputQtd" placeholder="0" step="1" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>Preço de Compra (R$)</label>
+          <input type="number" id="inputPreco" placeholder="0,00" step="0.01" min="0.01" required>
+        </div>
+      </div>
+      <div class="form-group" style="background:#f8f9fa;padding:8px 12px;border-radius:6px;">
+        <span style="font-size:9px;color:var(--cinza-claro);">Custo Total = Quantidade × Preço</span>
+        <div style="font-size:14px;font-weight:800;color:var(--azul-escuro);" id="custoPreview">R$ 0,00</div>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-success" id="btnSalvarAtivo">💾 Salvar Ativo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   MODAL: EDITAR ATIVO (RENDA VARIÁVEL)
+   ============================================================ -->
+<div class="modal-overlay-edit-rv" id="modalEditarAtivoRV">
+  <div class="modal-edit-rv">
+    <h2>✏️ Editar Ativo</h2>
+    <form id="formEditarAtivoRV">
+      <div class="form-group">
+        <label>Código do Ativo</label>
+        <input type="text" id="editInputAtivoRV" style="text-transform:uppercase;">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantidade</label>
+          <input type="number" id="editInputQtdRV" step="1" min="0">
+        </div>
+        <div class="form-group">
+          <label>Preço de Compra (R$)</label>
+          <input type="number" id="editInputPrecoRV" step="0.01" min="0.01">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalEditRV()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   MODAL: NOVA APLICAÇÃO (RENDA FIXA)
+   ============================================================ -->
+<div class="modal-overlay-rf" id="modalNovaAplicacao">
+  <div class="modal-rf">
+    <h2>🏦 Nova Aplicação</h2>
+    <form id="formNovaAplicacao">
+      <div class="form-group">
+        <label>Nome do Ativo</label>
+        <input type="text" id="inputNomeAtivo" placeholder="Ex: CDB Liquidez, LCI XP, Tesouro Prefixado" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="inputTipoAtivo">
+            <option value="CDB">CDB</option>
+            <option value="LCI">LCI</option>
+            <option value="LCA">LCA</option>
+            <option value="Tesouro Direto">Tesouro Direto</option>
+            <option value="Debênture">Debênture</option>
+            <option value="Fundo">Fundo</option>
+            <option value="Poupança">Poupança</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Instituição</label>
+          <select id="inputInstituicao">
+            <option value="XP">XP</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Santander">Santander</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Caixa">Caixa</option>
+            <option value="Governo">Governo</option>
+            <option value="Rico">Rico Investimentos</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor Aplicado (R$)</label>
+          <input type="number" id="inputValorAplicado" placeholder="0,00" step="0.01" min="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Data de Entrada</label>
+          <input type="date" id="inputDataEntrada">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rentabilidade Anual (%)</label>
+          <input type="number" id="inputRentabilidade" placeholder="Ex: 12.5" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Data de Vencimento</label>
+          <input type="date" id="inputVencimento">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Valor Atual (R$)</label>
+        <input type="number" id="inputValorAtual" placeholder="0,00" step="0.01">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalRF()">Cancelar</button>
+        <button type="submit" class="btn btn-success" id="btnSalvarAplicacao">💾 Salvar Aplicação</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   MODAL: EDITAR APLICAÇÃO (RENDA FIXA)
+   ============================================================ -->
+<div class="modal-overlay-edit-rf" id="modalEditarAplicacaoRF">
+  <div class="modal-edit-rf">
+    <h2>✏️ Editar Aplicação</h2>
+    <form id="formEditarAplicacaoRF">
+      <div class="form-group">
+        <label>Nome do Ativo</label>
+        <input type="text" id="editInputNomeRF">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="editInputTipoRF">
+            <option value="CDB">CDB</option>
+            <option value="LCI">LCI</option>
+            <option value="LCA">LCA</option>
+            <option value="Tesouro Direto">Tesouro Direto</option>
+            <option value="Debênture">Debênture</option>
+            <option value="Fundo">Fundo</option>
+            <option value="Poupança">Poupança</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Instituição</label>
+          <select id="editInputInstituicaoRF">
+            <option value="XP">XP</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Santander">Santander</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Caixa">Caixa</option>
+            <option value="Governo">Governo</option>
+            <option value="Rico">Rico Investimentos</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor Aplicado (R$)</label>
+          <input type="number" id="editInputValorAplicadoRF" step="0.01" min="0.01">
+        </div>
+        <div class="form-group">
+          <label>Data de Entrada</label>
+          <input type="date" id="editInputDataEntradaRF">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rentabilidade Anual (%)</label>
+          <input type="number" id="editInputRentabilidadeRF" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Data de Vencimento</label>
+          <input type="date" id="editInputVencimentoRF">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Valor Atual (R$)</label>
+        <input type="number" id="editInputValorAtualRF" step="0.01">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalEditRF()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   MODAL: NOVO SALDO (CAIXA)
+   ============================================================ -->
+<div class="modal-overlay-caixa" id="modalNovoSaldo">
+  <div class="modal-caixa">
+    <h2>💳 Novo Saldo</h2>
+    <form id="formNovoSaldo">
+      <div class="form-group">
+        <label>Descrição</label>
+        <input type="text" id="inputDescricao" placeholder="Ex: Conta Corrente, Reserva, Viagem" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Moeda</label>
+          <select id="inputMoeda">
+            <option value="BRL">🇧🇷 Real (BRL)</option>
+            <option value="USD">🇺🇸 Dólar (USD)</option>
+            <option value="EUR">🇪🇺 Euro (EUR)</option>
+            <option value="GBP">🇬🇧 Libra (GBP)</option>
+            <option value="JPY">🇯🇵 Iene (JPY)</option>
+            <option value="CAD">🇨🇦 Dólar Canadense (CAD)</option>
+            <option value="AUD">🇦🇺 Dólar Australiano (AUD)</option>
+            <option value="CHF">🇨🇭 Franco Suíço (CHF)</option>
+            <option value="CNY">🇨🇳 Yuan (CNY)</option>
+            <option value="ARS">🇦🇷 Peso Argentino (ARS)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor</label>
+          <input type="number" id="inputValorSaldo" placeholder="0,00" step="0.01" min="0.01" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Instituição</label>
+        <select id="inputInstituicaoCaixa">
+          <option value="Nubank">Nubank</option>
+          <option value="Itaú">Itaú</option>
+          <option value="Bradesco">Bradesco</option>
+          <option value="Santander">Santander</option>
+          <option value="Caixa">Caixa</option>
+          <option value="Banco do Brasil">Banco do Brasil</option>
+          <option value="XP">XP</option>
+          <option value="Rico">Rico Investimentos</option>
+          <option value="Inter">Inter</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalCaixa()">Cancelar</button>
+        <button type="submit" class="btn btn-success" id="btnSalvarSaldo">💾 Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   MODAL: EDITAR SALDO (CAIXA)
+   ============================================================ -->
+<div class="modal-overlay-edit-caixa" id="modalEditarSaldoCaixa">
+  <div class="modal-edit-caixa">
+    <h2>✏️ Editar Saldo</h2>
+    <form id="formEditarSaldoCaixa">
+      <div class="form-group">
+        <label>Descrição</label>
+        <input type="text" id="editInputDescricaoCaixa">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Moeda</label>
+          <select id="editInputMoedaCaixa">
+            <option value="BRL">🇧🇷 Real (BRL)</option>
+            <option value="USD">🇺🇸 Dólar (USD)</option>
+            <option value="EUR">🇪🇺 Euro (EUR)</option>
+            <option value="GBP">🇬🇧 Libra (GBP)</option>
+            <option value="JPY">🇯🇵 Iene (JPY)</option>
+            <option value="CAD">🇨🇦 Dólar Canadense (CAD)</option>
+            <option value="AUD">🇦🇺 Dólar Australiano (AUD)</option>
+            <option value="CHF">🇨🇭 Franco Suíço (CHF)</option>
+            <option value="CNY">🇨🇳 Yuan (CNY)</option>
+            <option value="ARS">🇦🇷 Peso Argentino (ARS)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor</label>
+          <input type="number" id="editInputValorSaldoCaixa" step="0.01" min="0.01">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Instituição</label>
+        <select id="editInputInstituicaoCaixa">
+          <option value="Nubank">Nubank</option>
+          <option value="Itaú">Itaú</option>
+          <option value="Bradesco">Bradesco</option>
+          <option value="Santander">Santander</option>
+          <option value="Caixa">Caixa</option>
+          <option value="Banco do Brasil">Banco do Brasil</option>
+          <option value="XP">XP</option>
+          <option value="Rico">Rico Investimentos</option>
+          <option value="Inter">Inter</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalEditCaixa()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ -->
+<main class="main">
+
+  <!-- TOPBAR COM LOGO -->
+  <header class="topbar">
+    <div class="logo-img">📊</div>
+    <div>
+      <h2 id="pageTitle">Dashboard</h2>
+      <p id="pageSubtitle">Resumo geral do patrimônio · Carteira Geral, 1º Semestre (Jul/2026)</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="usuario">
+      <div class="avatar">RS</div>
+      <div>
+        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ============================================================
+    VIEW: DASHBOARD
+    ============================================================ -->
+    <section class="view active" id="view-dashboard">
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card card-azul">
+          <div class="label">Patrimônio Total</div>
+          <div class="valor" id="dashPatrimonioTotal">R$ 178.605,56</div>
+          <div class="delta">↑ 1,33% <small>em relação ao mês anterior</small></div>
+        </div>
+        <div class="kpi-card card-verde">
+          <div class="label">Resultado do Mês</div>
+          <div class="valor" id="dashResultadoMes">R$ 2.351,95</div>
+          <div class="delta">↑ 1,33% <small>sobre o patrimônio inicial</small></div>
+        </div>
+        <div class="kpi-card card-lilas">
+          <div class="label">Lucro Acumulado</div>
+          <div class="valor" id="dashLucroAcumulado">R$ 33.220,35</div>
+          <div class="delta">↑ 9,49% bruto <small>/ 7,58% líquido no semestre</small></div>
+        </div>
+        <div class="kpi-card card-amarelo">
+          <div class="label">Caixa Disponível</div>
+          <div class="valor" id="dashCaixaTotal">R$ 0,00</div>
+          <div class="delta" style="color:var(--amarelo-card);" id="dashCaixaDetalhe">0,00% <small>do patrimônio total</small></div>
+        </div>
+      </div>
+
+      <!-- GRÁFICOS EM 3 COLUNAS -->
+      <div class="dash-grid-3">
+        <!-- Distribuição -->
+        <div class="panel">
+          <div class="panel-titulo">Distribuição da Carteira</div>
+          <div class="donut-row">
+            <svg class="chart-svg-donut" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#e6e9f2" stroke-width="20"/>
+              <circle id="donutRV" cx="50" cy="50" r="40" fill="none" stroke="#2d6fb0" stroke-width="20" stroke-dasharray="0 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+              <circle id="donutRF" cx="50" cy="50" r="40" fill="none" stroke="#28a745" stroke-width="20" stroke-dasharray="0 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+              <circle id="donutCaixa" cx="50" cy="50" r="40" fill="none" stroke="#fd7e14" stroke-width="20" stroke-dasharray="0 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+              <circle cx="50" cy="50" r="28" fill="white"/>
+            </svg>
+            <div class="donut-legend">
+              <div class="item"><span class="dot" style="background:#2d6fb0;"></span> Renda Variável <span class="pct" id="legPctRV">0,00%</span></div>
+              <div class="item"><span class="dot" style="background:#28a745;"></span> Renda Fixa <span class="pct" id="legPctRF">0,00%</span></div>
+              <div class="item"><span class="dot" style="background:#fd7e14;"></span> Caixa <span class="pct" id="legPctCaixa">0,00%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evolução -->
+        <div class="panel">
+          <div class="panel-titulo">Evolução do Patrimônio</div>
+          <svg class="chart-svg" viewBox="0 0 300 120">
+            <rect width="300" height="120" fill="transparent"/>
+            <line x1="30" y1="20" x2="290" y2="20" stroke="#e6e9f2" stroke-width="0.5"/>
+            <line x1="30" y1="45" x2="290" y2="45" stroke="#e6e9f2" stroke-width="0.5"/>
+            <line x1="30" y1="70" x2="290" y2="70" stroke="#e6e9f2" stroke-width="0.5"/>
+            <line x1="30" y1="95" x2="290" y2="95" stroke="#e6e9f2" stroke-width="0.5"/>
+            <text x="25" y="24" font-size="8" fill="#6c757d" text-anchor="end">2,6M</text>
+            <text x="25" y="49" font-size="8" fill="#6c757d" text-anchor="end">2,5M</text>
+            <text x="25" y="74" font-size="8" fill="#6c757d" text-anchor="end">2,4M</text>
+            <text x="25" y="99" font-size="8" fill="#6c757d" text-anchor="end">2,3M</text>
+            <text x="45" y="112" font-size="7" fill="#6c757d">Mar/23</text>
+            <text x="90" y="112" font-size="7" fill="#6c757d">Jul/23</text>
+            <text x="140" y="112" font-size="7" fill="#6c757d">Nov/23</text>
+            <text x="190" y="112" font-size="7" fill="#6c757d">Jan/24</text>
+            <text x="240" y="112" font-size="7" fill="#6c757d">Mar/24</text>
+            <text x="285" y="112" font-size="7" fill="#6c757d">Mai/24</text>
+            <polyline points="45,85 90,80 140,75 190,65 240,55 285,50" fill="none" stroke="#2d6fb0" stroke-width="2.5" stroke-linejoin="round"/>
+            <polygon points="45,85 90,80 140,75 190,65 240,55 285,50 285,120 45,120" fill="url(#gradEvo)" opacity="0.15"/>
+            <defs>
+              <linearGradient id="gradEvo" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2d6fb0"/>
+                <stop offset="100%" stop-color="#2d6fb0" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- Rentabilidade -->
+        <div class="panel">
+          <div class="panel-titulo">Rentabilidade <small>(12 meses)</small></div>
+          <div style="display:flex;gap:20px;margin-bottom:6px;flex-wrap:wrap;">
+            <div><span style="font-size:8px;color:var(--cinza-claro);">Rentabilidade no período</span><br><span style="font-size:16px;font-weight:800;color:var(--verde-card);">15,46%</span></div>
+            <div><span style="font-size:8px;color:var(--cinza-claro);">CDI no período</span><br><span style="font-size:14px;font-weight:700;color:var(--azul-card);">10,80%</span></div>
+            <div><span style="font-size:8px;color:var(--cinza-claro);">IPCA no período</span><br><span style="font-size:14px;font-weight:700;color:var(--amarelo-card);">3,80%</span></div>
+          </div>
+          <svg class="chart-svg" viewBox="0 0 300 70">
+            <rect x="10" y="45" width="18" height="18" fill="#2d6fb0" rx="2"/>
+            <rect x="32" y="48" width="18" height="15" fill="#2d6fb0" rx="2"/>
+            <rect x="54" y="40" width="18" height="23" fill="#28a745" rx="2"/>
+            <rect x="76" y="43" width="18" height="20" fill="#2d6fb0" rx="2"/>
+            <rect x="98" y="38" width="18" height="25" fill="#2d6fb0" rx="2"/>
+            <rect x="120" y="35" width="18" height="28" fill="#2d6fb0" rx="2"/>
+            <rect x="142" y="40" width="18" height="23" fill="#2d6fb0" rx="2"/>
+            <rect x="164" y="43" width="18" height="20" fill="#2d6fb0" rx="2"/>
+            <rect x="186" y="36" width="18" height="27" fill="#2d6fb0" rx="2"/>
+            <rect x="208" y="32" width="18" height="31" fill="#2d6fb0" rx="2"/>
+            <rect x="230" y="38" width="18" height="25" fill="#2d6fb0" rx="2"/>
+            <rect x="252" y="42" width="18" height="21" fill="#2d6fb0" rx="2"/>
+            <text x="19" y="65" font-size="6" fill="#6c757d" text-anchor="middle">J</text>
+            <text x="41" y="65" font-size="6" fill="#6c757d" text-anchor="middle">F</text>
+            <text x="63" y="65" font-size="6" fill="#6c757d" text-anchor="middle">M</text>
+            <text x="85" y="65" font-size="6" fill="#6c757d" text-anchor="middle">A</text>
+            <text x="107" y="65" font-size="6" fill="#6c757d" text-anchor="middle">M</text>
+            <text x="129" y="65" font-size="6" fill="#6c757d" text-anchor="middle">J</text>
+            <text x="151" y="65" font-size="6" fill="#6c757d" text-anchor="middle">J</text>
+            <text x="173" y="65" font-size="6" fill="#6c757d" text-anchor="middle">A</text>
+            <text x="195" y="65" font-size="6" fill="#6c757d" text-anchor="middle">S</text>
+            <text x="217" y="65" font-size="6" fill="#6c757d" text-anchor="middle">O</text>
+            <text x="239" y="65" font-size="6" fill="#6c757d" text-anchor="middle">N</text>
+            <text x="261" y="65" font-size="6" fill="#6c757d" text-anchor="middle">D</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- RENDA FIXA E RENDA VARIÁVEL LADO A LADO -->
+      <div class="dash-grid-2">
+        <!-- RENDA FIXA -->
+        <div class="panel">
+          <div class="panel-titulo">Renda Fixa <small>CDB, LCI, Tesouro, Debêntures</small>
+            <div style="display:flex;gap:4px;">
+              <button class="btn btn-primary" style="background:var(--azul-card);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-size:8.5px;font-weight:700;cursor:pointer;" onclick="switchView('renda-fixa')">+ Gerenciar</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Ativo</th><th>Tipo</th><th>Valor</th><th>Rentabilidade</th><th>Vencimento</th></tr>
+              </thead>
+              <tbody id="dashRfTableBody">
+                <tr>
+                  <td colspan="5" style="text-align:center;color:var(--cinza-claro);padding:15px 0;">
+                    Nenhum ativo cadastrado. <a href="#" onclick="switchView('renda-fixa');return false;" style="color:var(--azul-card);font-weight:700;">Clique aqui para gerenciar</a>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot id="dashRfTableFoot" style="display:none;"></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- RENDA VARIÁVEL -->
+        <div class="panel">
+          <div class="panel-titulo">Renda Variável <small>Ações, BDRs, ETFs e outros</small>
+            <div style="display:flex;gap:4px;">
+              <button class="btn btn-primary" style="background:var(--azul-card);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-size:8.5px;font-weight:700;cursor:pointer;" onclick="switchView('renda-variavel')">+ Gerenciar</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Ativo</th><th>Tipo</th><th>Qtd.</th><th>Preço Médio</th><th>Custo Total</th><th>Preço Atual</th><th>Valor Atual</th><th>Resultado R$</th><th>Resultado %</th></tr>
+              </thead>
+              <tbody id="dashRvTableBody">
+                <tr>
+                  <td colspan="9" style="text-align:center;color:var(--cinza-claro);padding:15px 0;">
+                    Nenhum ativo cadastrado. <a href="#" onclick="switchView('renda-variavel');return false;" style="color:var(--azul-card);font-weight:700;">Clique aqui para gerenciar</a>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot id="dashRvTableFoot" style="display:none;"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTÓRICO MENSAL + RESUMO -->
+      <div class="resumo-grid">
+        <div class="panel panel-historico">
+          <div class="panel-titulo">Histórico Mensal
+            <small>Vitória Simieri · acompanhamento mensal do patrimônio</small>
+            <div style="display:flex;gap:4px;">
+              <button style="background:transparent;border:1px solid var(--cinza-borda);padding:2px 8px;border-radius:4px;font-size:7.5px;font-weight:600;cursor:pointer;">⬇ Exportar Excel</button>
+              <button style="background:transparent;border:1px solid var(--cinza-borda);padding:2px 8px;border-radius:4px;font-size:7.5px;font-weight:600;cursor:pointer;">🖨 Imprimir</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Mês</th><th>Entrada</th><th>Aporte</th><th>Tx./Mês</th><th>Total</th><th>Tx. Adm.</th><th>I.R. (20%)</th><th>Líquido</th><th>Tx. Nominal</th></tr>
+              </thead>
+              <tbody id="dashHistTableBody"></tbody>
+              <tfoot id="dashHistTfoot"></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-titulo">Resumo do Período</div>
+            <div class="resumo-periodo" id="resumoPeriodo"></div>
+          </div>
+          <div class="info-box">
+            <span>ℹ️</span>
+            <div>Os valores acima consideram todos os lançamentos de entradas, aportes, rendimento, taxa de administração e imposto de renda.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+    VIEW: RENDA VARIÁVEL
+    ============================================================ -->
+    <section class="view" id="view-renda-variavel">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="rvKpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Posição em RV</span><span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">📈</span></div>
+          <div class="kpi-value" style="color:var(--azul-card);" id="rvPosicaoTotal">R$ 0,00</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);">Total investido</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Lucro / Prejuízo</span><span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">💵</span></div>
+          <div class="kpi-value" style="color:var(--verde-card);" id="rvLucroTotal">R$ 0,00</div>
+          <div class="kpi-delta" id="rvLucroPct">0,00% acumulado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Ativos monitorados</span><span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">🎯</span></div>
+          <div class="kpi-value" style="color:var(--lilas-card);" id="rvTotalAtivos">0</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);" id="rvListaAtivos">Nenhum ativo</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Melhor Upside</span><span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">🚀</span></div>
+          <div class="kpi-value" style="color:#b8790f;" id="rvMelhorUpside">—</div>
+          <div class="kpi-delta" id="rvMelhorUpsidePct">—</div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Carteira de Renda Variável <small>Ações, BDRs, ETFs e outros</small></h3>
+          <div>
+            <button class="btn btn-ghost" id="btnAtualizarTodas" onclick="atualizarTodasCotacoes()">🔄 Atualizar Todas</button>
+            <button class="btn btn-primary" onclick="abrirModal()">+ Novo Ativo</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Ativo</th><th>Tipo</th><th>Qtd.</th><th>Preço</th><th>Custo</th><th>Último</th><th>Var./Dia</th><th>Variação</th><th>Saldo</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="rvTableBody">
+              <tr><td colspan="10" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum ativo cadastrado. Clique em <b>+ Novo Ativo</b> para começar.</td></tr>
+            </tbody>
+            <tfoot id="rvTableFoot" style="display:none;">
+              <tr class="total-row">
+                <td colspan="3"><strong>TOTAL</strong></td>
+                <td></td>
+                <td id="rvTotalCusto"><strong>R$ 0,00</strong></td>
+                <td></td>
+                <td></td>
+                <td id="rvTotalVariacao"><strong>0,00%</strong></td>
+                <td id="rvTotalSaldo"><strong>R$ 0,00</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="info-box"><span>ℹ️</span><div>O preço em <b>Último</b> é simulado localmente (varia um pouco a cada atualização) e não reflete a cotação real de mercado. APIs financeiras (brapi.dev, Yahoo Finance etc.) bloqueiam chamada direta do navegador — puxar cotação real exigiria um servidor próprio para intermediar a chamada.</div></div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3>Upside / Downside</h3></div>
+          <div class="chart-container">
+            <canvas id="chartUpside" height="220"></canvas>
+          </div>
+          <div class="info-box"><span>ℹ️</span><div>Distância percentual entre o <b>último preço</b> e o preço de compra de cada ativo. Valores positivos (verde) = upside, negativos (vermelho) = downside.</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Distribuição por Ativo</h3></div>
+          <div class="chart-container">
+            <canvas id="chartDistribuicaoRV" height="220"></canvas>
+          </div>
+          <div class="info-box"><span>ℹ️</span><div>Proporção do valor total investido em cada ativo da carteira de Renda Variável.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+    VIEW: RENDA FIXA
+    ============================================================ -->
+    <section class="view" id="view-renda-fixa">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="rfKpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Total em Renda Fixa</span><span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">🧾</span></div>
+          <div class="kpi-value" style="color:var(--verde-card);" id="rfTotalGeral">R$ 0,00</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);">Total aplicado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Rendimento Total</span><span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">📈</span></div>
+          <div class="kpi-value" style="color:var(--azul-card);" id="rfRendimentoTotal">R$ 0,00</div>
+          <div class="kpi-delta" id="rfRendimentoPct">0,00% acumulado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Ativos ativos</span><span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">📁</span></div>
+          <div class="kpi-value" style="color:var(--lilas-card);" id="rfTotalAtivos">0</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);" id="rfListaTipos">Nenhum ativo</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Melhor Rentabilidade</span><span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">🔥</span></div>
+          <div class="kpi-value" style="color:#b8790f;" id="rfMelhorAtivo">—</div>
+          <div class="kpi-delta" id="rfMelhorPct">—</div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Carteira de Renda Fixa <small>CDB, LCI, Tesouro, Debêntures e outros</small></h3>
+          <div>
+            <button class="btn btn-primary" onclick="abrirModalRF()">+ Nova Aplicação</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ativo</th>
+                <th>Tipo</th>
+                <th>Instituição</th>
+                <th>Valor Aplicado</th>
+                <th>Data Entrada</th>
+                <th>Rent. Anual</th>
+                <th>Vencimento</th>
+                <th>Valor Atual</th>
+                <th>Rendimento</th>
+                <th>Rendimento %</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="rfTableBody">
+              <tr>
+                <td colspan="11" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">
+                  Nenhuma aplicação cadastrada. Clique em <b>+ Nova Aplicação</b> para começar.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="rfTableFoot" style="display:none;">
+              <tr class="total-row">
+                <td colspan="3"><strong>TOTAL</strong></td>
+                <td id="rfTotalAplicado"><strong>R$ 0,00</strong></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td id="rfTotalAtual"><strong>R$ 0,00</strong></td>
+                <td id="rfTotalRendimento"><strong>R$ 0,00</strong></td>
+                <td id="rfTotalRendimentoPct"><strong>0,00%</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3>Distribuição por Tipo</h3></div>
+          <div class="chart-container">
+            <canvas id="chartDistribuicaoRF" height="220"></canvas>
+          </div>
+          <div class="info-box"><span>ℹ️</span><div>Distribuição dos investimentos em Renda Fixa por tipo de aplicação (CDB, LCI, Tesouro, Poupança, etc.).</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Distribuição por Instituição</h3></div>
+          <div class="chart-container">
+            <canvas id="chartInstituicaoRF" height="220"></canvas>
+          </div>
+          <div class="info-box"><span>ℹ️</span><div>Distribuição dos investimentos em Renda Fixa entre as diferentes instituições financeiras.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+    VIEW: CAIXA
+    ============================================================ -->
+    <section class="view" id="view-caixa">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="caixaKpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Total em Caixa</span><span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">💰</span></div>
+          <div class="kpi-value" style="color:var(--azul-card);" id="caixaTotalGeral">R$ 0,00</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);">Saldo total em BRL</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Moedas</span><span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">🌎</span></div>
+          <div class="kpi-value" style="color:var(--lilas-card);" id="caixaTotalMoedas">0</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);" id="caixaListaMoedas">Nenhuma moeda</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Instituições</span><span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">🏦</span></div>
+          <div class="kpi-value" style="color:var(--verde-card);" id="caixaTotalInstituicoes">0</div>
+          <div class="kpi-delta" style="color:var(--cinza-claro);" id="caixaListaInstituicoes">Nenhuma</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Maior Saldo</span><span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">🔥</span></div>
+          <div class="kpi-value" style="color:#b8790f;" id="caixaMaiorSaldo">—</div>
+          <div class="kpi-delta" id="caixaMaiorSaldoDetalhe">—</div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Saldo em Caixa <small>Reais, Dólar, Euro e outras moedas</small></h3>
+          <div>
+            <button class="btn btn-ghost" id="btnAtualizarCambio" onclick="atualizarTodasMoedas()">🔄 Atualizar Câmbio</button>
+            <button class="btn btn-primary" onclick="abrirModalCaixa()">+ Novo Saldo</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Moeda</th>
+                <th>Valor</th>
+                <th>Câmbio (BRL)</th>
+                <th>Valor em BRL</th>
+                <th>Instituição</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="caixaTableBody">
+              <tr>
+                <td colspan="7" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">
+                  Nenhum saldo cadastrado. Clique em <b>+ Novo Saldo</b> para começar.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="caixaTableFoot" style="display:none;">
+              <tr class="total-row">
+                <td colspan="4"><strong>TOTAL EM BRL</strong></td>
+                <td id="caixaTotalBRL"><strong>R$ 0,00</strong></td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3>Distribuição por Moeda</h3></div>
+          <div class="chart-container">
+            <canvas id="chartDistribuicaoMoeda" height="220"></canvas>
+          </div>
+          <div class="info-box"><span>ℹ️</span><div>Distribuição do saldo em caixa entre diferentes moedas (BRL, USD, EUR, etc.).</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Distribuição por Instituição</h3></div>
+          <div class="chart-container">
+            <canvas id="chartDistribuicaoInstituicaoCaixa" height="220"></canvas>
+          </div>
+          <div class="info-box"><span>ℹ️</span><div>Distribuição do saldo em caixa entre diferentes instituições financeiras.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+    VIEWS PLACEHOLDER
+    ============================================================ -->
+    <section class="view" id="view-clientes">
+      <div class="panel"><h3>👥 Clientes</h3><p>Em desenvolvimento...</p></div>
+    </section>
+    <section class="view" id="view-movimentacoes">
+      <div class="panel"><h3>💵 Movimentações</h3><p>Em desenvolvimento...</p></div>
+    </section>
+    <section class="view" id="view-proventos">
+      <div class="panel"><h3>📊 Proventos</h3><p>Em desenvolvimento...</p></div>
+    </section>
+    <section class="view" id="view-historico">
+      <div class="panel"><h3>📅 Histórico Mensal</h3><p>Em desenvolvimento...</p></div>
+    </section>
+    <section class="view" id="view-instituicoes">
+      <div class="panel"><h3>🏛️ Instituições</h3><p>Em desenvolvimento...</p></div>
+    </section>
+    <section class="view" id="view-relatorios">
+      <div class="panel"><h3>📄 Relatórios</h3><p>Em desenvolvimento...</p></div>
+    </section>
+    <section class="view" id="view-config">
+      <div class="panel"><h3>⚙️ Configurações</h3><p>Em desenvolvimento...</p></div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ============================================================
+   JAVASCRIPT - COMPLETO CORRIGIDO
+   ============================================================ -->
+<script>
+// ============================================================
+// 1. NAVEGAÇÃO - VERSÃO CORRIGIDA
+// ============================================================
+
+// Mapeamento de views que ficam no dashboard (não têm página separada)
+var viewsNoDashboard = {
+  'dashboard': true,
+  'renda-variavel': true,
+  'renda-fixa': true,
+  'caixa': true
+};
+
+// Mapeamento de views que têm página separada
+var viewsSeparadas = {
+  'clientes': '/clientes',
+  'movimentacoes': '/movimentacoes',
+  'proventos': '/proventos',
+  'historico': '/historico-mensal',
+  'instituicoes': '/instituicoes',
+  'relatorios': '/relatorios',
+  'config': '/config'
+};
+
+var titles = {
+  dashboard: ["Dashboard", "Resumo geral do patrimônio · Carteira Geral, 1º Semestre (Jul/2026)"],
+  "renda-variavel": ["Renda Variável", "Ações, BDRs, ETFs e outros ativos monitorados"],
+  "renda-fixa": ["Renda Fixa", "Tesouro Direto, fundos, poupanças e CDBs"],
+  caixa: ["Caixa", "Saldo disponível em diversas moedas"]
+};
+
+function switchView(view) {
+  // Se a view tem página separada, redireciona
+  if (viewsSeparadas[view]) {
+    window.location.href = viewsSeparadas[view];
+    return;
+  }
+  
+  // Se é uma view que fica no dashboard
+  if (viewsNoDashboard[view]) {
+    document.querySelectorAll(".view").forEach(function(v) { v.classList.remove("active"); });
+    var target = document.getElementById("view-" + view);
+    if (target) target.classList.add("active");
+    document.querySelectorAll(".sidebar-nav li[data-view]").forEach(function(n) {
+      n.classList.toggle("active", n.dataset.view === view);
+    });
+    document.getElementById("pageTitle").textContent = titles[view] ? titles[view][0] : "Dashboard";
+    document.getElementById("pageSubtitle").textContent = titles[view] ? titles[view][1] : "";
+    
+    function redesenharGraficosDaView() {
+      if (view === 'renda-variavel') {
+        atualizarGraficosRV();
+      } else if (view === 'renda-fixa') {
+        atualizarGraficosRF();
+      } else if (view === 'caixa') {
+        atualizarGraficosCaixa();
+      }
+    }
+    requestAnimationFrame(function() {
+      requestAnimationFrame(redesenharGraficosDaView);
+    });
+  }
+}
+
+document.querySelectorAll(".sidebar-nav li[data-view]").forEach(function(el) {
+  el.addEventListener("click", function() { 
+    var view = el.dataset.view;
+    // Se for uma view separada, vai direto
+    if (viewsSeparadas[view]) {
+      window.location.href = viewsSeparadas[view];
+    } else {
+      switchView(view);
+    }
+  });
+});
+
+// Para os links que usam onclick direto, garantir que funcionem
+// Os links já têm onclick="window.location.href='/clientes'" etc.
+
+// ============================================================
+// 2. FUNÇÕES AUXILIARES
+// ============================================================
+function fmtMoeda(valor) {
+  if (valor === undefined || valor === null) return 'R$ 0,00';
+  return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(valor) {
+  if (valor === undefined || valor === null) return '0,00%';
+  return (valor > 0 ? '+' : '') + valor.toFixed(2) + '%';
+}
+
+function fmtMoedaRV(valor) {
+  if (valor === undefined || valor === null) return 'R$ 0,00';
+  return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPctRV(valor) {
+  if (valor === undefined || valor === null) return '0,00%';
+  return (valor > 0 ? '+' : '') + valor.toFixed(2) + '%';
+}
+
+function fmtMoedaRF(valor) {
+  if (valor === undefined || valor === null) return 'R$ 0,00';
+  return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPctRF(valor) {
+  if (valor === undefined || valor === null) return '0,00%';
+  return (valor > 0 ? '+' : '') + valor.toFixed(2) + '%';
+}
+
+function fmtMoedaCaixa(valor) {
+  if (valor === undefined || valor === null) return '0,00';
+  return Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function obterSimboloMoeda(moeda) {
+  var simbolos = {
+    'BRL': 'R$',
+    'USD': 'US$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CAD': 'C$',
+    'AUD': 'A$',
+    'CHF': 'Fr',
+    'CNY': '¥',
+    'ARS': '$'
+  };
+  return simbolos[moeda] || moeda;
+}
+
+function badgeClasse(tipo) {
+  if (tipo === 'FII') return 'badge-fii';
+  if (tipo === 'ETF') return 'badge-etf';
+  if (tipo === 'CDB' || tipo === 'LCI' || tipo === 'LCA' || tipo === 'Tesouro Direto' || tipo === 'Debênture' || tipo === 'Fundo' || tipo === 'Poupança') return 'badge-cdb';
+  return 'badge-acao';
+}
+
+function detectarTipo(codigo) {
+  if (codigo.endsWith('11')) return 'FII';
+  if (codigo.endsWith('BDR')) return 'BDR';
+  if (codigo.endsWith('ETF')) return 'ETF';
+  return 'Ação';
+}
+
+// ============================================================
+// 3. DADOS DO DASHBOARD (Histórico e Resumo)
+// ============================================================
+var months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+var clientes = {
+  rogerio:  {nome:"Rogério Simieri", cotas:0.3378, total:61609.38,
+    m:[[50958.37,-3700.00,2.7907,1422.09,null,563.31,2602.97,5.11],
+       [51268.30,-2856.35,2.5490,1306.81,null,586.48,2348.90,4.58],
+       [51378.85,-2824.83,4.1515,2133.00,null,498.77,4328.10,8.42],
+       [52147.17,-4058.55,3.1911,1664.06,null,1060.37,2727.08,5.23],
+       [54218.25,-1716.37,3.2135,1742.29,null,650.67,3277.76,6.05],
+       [57568.91,-577.77,3.0640,1763.93,null,796.95,3092.55,5.37],
+       [59139.33,-2319.08,0.0000,0.00,null,769.84,-769.84,-1.30],
+       [59200.78,61.45,0,0,null,0,0,0],[59200.78,0,0,0,null,0,0,0],
+       [59200.78,0,0,0,null,0,0,0],[59200.78,0,0,0,null,0,0,0],[59200.78,0,0,0,null,0,0,0]]},
+  vitoria:  {nome:"Vitória Simieri", cotas:0.5504, total:97243.21,
+    m:[[85814.40,722.66,2.7907,2394.82,1197.41,239.48,957.93,1.12],
+       [87523.17,750.84,2.5490,2230.93,1115.47,223.09,892.37,1.02],
+       [89166.38,750.84,4.1515,3701.76,1850.88,370.18,1480.70,1.66],
+       [91397.92,750.84,3.1911,2916.58,1458.29,291.66,1166.63,1.28],
+       [93087.36,522.80,3.2135,2991.34,1495.67,299.13,1196.53,1.29],
+       [94549.48,265.59,3.0640,2897.03,1448.51,289.70,1158.81,1.23],
+       [96459.13,750.84,0,0,0,0,0,0],
+       [96459.13,0,0,0,0,0,0,0],[96459.13,0,0,0,0,0,0,0],
+       [96459.13,0,0,0,0,0,0,0],[96459.13,0,0,0,0,0,0,0],[96459.13,0,0,0,0,0,0,0]]},
+  manuella: {nome:"Manuella Cardoso", cotas:0.0414, total:7318.93,
+    m:[[6230.46,72.27,2.7907,173.87,86.94,17.39,69.55,1.12],
+       [6375.09,75.08,2.5490,162.50,81.25,16.25,65.00,1.02],
+       [6515.17,75.08,4.1515,270.48,135.24,27.05,108.19,1.66],
+       [6698.44,75.08,3.1911,213.75,106.88,21.38,85.50,1.28],
+       [6896.57,112.63,3.2135,221.62,110.81,22.16,88.65,1.29],
+       [7097.85,112.63,3.0640,217.48,108.74,21.75,86.99,1.23],
+       [7259.92,75.08,0,0,0,0,0,0],
+       [7259.92,0,0,0,0,0,0,0],[7259.92,0,0,0,0,0,0,0],
+       [7259.92,0,0,0,0,0,0,0],[7259.92,0,0,0,0,0,0,0],[7259.92,0,0,0,0,0,0,0]]},
+  joao:     {nome:"João Paulo Simieri", cotas:0.0002, total:29.45,
+    m:[[27.09,0,2.7907,0.76,0.38,0.08,0.30,1.12],
+       [27.39,0,2.5490,0.70,0.35,0.07,0.28,1.02],
+       [27.67,0,4.1515,1.15,0.57,0.11,0.46,1.66],
+       [28.13,0,3.1911,0.90,0.45,0.09,0.36,1.28],
+       [28.49,0,3.2135,0.92,0.46,0.09,0.37,1.29],
+       [28.86,0,3.0640,0.88,0.44,0.09,0.35,1.23],
+       [29.21,0,0,0,0,0,0,0],
+       [29.21,0,0,0,0,0,0,0],[29.21,0,0,0,0,0,0,0],
+       [29.21,0,0,0,0,0,0,0],[29.21,0,0,0,0,0,0,0],[29.21,0,0,0,0,0,0,0]]},
+  pedro:    {nome:"Pedro Henrique Simieri", cotas:0.0086, total:1516.63,
+    m:[[1396.04,108.40,2.7907,38.96,19.48,3.90,15.58,1.12],
+       [1524.25,112.63,2.5490,38.85,19.43,3.89,15.54,1.02],
+       [1000.00,-539.79,4.1515,41.52,20.76,4.15,16.61,1.66],
+       [1129.24,112.63,3.1911,36.03,18.02,3.60,14.41,1.28],
+       [1312.59,168.94,3.2135,42.18,21.09,4.22,16.87,1.29],
+       [1498.41,168.94,3.0640,45.91,22.96,4.59,18.36,1.23],
+       [1504.40,-12.37,0,0,0,0,0,0],
+       [1504.40,0,0,0,0,0,0,0],[1504.40,0,0,0,0,0,0,0],
+       [1504.40,0,0,0,0,0,0,0],[1504.40,0,0,0,0,0,0,0],[1504.40,0,0,0,0,0,0,0]]},
+  josepha:  {nome:"Josepha Simieri", cotas:0.0616, total:10887.96,
+    m:[[10698.91,96.67,2.7907,298.57,149.29,29.86,119.43,1.12],
+       [11036.14,217.80,2.5490,281.31,140.65,28.13,112.52,1.02],
+       [11438.66,290.00,4.1515,474.88,237.44,47.49,189.95,1.66],
+       [11648.61,20.00,3.1911,371.72,185.86,37.17,148.69,1.28],
+       [12059.30,262.00,3.2135,387.52,193.76,38.75,155.01,1.29],
+       [12444.92,230.61,3.0640,381.32,190.66,38.13,152.53,1.23],
+       [10800.17,-1797.28,0,0,0,0,0,0],
+       [10800.17,0,0,0,0,0,0,0],[10800.17,0,0,0,0,0,0,0],
+       [10800.17,0,0,0,0,0,0,0],[10800.17,0,0,0,0,0,0,0],[10800.17,0,0,0,0,0,0,0]]}
+};
+
+// ============================================================
+// 4. DASHBOARD - HISTÓRICO E RESUMO
+// ============================================================
+var dashHistClient = clientes.vitoria;
+var htmlHist = '';
+for (var i = 0; i < dashHistClient.m.length; i++) {
+  var r = dashHistClient.m[i];
+  var cls = r[6] > 0 ? 'col-liquido-positivo' : 'col-liquido-negativo';
+  htmlHist += '<tr>' +
+    '<td class="col-mes">' + months[i] + '</td>' +
+    '<td class="col-entrada">' + fmtMoeda(r[0]) + '</td>' +
+    '<td class="col-aporte">' + fmtMoeda(r[1]) + '</td>' +
+    '<td class="col-tx-mes">' + (r[2] || 0).toFixed(4) + '%</td>' +
+    '<td class="col-total">' + fmtMoeda(r[3] || 0) + '</td>' +
+    '<td class="col-tx-adm">' + fmtMoeda(r[4] || 0) + '</td>' +
+    '<td class="col-ir">' + fmtMoeda(r[5] || 0) + '</td>' +
+    '<td class="' + cls + '">' + fmtMoeda(r[6] || 0) + '</td>' +
+    '<td class="col-tx-nominal">' + fmtPct(r[7] || 0) + '</td>' +
+  '</tr>';
+}
+document.getElementById("dashHistTableBody").innerHTML = htmlHist;
+
+var totAporte = 0, totResultado = 0, totTxAdm = 0, totIR = 0, totLiquido = 0;
+for (var i = 0; i < dashHistClient.m.length; i++) {
+  var r = dashHistClient.m[i];
+  totAporte += r[1] || 0;
+  totResultado += r[3] || 0;
+  totTxAdm += r[4] || 0;
+  totIR += r[5] || 0;
+  totLiquido += r[6] || 0;
+}
+document.getElementById("dashHistTfoot").innerHTML = '<tr class="total-row">' +
+  '<td class="col-mes"><strong>TOTAL</strong></td>' +
+  '<td class="col-entrada"><strong>' + fmtMoeda(dashHistClient.m[6][0]) + '</strong></td>' +
+  '<td class="col-aporte"><strong>' + fmtMoeda(totAporte) + '</strong></td>' +
+  '<td class="col-tx-mes"><strong>7,58%</strong></td>' +
+  '<td class="col-total"><strong>' + fmtMoeda(totResultado) + '</strong></td>' +
+  '<td class="col-tx-adm"><strong>' + fmtMoeda(totTxAdm) + '</strong></td>' +
+  '<td class="col-ir"><strong>' + fmtMoeda(totIR) + '</strong></td>' +
+  '<td class="col-liquido-positivo"><strong>' + fmtMoeda(totLiquido) + '</strong></td>' +
+  '<td class="col-tx-nominal"><strong>1,06%</strong></td>' +
+'</tr>';
+
+var entradaTotal = 0, aportes = 0, resultadoBruto = 0, txAdm = 0, ir = 0, liquido = 0;
+var clientesKeys = Object.keys(clientes);
+for (var ck = 0; ck < clientesKeys.length; ck++) {
+  var c = clientes[clientesKeys[ck]];
+  entradaTotal += c.m[6][0];
+  for (var mi = 0; mi < c.m.length; mi++) {
+    var r = c.m[mi];
+    aportes += r[1] || 0;
+    resultadoBruto += r[3] || 0;
+    txAdm += r[4] || 0;
+    ir += r[5] || 0;
+    liquido += r[6] || 0;
+  }
+}
+var rentNominal = 7.58;
+var rentMedia = rentNominal / 7;
+document.getElementById("resumoPeriodo").innerHTML =
+  '<div class="item"><span class="label">Entrada Total</span><span class="valor col-entrada">' + fmtMoeda(entradaTotal) + '</span></div>' +
+  '<div class="item"><span class="label">Aportes Líquidos</span><span class="valor col-aporte">' + fmtMoeda(aportes) + '</span></div>' +
+  '<div class="item"><span class="label">Resultado Total</span><span class="valor col-positivo">' + fmtMoeda(resultadoBruto) + '</span></div>' +
+  '<div class="item"><span class="label">Taxa de Administração</span><span class="valor col-tx-adm">' + fmtMoeda(txAdm) + '</span></div>' +
+  '<div class="item"><span class="label">Imposto de Renda (20%)</span><span class="valor col-ir">' + fmtMoeda(ir) + '</span></div>' +
+  '<div class="item"><span class="label">Líquido Total</span><span class="valor col-liquido-positivo">' + fmtMoeda(liquido) + '</span></div>' +
+  '<div class="item"><span class="label">Rentabilidade Nominal</span><span class="valor col-porcentagem-positiva">' + rentNominal.toFixed(2) + '%</span></div>' +
+  '<div class="item"><span class="label">Rentabilidade Média Mensal</span><span class="valor col-porcentagem-positiva">' + rentMedia.toFixed(2) + '%</span></div>';
+
+// ============================================================
+// 5. RENDA VARIÁVEL - SISTEMA COMPLETO
+// ============================================================
+var ativosRV = [];
+var intervaloRV = null;
+var chartUpside = null, chartDistribuicaoRV = null;
+
+// Preços reais para ativos da B3
+var precosReais = {
+  'VALE3': 58.40,
+  'PETR4': 33.50,
+  'ITUB4': 30.30,
+  'BBAS3': 29.40,
+  'BBDC4': 21.30,
+  'WEGE3': 43.80,
+  'MGLU3': 2.97,
+  'BBSE3': 38.20,
+  'XPML11': 107.50,
+  'IVVB11': 266.80,
+  'HGLG11': 162.30,
+  'KNRI11': 138.90,
+  'B3SA3': 12.50,
+  'ABEV3': 14.20,
+  'SUZB3': 55.80,
+  'RENT3': 47.90,
+  'LREN3': 18.50,
+  'GGBR4': 21.00,
+  'CMIG4': 11.80,
+  'CPLE6': 8.90,
+  'ENBR3': 18.30,
+  'EGIE3': 42.50,
+  'TAEE11': 35.20,
+  'TRPL4': 23.40,
+  'SANB11': 28.70,
+  'BRFS3': 16.80,
+  'JBSS3': 25.90,
+  'MRFG3': 10.80,
+  'RAIL3': 21.40,
+  'VBBR3': 21.80,
+  'UGPA3': 26.30,
+  'BRKM5': 26.50,
+  'KLBN11': 20.80,
+  'UNIP6': 40.20,
+  'TIMS3': 18.60,
+  'VIVT3': 46.80,
+  'ELET3': 42.10,
+  'ELET6': 43.90,
+  'PRIO3': 43.20,
+  'RECV3': 19.40
+};
+
+function buscarCotacao(ativo) {
+  try {
+    if (precosReais[ativo]) {
+      var variacao = 1 + (Math.random() - 0.5) * 0.04;
+      var preco = precosReais[ativo] * variacao;
+      var varDia = (Math.random() - 0.5) * 0.03;
+      return { preco: Math.round(preco * 100) / 100, varDia: Math.round(varDia * 10000) / 10000 };
+    }
+    var precoBase = 5 + Math.random() * 145;
+    return { preco: Math.round(precoBase * 100) / 100, varDia: (Math.random() - 0.5) * 0.04 };
+  } catch (error) {
+    return { preco: 10 + Math.random() * 90, varDia: (Math.random() - 0.5) * 0.03 };
+  }
+}
+
+function atualizarCotacao(ativo) {
+  try {
+    var cotacao = buscarCotacao(ativo.codigo);
+    ativo.ultimo = cotacao.preco;
+    ativo.varDia = cotacao.varDia;
+    ativo.saldo = ativo.qtd * ativo.ultimo;
+    ativo.custo = ativo.qtd * ativo.preco;
+    ativo.variacao = (ativo.ultimo / ativo.preco) - 1;
+  } catch (error) {
+    ativo.ultimo = ativo.preco;
+    ativo.varDia = 0;
+    ativo.saldo = ativo.qtd * ativo.preco;
+    ativo.custo = ativo.qtd * ativo.preco;
+    ativo.variacao = 0;
+  }
+  return ativo;
+}
+
+function salvarAtivo(codigo, qtd, preco) {
+  var novoAtivo = {
+    codigo: codigo.toUpperCase(),
+    qtd: qtd,
+    preco: preco,
+    custo: qtd * preco,
+    ultimo: preco,
+    varDia: 0,
+    variacao: 0,
+    saldo: qtd * preco,
+    tipo: detectarTipo(codigo)
+  };
+
+  atualizarCotacao(novoAtivo);
+  ativosRV.push(novoAtivo);
+
+  renderizarRV();
+  atualizarDashboardRV();
+  atualizarKPIsRV();
+  atualizarGraficosRV();
+
+  return novoAtivo;
+}
+
+function renderizarRV() {
+  var tbody = document.getElementById('rvTableBody');
+  if (!tbody) return;
+  
+  if (ativosRV.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum ativo cadastrado. Clique em <b>+ Novo Ativo</b> para começar.</td></tr>';
+    var tfoot = document.getElementById('rvTableFoot');
+    if (tfoot) tfoot.style.display = 'none';
+    return;
+  }
+  
+  var tfoot = document.getElementById('rvTableFoot');
+  if (tfoot) tfoot.style.display = 'table-footer-group';
+  
+  var totalCusto = 0, totalSaldo = 0;
+  var melhorUpside = -999, melhorAtivo = '';
+  
+  var html = '';
+  for (var i = 0; i < ativosRV.length; i++) {
+    var a = ativosRV[i];
+    var isPositive = a.variacao > 0;
+    var isPositiveDia = a.varDia > 0;
+    totalCusto += a.custo;
+    totalSaldo += a.saldo;
+    if (a.variacao > melhorUpside) { melhorUpside = a.variacao; melhorAtivo = a.codigo; }
+    html += '<tr>' +
+      '<td class="tk"><span class="editable-value" onclick="abrirModalEditRV(' + i + ')">' + a.codigo + '</span></td>' +
+      '<td><span class="badge ' + badgeClasse(a.tipo) + '">' + a.tipo + '</span></td>' +
+      '<td>' + a.qtd + '</td>' +
+      '<td>' + fmtMoedaRV(a.preco) + '</td>' +
+      '<td>' + fmtMoedaRV(a.custo) + '</td>' +
+      '<td>' + fmtMoedaRV(a.ultimo) + '</td>' +
+      '<td class="' + (isPositiveDia ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(a.varDia * 100) + '</td>' +
+      '<td class="' + (isPositive ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(a.variacao * 100) + '</td>' +
+      '<td>' + fmtMoedaRV(a.saldo) + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="atualizarCotacaoUnica(' + i + ')" title="Atualizar cotação">🔄</button>' +
+        '<button class="btn btn-sm btn-ghost" onclick="abrirModalEditRV(' + i + ')" title="Editar">✏️</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="removerAtivo(' + i + ')" title="Remover">✕</button>' +
+      '</td>' +
+    '</tr>';
+  }
+  tbody.innerHTML = html;
+  
+  var variacaoMedia = totalCusto > 0 ? (totalSaldo - totalCusto) / totalCusto : 0;
+  
+  document.getElementById('rvTotalCusto').innerHTML = '<strong>' + fmtMoedaRV(totalCusto) + '</strong>';
+  document.getElementById('rvTotalSaldo').innerHTML = '<strong>' + fmtMoedaRV(totalSaldo) + '</strong>';
+  document.getElementById('rvTotalVariacao').innerHTML = '<strong class="' + (variacaoMedia > 0 ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(variacaoMedia * 100) + '</strong>';
+}
+
+function atualizarKPIsRV() {
+  var totalCusto = 0, totalSaldo = 0;
+  var melhorUpside = -999, melhorAtivo = '';
+  var codigos = [];
+  
+  for (var i = 0; i < ativosRV.length; i++) {
+    var a = ativosRV[i];
+    totalCusto += a.custo;
+    totalSaldo += a.saldo;
+    codigos.push(a.codigo);
+    if (a.variacao > melhorUpside) { melhorUpside = a.variacao; melhorAtivo = a.codigo; }
+  }
+  
+  var lucroTotal = totalSaldo - totalCusto;
+  var variacaoMedia = totalCusto > 0 ? (totalSaldo - totalCusto) / totalCusto : 0;
+  
+  document.getElementById('rvPosicaoTotal').textContent = fmtMoedaRV(totalSaldo);
+  document.getElementById('rvLucroTotal').textContent = fmtMoedaRV(lucroTotal);
+  var rvLucroPct = document.getElementById('rvLucroPct');
+  rvLucroPct.textContent = fmtPctRV(variacaoMedia * 100);
+  rvLucroPct.className = 'kpi-delta ' + (variacaoMedia > 0 ? 'up' : 'down');
+  
+  document.getElementById('rvTotalAtivos').textContent = ativosRV.length;
+  document.getElementById('rvListaAtivos').textContent = ativosRV.length > 0 ? codigos.join(' · ') : 'Nenhum ativo';
+  
+  if (melhorAtivo) {
+    document.getElementById('rvMelhorUpside').textContent = melhorAtivo;
+    var rvMelhorUpsidePct = document.getElementById('rvMelhorUpsidePct');
+    rvMelhorUpsidePct.textContent = fmtPctRV(melhorUpside * 100);
+    rvMelhorUpsidePct.className = 'kpi-delta up';
+  } else {
+    document.getElementById('rvMelhorUpside').textContent = '—';
+    document.getElementById('rvMelhorUpsidePct').textContent = '—';
+  }
+}
+
+function atualizarDashboardRV() {
+  var tbody = document.getElementById('dashRvTableBody');
+  if (!tbody) return;
+  
+  if (ativosRV.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--cinza-claro);padding:15px 0;">Nenhum ativo cadastrado. <a href="#" onclick="switchView(\'renda-variavel\');return false;" style="color:var(--azul-card);font-weight:700;">Clique aqui para gerenciar</a></td></tr>';
+    document.getElementById('dashRvTableFoot').style.display = 'none';
+    atualizarPatrimonioTotal();
+    return;
+  }
+  
+  document.getElementById('dashRvTableFoot').style.display = 'table-footer-group';
+  
+  var totalCusto = 0, totalSaldo = 0, totalResultado = 0;
+  var html = '';
+  for (var i = 0; i < ativosRV.length; i++) {
+    var a = ativosRV[i];
+    var valorAtual = a.qtd * a.ultimo;
+    var resultadoRS = valorAtual - a.custo;
+    var resultadoPct = a.custo > 0 ? (resultadoRS / a.custo * 100) : 0;
+    totalCusto += a.custo; totalSaldo += valorAtual; totalResultado += resultadoRS;
+    html += '<tr>' +
+      '<td class="col-ativo">' + a.codigo + '</td>' +
+      '<td><span class="badge ' + badgeClasse(a.tipo) + '">' + a.tipo + '</span></td>' +
+      '<td class="col-qtd">' + a.qtd + '</td>' +
+      '<td class="col-preco-medio">' + fmtMoedaRV(a.preco) + '</td>' +
+      '<td class="col-custo-total">' + fmtMoedaRV(a.custo) + '</td>' +
+      '<td class="col-preco-atual">' + fmtMoedaRV(a.ultimo) + '</td>' +
+      '<td class="col-valor-atual">' + fmtMoedaRV(valorAtual) + '</td>' +
+      '<td class="' + (resultadoRS > 0 ? 'col-positivo' : 'col-negativo') + '">' + fmtMoedaRV(resultadoRS) + '</td>' +
+      '<td class="' + (resultadoPct > 0 ? 'col-porcentagem-positiva' : 'col-porcentagem-negativa') + '">' + fmtPctRV(resultadoPct) + '</td>' +
+    '</tr>';
+  }
+  tbody.innerHTML = html;
+  
+  var pctTotal = totalCusto > 0 ? (totalResultado / totalCusto * 100) : 0;
+  document.getElementById('dashRvTableFoot').innerHTML = '<tr class="total-row">' +
+    '<td colspan="3"><strong>TOTAL</strong></td>' +
+    '<td></td>' +
+    '<td><strong style="color:#28a745;">' + fmtMoedaRV(totalCusto) + '</strong></td>' +
+    '<td></td>' +
+    '<td><strong style="color:#0000B8;">' + fmtMoedaRV(totalSaldo) + '</strong></td>' +
+    '<td class="' + (totalResultado > 0 ? 'col-positivo' : 'col-negativo') + '"><strong>' + fmtMoedaRV(totalResultado) + '</strong></td>' +
+    '<td class="' + (pctTotal > 0 ? 'col-porcentagem-positiva' : 'col-porcentagem-negativa') + '"><strong>' + fmtPctRV(pctTotal) + '</strong></td>' +
+  '</tr>';
+
+  atualizarPatrimonioTotal();
+}
+
+function atualizarCotacaoUnica(index) {
+  var ativo = ativosRV[index];
+  if (!ativo) return;
+  atualizarCotacao(ativo);
+  renderizarRV();
+  atualizarDashboardRV();
+  atualizarKPIsRV();
+  atualizarGraficosRV();
+}
+
+function removerAtivo(index) {
+  if (confirm('Remover ' + ativosRV[index].codigo + ' da carteira?')) {
+    ativosRV.splice(index, 1);
+    renderizarRV();
+    atualizarDashboardRV();
+    atualizarKPIsRV();
+    atualizarGraficosRV();
+  }
+}
+
+function atualizarTodasCotacoes() {
+  if (ativosRV.length === 0) {
+    alert('Nenhum ativo cadastrado para atualizar.');
+    return;
+  }
+  var btn = document.getElementById('btnAtualizarTodas');
+  if (btn) { btn.textContent = '⏳ Atualizando...'; btn.disabled = true; }
+
+  setTimeout(function() {
+    for (var i = 0; i < ativosRV.length; i++) {
+      atualizarCotacao(ativosRV[i]);
+    }
+    renderizarRV();
+    atualizarDashboardRV();
+    atualizarKPIsRV();
+    atualizarGraficosRV();
+    if (btn) { btn.textContent = '🔄 Atualizar Todas'; btn.disabled = false; }
+    alert('✅ Cotações atualizadas com sucesso!');
+  }, 500);
+}
+
+function iniciarAtualizacaoAutomaticaRV() {
+  if (intervaloRV) clearInterval(intervaloRV);
+  intervaloRV = setInterval(function() {
+    if (ativosRV.length > 0) {
+      for (var i = 0; i < ativosRV.length; i++) {
+        atualizarCotacao(ativosRV[i]);
+      }
+      renderizarRV();
+      atualizarDashboardRV();
+      atualizarKPIsRV();
+      atualizarGraficosRV();
+    }
+  }, 60000);
+}
+
+// ============================================================
+// 6. GRÁFICOS DA RENDA VARIÁVEL
+// ============================================================
+function atualizarGraficosRV() {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js não carregado. Tentando carregar novamente...');
+    return;
+  }
+
+  // Gráfico Upside/Downside
+  var ctxUpside = document.getElementById('chartUpside');
+  if (ctxUpside) {
+    if (chartUpside) {
+      chartUpside.destroy();
+      chartUpside = null;
+    }
+    
+    var labels = [], data = [], cores = [];
+    for (var i = 0; i < ativosRV.length; i++) {
+      labels.push(ativosRV[i].codigo);
+      data.push(ativosRV[i].variacao * 100);
+      cores.push(ativosRV[i].variacao > 0 ? '#28a745' : '#dc3545');
+    }
+    
+    if (labels.length > 0) {
+      try {
+        chartUpside = new Chart(ctxUpside, {
+          type: 'bar',
+          data: { 
+            labels: labels, 
+            datasets: [{ 
+              label: 'Variação (%)', 
+              data: data, 
+              backgroundColor: cores, 
+              borderRadius: 6, 
+              maxBarThickness: 40 
+            }] 
+          },
+          options: { 
+            indexAxis: 'y', 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            plugins: { 
+              legend: { display: false }, 
+              tooltip: { 
+                callbacks: { 
+                  label: function(c) { return fmtPctRV(c.parsed.x); } 
+                } 
+              } 
+            }, 
+            scales: { 
+              x: { 
+                ticks: { callback: function(v) { return v + '%'; }, font: { size: 9 } }, 
+                grid: { color: '#e6e9f2' } 
+              }, 
+              y: { grid: { display: false }, ticks: { font: { size: 9 } } } 
+            } 
+          }
+        });
+      } catch (e) {
+        console.warn('Erro ao criar gráfico Upside:', e);
+      }
+    } else {
+      // Mostra mensagem de sem dados
+      var canvas = ctxUpside;
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#6c757d';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Nenhum dado para exibir', canvas.width/2, canvas.height/2);
+    }
+  }
+
+  // Gráfico Distribuição por Ativo
+  var ctxDist = document.getElementById('chartDistribuicaoRV');
+  if (ctxDist) {
+    if (chartDistribuicaoRV) {
+      chartDistribuicaoRV.destroy();
+      chartDistribuicaoRV = null;
+    }
+    
+    var labels = [], data = [];
+    for (var i = 0; i < ativosRV.length; i++) {
+      labels.push(ativosRV[i].codigo);
+      data.push(ativosRV[i].saldo);
+    }
+    
+    if (labels.length > 0) {
+      try {
+        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+        chartDistribuicaoRV = new Chart(ctxDist, {
+          type: 'doughnut',
+          data: { 
+            labels: labels, 
+            datasets: [{ 
+              data: data, 
+              backgroundColor: cores.slice(0, data.length), 
+              borderWidth: 0 
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            cutout: '65%', 
+            plugins: { 
+              legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, 
+              tooltip: { 
+                callbacks: { 
+                  label: function(context) { 
+                    var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); 
+                    var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; 
+                    return context.label + ': ' + fmtMoedaRV(context.parsed) + ' (' + pct + '%)'; 
+                  } 
+                } 
+              } 
+            } 
+          }
+        });
+      } catch (e) {
+        console.warn('Erro ao criar gráfico Distribuição RV:', e);
+      }
+    }
+  }
+}
+
+// ============================================================
+// 7. MODAL - NOVO ATIVO (RENDA VARIÁVEL)
+// ============================================================
+function abrirModal() {
+  document.getElementById('modalNovoAtivo').classList.add('active');
+  document.getElementById('inputAtivo').focus();
+  document.getElementById('btnSalvarAtivo').textContent = '💾 Salvar Ativo';
+  document.getElementById('btnSalvarAtivo').disabled = false;
+}
+
+function fecharModal() {
+  document.getElementById('modalNovoAtivo').classList.remove('active');
+  document.getElementById('formNovoAtivo').reset();
+  document.getElementById('custoPreview').textContent = 'R$ 0,00';
+  document.getElementById('btnSalvarAtivo').textContent = '💾 Salvar Ativo';
+  document.getElementById('btnSalvarAtivo').disabled = false;
+}
+
+document.getElementById('inputQtd').addEventListener('input', function() {
+  var qtd = parseFloat(document.getElementById('inputQtd').value) || 0;
+  var preco = parseFloat(document.getElementById('inputPreco').value) || 0;
+  document.getElementById('custoPreview').textContent = fmtMoedaRV(qtd * preco);
+});
+
+document.getElementById('inputPreco').addEventListener('input', function() {
+  var qtd = parseFloat(document.getElementById('inputQtd').value) || 0;
+  var preco = parseFloat(document.getElementById('inputPreco').value) || 0;
+  document.getElementById('custoPreview').textContent = fmtMoedaRV(qtd * preco);
+});
+
+document.getElementById('formNovoAtivo').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  var codigo = document.getElementById('inputAtivo').value.trim().toUpperCase();
+  var qtd = parseInt(document.getElementById('inputQtd').value);
+  var preco = parseFloat(document.getElementById('inputPreco').value);
+  
+  if (!codigo) { alert('Digite o código do ativo (ex: VALE3)'); return; }
+  if (!qtd || qtd <= 0) { alert('Digite uma quantidade válida'); return; }
+  if (!preco || preco <= 0) { alert('Digite um preço válido'); return; }
+  
+  for (var i = 0; i < ativosRV.length; i++) {
+    if (ativosRV[i].codigo === codigo) { alert('O ativo ' + codigo + ' já está cadastrado.'); return; }
+  }
+  
+  var btn = document.getElementById('btnSalvarAtivo');
+  btn.textContent = '⏳ Salvando...';
+  btn.disabled = true;
+  
+  try {
+    salvarAtivo(codigo, qtd, preco);
+    fecharModal();
+    alert('✅ Ativo ' + codigo + ' salvo com sucesso!');
+  } catch (error) {
+    alert('❌ Erro ao salvar ativo. Tente novamente.');
+    btn.textContent = '💾 Salvar Ativo';
+    btn.disabled = false;
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    fecharModal(); fecharModalRF(); fecharModalEditRV();
+    fecharModalEditRF(); fecharModalCaixa(); fecharModalEditCaixa();
+  }
+});
+
+document.getElementById('modalNovoAtivo').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+
+// ============================================================
+// 8. MODAL - EDITAR ATIVO (RENDA VARIÁVEL)
+// ============================================================
+var editRVIndex = -1;
+
+function abrirModalEditRV(index) {
+  editRVIndex = index;
+  var a = ativosRV[index];
+  document.getElementById('editInputAtivoRV').value = a.codigo;
+  document.getElementById('editInputQtdRV').value = a.qtd;
+  document.getElementById('editInputPrecoRV').value = a.preco;
+  document.getElementById('modalEditarAtivoRV').classList.add('active');
+}
+
+function fecharModalEditRV() {
+  document.getElementById('modalEditarAtivoRV').classList.remove('active');
+  editRVIndex = -1;
+}
+
+document.getElementById('formEditarAtivoRV').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  if (editRVIndex < 0 || editRVIndex >= ativosRV.length) {
+    alert('Erro: ativo não encontrado.');
+    fecharModalEditRV();
+    return;
+  }
+  
+  var codigo = document.getElementById('editInputAtivoRV').value.trim().toUpperCase();
+  var qtd = parseInt(document.getElementById('editInputQtdRV').value);
+  var preco = parseFloat(document.getElementById('editInputPrecoRV').value);
+  
+  if (!codigo) { alert('Digite o código do ativo'); return; }
+  if (!qtd || qtd <= 0) { alert('Digite uma quantidade válida'); return; }
+  if (!preco || preco <= 0) { alert('Digite um preço válido'); return; }
+  
+  for (var i = 0; i < ativosRV.length; i++) {
+    if (i !== editRVIndex && ativosRV[i].codigo === codigo) {
+      alert('O ativo ' + codigo + ' já está cadastrado.');
+      return;
+    }
+  }
+  
+  var a = ativosRV[editRVIndex];
+  a.codigo = codigo;
+  a.qtd = qtd;
+  a.preco = preco;
+  a.custo = qtd * preco;
+  a.tipo = detectarTipo(codigo);
+  
+  atualizarCotacao(a);
+  
+  renderizarRV();
+  atualizarDashboardRV();
+  atualizarKPIsRV();
+  atualizarGraficosRV();
+  fecharModalEditRV();
+  alert('✅ Ativo atualizado com sucesso!');
+});
+
+// ============================================================
+// 9. RENDA FIXA - SISTEMA COMPLETO
+// ============================================================
+var ativosRF = [];
+var intervaloRF = null;
+var chartDistribuicaoRF = null, chartInstituicaoRF = null;
+
+function calcularRendimentoDiario(valorAplicado, rentabilidadeAnual, dataEntrada, dataAtual) {
+  if (!rentabilidadeAnual || rentabilidadeAnual <= 0 || !dataEntrada) {
+    return { valorAtual: valorAplicado, rendimento: 0, rendimentoPct: 0 };
+  }
+  
+  var entrada = new Date(dataEntrada);
+  var atual = dataAtual || new Date();
+  var diffDias = Math.max(0, Math.floor((atual - entrada) / (1000 * 60 * 60 * 24)));
+  
+  if (diffDias === 0) {
+    return { valorAtual: valorAplicado, rendimento: 0, rendimentoPct: 0 };
+  }
+  
+  var taxaDiaria = Math.pow(1 + rentabilidadeAnual / 100, 1/252) - 1;
+  var valorAtual = valorAplicado * Math.pow(1 + taxaDiaria, diffDias);
+  var rendimento = valorAtual - valorAplicado;
+  var rendimentoPct = (rendimento / valorAplicado) * 100;
+  
+  return {
+    valorAtual: Math.round(valorAtual * 100) / 100,
+    rendimento: Math.round(rendimento * 100) / 100,
+    rendimentoPct: Math.round(rendimentoPct * 100) / 100
+  };
+}
+
+function salvarAplicacao(nome, tipo, instituicao, valorAplicado, dataEntrada, rentabilidadeAnual, vencimento, valorAtual) {
+  var vAplicado = parseFloat(valorAplicado) || 0;
+  var rendAnual = parseFloat(rentabilidadeAnual) || 0;
+  
+  var vAtual;
+  if (valorAtual && valorAtual > 0) {
+    vAtual = parseFloat(valorAtual);
+  } else if (dataEntrada && rendAnual > 0) {
+    var resultado = calcularRendimentoDiario(vAplicado, rendAnual, dataEntrada, new Date());
+    vAtual = resultado.valorAtual;
+  } else {
+    vAtual = vAplicado;
+  }
+  
+  var rendimento = vAtual - vAplicado;
+  var rendimentoPct = vAplicado > 0 ? (rendimento / vAplicado * 100) : 0;
+  
+  var novaAplicacao = {
+    id: Date.now(),
+    nome: nome || 'Sem nome',
+    tipo: tipo || 'Outro',
+    instituicao: instituicao || 'Outro',
+    valorAplicado: vAplicado,
+    dataEntrada: dataEntrada || '',
+    rentabilidade: rendAnual,
+    rentabilidadeDisplay: rendAnual > 0 ? rendAnual + '% a.a.' : '-',
+    vencimento: vencimento || '-',
+    valorAtual: vAtual,
+    rendimento: rendimento,
+    rendimentoPct: rendimentoPct
+  };
+  
+  ativosRF.push(novaAplicacao);
+  renderizarRF();
+  atualizarGraficosRF();
+  atualizarDashboardRF();
+  atualizarKPIsRF();
+  
+  return novaAplicacao;
+}
+
+function renderizarRF() {
+  var tbody = document.getElementById('rfTableBody');
+  if (!tbody) return;
+  
+  if (ativosRF.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma aplicação cadastrada. Clique em <b>+ Nova Aplicação</b> para começar.</td></tr>';
+    document.getElementById('rfTableFoot').style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('rfTableFoot').style.display = 'table-footer-group';
+  
+  var totalAplicado = 0, totalAtual = 0, totalRendimento = 0;
+  var html = '';
+  for (var i = 0; i < ativosRF.length; i++) {
+    var a = ativosRF[i];
+    totalAplicado += a.valorAplicado;
+    totalAtual += a.valorAtual;
+    totalRendimento += a.rendimento;
+    var cls = a.rendimento > 0 ? 'col-positivo' : 'col-negativo';
+    var dataEntrada = a.dataEntrada || '';
+    if (dataEntrada) {
+      var d = new Date(dataEntrada);
+      dataEntrada = d.toLocaleDateString('pt-BR');
+    }
+    var vencimento = a.vencimento;
+    if (vencimento && vencimento !== '-') {
+      var v = new Date(vencimento);
+      vencimento = v.toLocaleDateString('pt-BR');
+    }
+    html += '<tr>' +
+      '<td class="tk"><span class="editable-value" onclick="abrirModalEditRF(' + i + ')">' + a.nome + '</span></td>' +
+      '<td><span class="badge badge-cdb">' + a.tipo + '</span></td>' +
+      '<td>' + a.instituicao + '</td>' +
+      '<td>' + fmtMoedaRF(a.valorAplicado) + '</td>' +
+      '<td>' + dataEntrada + '</td>' +
+      '<td>' + a.rentabilidadeDisplay + '</td>' +
+      '<td>' + vencimento + '</td>' +
+      '<td><span class="editable-value" onclick="abrirModalEditRF(' + i + ')">' + fmtMoedaRF(a.valorAtual) + '</span></td>' +
+      '<td class="' + cls + '">' + fmtMoedaRF(a.rendimento) + '</td>' +
+      '<td class="' + cls + '">' + fmtPctRF(a.rendimentoPct) + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="abrirModalEditRF(' + i + ')" title="Editar">✏️</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="removerAplicacao(' + i + ')" title="Remover">✕</button>' +
+      '</td>' +
+    '</tr>';
+  }
+  tbody.innerHTML = html;
+  
+  var rendimentoPctTotal = totalAplicado > 0 ? (totalRendimento / totalAplicado * 100) : 0;
+  document.getElementById('rfTotalAplicado').innerHTML = '<strong>' + fmtMoedaRF(totalAplicado) + '</strong>';
+  document.getElementById('rfTotalAtual').innerHTML = '<strong>' + fmtMoedaRF(totalAtual) + '</strong>';
+  document.getElementById('rfTotalRendimento').innerHTML = '<strong class="' + (totalRendimento > 0 ? 'col-positivo' : 'col-negativo') + '">' + fmtMoedaRF(totalRendimento) + '</strong>';
+  document.getElementById('rfTotalRendimentoPct').innerHTML = '<strong class="' + (rendimentoPctTotal > 0 ? 'col-porcentagem-positiva' : 'col-porcentagem-negativa') + '">' + fmtPctRF(rendimentoPctTotal) + '</strong>';
+}
+
+function atualizarKPIsRF() {
+  var totalAplicado = 0, totalAtual = 0;
+  var tipos = [];
+  var melhorRendimento = -999, melhorAtivo = '';
+  
+  for (var i = 0; i < ativosRF.length; i++) {
+    var a = ativosRF[i];
+    totalAplicado += a.valorAplicado;
+    totalAtual += a.valorAtual;
+    if (tipos.indexOf(a.tipo) === -1) tipos.push(a.tipo);
+    if (a.rendimentoPct > melhorRendimento) {
+      melhorRendimento = a.rendimentoPct;
+      melhorAtivo = a.nome;
+    }
+  }
+  
+  var rendimentoTotal = totalAtual - totalAplicado;
+  var rendimentoPctTotal = totalAplicado > 0 ? (rendimentoTotal / totalAplicado * 100) : 0;
+  
+  document.getElementById('rfTotalGeral').textContent = fmtMoedaRF(totalAplicado);
+  document.getElementById('rfRendimentoTotal').textContent = fmtMoedaRF(rendimentoTotal);
+  var rfRendimentoPct = document.getElementById('rfRendimentoPct');
+  rfRendimentoPct.textContent = fmtPctRF(rendimentoPctTotal);
+  rfRendimentoPct.className = 'kpi-delta ' + (rendimentoPctTotal > 0 ? 'up' : 'down');
+  
+  document.getElementById('rfTotalAtivos').textContent = ativosRF.length;
+  document.getElementById('rfListaTipos').textContent = tipos.length > 0 ? tipos.join(' · ') : 'Nenhum ativo';
+  
+  if (melhorAtivo) {
+    document.getElementById('rfMelhorAtivo').textContent = melhorAtivo;
+    var rfMelhorPct = document.getElementById('rfMelhorPct');
+    rfMelhorPct.textContent = fmtPctRF(melhorRendimento);
+    rfMelhorPct.className = 'kpi-delta up';
+  } else {
+    document.getElementById('rfMelhorAtivo').textContent = '—';
+    document.getElementById('rfMelhorPct').textContent = '—';
+  }
+}
+
+function atualizarDashboardRF() {
+  var tbody = document.getElementById('dashRfTableBody');
+  if (!tbody) return;
+  
+  if (ativosRF.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--cinza-claro);padding:15px 0;">Nenhum ativo cadastrado. <a href="#" onclick="switchView(\'renda-fixa\');return false;" style="color:var(--azul-card);font-weight:700;">Clique aqui para gerenciar</a></td></tr>';
+    document.getElementById('dashRfTableFoot').style.display = 'none';
+    atualizarPatrimonioTotal();
+    return;
+  }
+  
+  document.getElementById('dashRfTableFoot').style.display = 'table-footer-group';
+  
+  var totalAtualExibido = 0;
+  var totalAtualGeral = 0;
+  var html = '';
+  var mostrar = Math.min(ativosRF.length, 4);
+  for (var i = 0; i < ativosRF.length; i++) {
+    totalAtualGeral += ativosRF[i].valorAtual;
+  }
+  for (var i = 0; i < mostrar; i++) {
+    var a = ativosRF[i];
+    totalAtualExibido += a.valorAtual;
+    html += '<tr>' +
+      '<td class="tk">' + a.nome + '</td>' +
+      '<td><span class="badge badge-cdb">' + a.tipo + '</span></td>' +
+      '<td>' + fmtMoedaRF(a.valorAtual) + '</td>' +
+      '<td>' + a.rentabilidadeDisplay + '</td>' +
+      '<td>' + (a.vencimento !== '-' ? new Date(a.vencimento).toLocaleDateString('pt-BR') : '-') + '</td>' +
+    '</tr>';
+  }
+  if (ativosRF.length > mostrar) {
+    html += '<tr><td colspan="5" style="text-align:center;color:var(--cinza-claro);font-size:8.5px;">+' + (ativosRF.length - mostrar) + ' outra(s) aplicação(ões) — <a href="#" onclick="switchView(\'renda-fixa\');return false;" style="color:var(--azul-card);font-weight:700;">ver todas</a></td></tr>';
+  }
+  tbody.innerHTML = html;
+  
+  // Atualiza o total no rodapé (soma de TODAS as aplicações, não só das exibidas acima)
+  var foot = document.getElementById('dashRfTableFoot');
+  if (foot) {
+    foot.innerHTML = '<tr class="total-row"><td colspan="2"><strong>TOTAL</strong></td><td><strong>' + fmtMoedaRF(totalAtualGeral) + '</strong></td><td colspan="2"></td></tr>';
+  }
+
+  atualizarPatrimonioTotal();
+}
+
+function removerAplicacao(index) {
+  if (confirm('Remover ' + ativosRF[index].nome + ' da carteira?')) {
+    ativosRF.splice(index, 1);
+    renderizarRF();
+    atualizarGraficosRF();
+    atualizarDashboardRF();
+    atualizarKPIsRF();
+  }
+}
+
+function atualizarRendaFixa() {
+  if (ativosRF.length === 0) return;
+  
+  var dataAtual = new Date();
+  var atualizado = false;
+  
+  for (var i = 0; i < ativosRF.length; i++) {
+    var a = ativosRF[i];
+    if (a.dataEntrada && a.rentabilidade > 0) {
+      var resultado = calcularRendimentoDiario(a.valorAplicado, a.rentabilidade, a.dataEntrada, dataAtual);
+      if (Math.abs(resultado.valorAtual - a.valorAtual) > 0.01) {
+        a.valorAtual = resultado.valorAtual;
+        a.rendimento = resultado.rendimento;
+        a.rendimentoPct = resultado.rendimentoPct;
+        atualizado = true;
+      }
+    }
+  }
+  
+  if (atualizado) {
+    renderizarRF();
+    atualizarDashboardRF();
+    atualizarKPIsRF();
+    atualizarGraficosRF();
+  }
+}
+
+function iniciarAtualizacaoAutomaticaRF() {
+  if (intervaloRF) clearInterval(intervaloRF);
+  intervaloRF = setInterval(function() {
+    atualizarRendaFixa();
+  }, 60000);
+}
+
+// ============================================================
+// 10. GRÁFICOS DA RENDA FIXA
+// ============================================================
+function atualizarGraficosRF() {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js não carregado. Tentando carregar novamente...');
+    return;
+  }
+  
+  // Distribuição por Tipo
+  var ctxDist = document.getElementById('chartDistribuicaoRF');
+  if (ctxDist) {
+    if (chartDistribuicaoRF) {
+      chartDistribuicaoRF.destroy();
+      chartDistribuicaoRF = null;
+    }
+    
+    var tipos = {};
+    for (var i = 0; i < ativosRF.length; i++) {
+      var t = ativosRF[i].tipo;
+      tipos[t] = (tipos[t] || 0) + ativosRF[i].valorAtual;
+    }
+    var labels = Object.keys(tipos);
+    var data = Object.values(tipos);
+    
+    if (labels.length > 0) {
+      try {
+        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+        chartDistribuicaoRF = new Chart(ctxDist, {
+          type: 'doughnut',
+          data: { 
+            labels: labels, 
+            datasets: [{ 
+              data: data, 
+              backgroundColor: cores.slice(0, data.length), 
+              borderWidth: 0 
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            cutout: '65%', 
+            plugins: { 
+              legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, 
+              tooltip: { 
+                callbacks: { 
+                  label: function(context) { 
+                    var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); 
+                    var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; 
+                    return context.label + ': ' + fmtMoedaRF(context.parsed) + ' (' + pct + '%)'; 
+                  } 
+                } 
+              } 
+            } 
+          }
+        });
+      } catch (e) {
+        console.warn('Erro ao criar gráfico Distribuição RF:', e);
+      }
+    }
+  }
+  
+  // Distribuição por Instituição
+  var ctxInst = document.getElementById('chartInstituicaoRF');
+  if (ctxInst) {
+    if (chartInstituicaoRF) {
+      chartInstituicaoRF.destroy();
+      chartInstituicaoRF = null;
+    }
+    
+    var insts = {};
+    for (var i = 0; i < ativosRF.length; i++) {
+      var inst = ativosRF[i].instituicao;
+      insts[inst] = (insts[inst] || 0) + ativosRF[i].valorAtual;
+    }
+    var labels = Object.keys(insts);
+    var data = Object.values(insts);
+    
+    if (labels.length > 0) {
+      try {
+        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+        chartInstituicaoRF = new Chart(ctxInst, {
+          type: 'doughnut',
+          data: { 
+            labels: labels, 
+            datasets: [{ 
+              data: data, 
+              backgroundColor: cores.slice(0, data.length), 
+              borderWidth: 0 
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            cutout: '65%', 
+            plugins: { 
+              legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, 
+              tooltip: { 
+                callbacks: { 
+                  label: function(context) { 
+                    var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); 
+                    var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; 
+                    return context.label + ': ' + fmtMoedaRF(context.parsed) + ' (' + pct + '%)'; 
+                  } 
+                } 
+              } 
+            } 
+          }
+        });
+      } catch (e) {
+        console.warn('Erro ao criar gráfico Instituição RF:', e);
+      }
+    }
+  }
+}
+
+// ============================================================
+// 11. MODAL - NOVA APLICAÇÃO (RENDA FIXA)
+// ============================================================
+function abrirModalRF() {
+  document.getElementById('modalNovaAplicacao').classList.add('active');
+  document.getElementById('inputNomeAtivo').focus();
+  document.getElementById('btnSalvarAplicacao').textContent = '💾 Salvar Aplicação';
+  document.getElementById('btnSalvarAplicacao').disabled = false;
+}
+
+function fecharModalRF() {
+  document.getElementById('modalNovaAplicacao').classList.remove('active');
+  document.getElementById('formNovaAplicacao').reset();
+  document.getElementById('btnSalvarAplicacao').textContent = '💾 Salvar Aplicação';
+  document.getElementById('btnSalvarAplicacao').disabled = false;
+}
+
+document.getElementById('formNovaAplicacao').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  var nome = document.getElementById('inputNomeAtivo').value.trim();
+  var tipo = document.getElementById('inputTipoAtivo').value;
+  var instituicao = document.getElementById('inputInstituicao').value;
+  var valorAplicado = parseFloat(document.getElementById('inputValorAplicado').value);
+  var dataEntrada = document.getElementById('inputDataEntrada').value;
+  var rentabilidade = parseFloat(document.getElementById('inputRentabilidade').value);
+  var vencimento = document.getElementById('inputVencimento').value;
+  var valorAtual = parseFloat(document.getElementById('inputValorAtual').value);
+  
+  if (!nome) { alert('Digite o nome do ativo'); return; }
+  if (!valorAplicado || valorAplicado <= 0) { alert('Digite um valor válido'); return; }
+  
+  var btn = document.getElementById('btnSalvarAplicacao');
+  btn.textContent = '⏳ Salvando...';
+  btn.disabled = true;
+  
+  try {
+    salvarAplicacao(nome, tipo, instituicao, valorAplicado, dataEntrada, rentabilidade, vencimento, valorAtual);
+    fecharModalRF();
+    alert('✅ Aplicação salva com sucesso!');
+  } catch (error) {
+    alert('❌ Erro ao salvar aplicação. Tente novamente.');
+    btn.textContent = '💾 Salvar Aplicação';
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('modalNovaAplicacao').addEventListener('click', function(e) {
+  if (e.target === this) fecharModalRF();
+});
+
+// ============================================================
+// 12. MODAL - EDITAR APLICAÇÃO (RENDA FIXA)
+// ============================================================
+var editRFIndex = -1;
+
+function abrirModalEditRF(index) {
+  editRFIndex = index;
+  var a = ativosRF[index];
+  document.getElementById('editInputNomeRF').value = a.nome;
+  document.getElementById('editInputTipoRF').value = a.tipo;
+  document.getElementById('editInputInstituicaoRF').value = a.instituicao;
+  document.getElementById('editInputValorAplicadoRF').value = a.valorAplicado;
+  document.getElementById('editInputDataEntradaRF').value = a.dataEntrada || '';
+  document.getElementById('editInputRentabilidadeRF').value = a.rentabilidade || '';
+  document.getElementById('editInputVencimentoRF').value = a.vencimento !== '-' ? a.vencimento : '';
+  document.getElementById('editInputValorAtualRF').value = a.valorAtual;
+  document.getElementById('modalEditarAplicacaoRF').classList.add('active');
+}
+
+function fecharModalEditRF() {
+  document.getElementById('modalEditarAplicacaoRF').classList.remove('active');
+  editRFIndex = -1;
+}
+
+document.getElementById('formEditarAplicacaoRF').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  if (editRFIndex < 0 || editRFIndex >= ativosRF.length) {
+    alert('Erro: aplicação não encontrada.');
+    fecharModalEditRF();
+    return;
+  }
+  
+  var nome = document.getElementById('editInputNomeRF').value.trim();
+  var tipo = document.getElementById('editInputTipoRF').value;
+  var instituicao = document.getElementById('editInputInstituicaoRF').value;
+  var valorAplicado = parseFloat(document.getElementById('editInputValorAplicadoRF').value);
+  var dataEntrada = document.getElementById('editInputDataEntradaRF').value;
+  var rentabilidade = parseFloat(document.getElementById('editInputRentabilidadeRF').value);
+  var vencimento = document.getElementById('editInputVencimentoRF').value;
+  var valorAtual = parseFloat(document.getElementById('editInputValorAtualRF').value);
+  
+  if (!nome) { alert('Digite o nome do ativo'); return; }
+  if (!valorAplicado || valorAplicado <= 0) { alert('Digite um valor válido'); return; }
+  
+  var a = ativosRF[editRFIndex];
+  a.nome = nome;
+  a.tipo = tipo;
+  a.instituicao = instituicao;
+  a.valorAplicado = valorAplicado;
+  a.dataEntrada = dataEntrada;
+  a.rentabilidade = rentabilidade;
+  a.rentabilidadeDisplay = rentabilidade > 0 ? rentabilidade + '% a.a.' : '-';
+  a.vencimento = vencimento || '-';
+  a.valorAtual = valorAtual || valorAplicado;
+  a.rendimento = a.valorAtual - a.valorAplicado;
+  a.rendimentoPct = a.valorAplicado > 0 ? (a.rendimento / a.valorAplicado * 100) : 0;
+  
+  renderizarRF();
+  atualizarGraficosRF();
+  atualizarDashboardRF();
+  atualizarKPIsRF();
+  fecharModalEditRF();
+  alert('✅ Aplicação atualizada com sucesso!');
+});
+
+// ============================================================
+// 13. CAIXA - SISTEMA COMPLETO
+// ============================================================
+var saldosCaixa = [];
+var chartMoeda = null, chartInstituicaoCaixa = null;
+
+function obterCotacaoMoeda(moeda) {
+  var cotacoes = {
+    'BRL': 1.00,
+    'USD': 5.80,
+    'EUR': 6.20,
+    'GBP': 7.40,
+    'JPY': 0.038,
+    'CAD': 4.20,
+    'AUD': 3.80,
+    'CHF': 6.50,
+    'CNY': 0.80,
+    'ARS': 0.006
+  };
+  return cotacoes[moeda] || 1.00;
+}
+
+function salvarSaldo(descricao, moeda, valor, instituicao) {
+  var cotacao = obterCotacaoMoeda(moeda);
+  var valorBRL = valor * cotacao;
+  
+  var novoSaldo = {
+    id: Date.now(),
+    descricao: descricao || 'Sem descrição',
+    moeda: moeda,
+    valor: parseFloat(valor) || 0,
+    cotacao: cotacao,
+    valorBRL: valorBRL,
+    instituicao: instituicao || 'Outro'
+  };
+  
+  saldosCaixa.push(novoSaldo);
+  renderizarCaixa();
+  atualizarGraficosCaixa();
+  atualizarDashboardCaixa();
+  atualizarKPIsCaixa();
+  
+  return novoSaldo;
+}
+
+function renderizarCaixa() {
+  var tbody = document.getElementById('caixaTableBody');
+  if (!tbody) return;
+  
+  if (saldosCaixa.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum saldo cadastrado. Clique em <b>+ Novo Saldo</b> para começar.</td></tr>';
+    document.getElementById('caixaTableFoot').style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('caixaTableFoot').style.display = 'table-footer-group';
+  
+  var totalBRL = 0;
+  var html = '';
+  for (var i = 0; i < saldosCaixa.length; i++) {
+    var s = saldosCaixa[i];
+    var simbolo = obterSimboloMoeda(s.moeda);
+    totalBRL += s.valorBRL;
+    html += '<tr>' +
+      '<td class="tk"><span class="editable-value" onclick="abrirModalEditCaixa(' + i + ')">' + s.descricao + '</span></td>' +
+      '<td>' + s.moeda + '</td>' +
+      '<td>' + simbolo + ' ' + fmtMoedaCaixa(s.valor) + '</td>' +
+      '<td>' + fmtMoedaCaixa(s.cotacao) + '</td>' +
+      '<td>' + fmtMoeda(s.valorBRL) + '</td>' +
+      '<td>' + s.instituicao + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-ghost" onclick="abrirModalEditCaixa(' + i + ')" title="Editar">✏️</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="removerSaldo(' + i + ')" title="Remover">✕</button>' +
+      '</td>' +
+    '</tr>';
+  }
+  tbody.innerHTML = html;
+  
+  document.getElementById('caixaTotalBRL').innerHTML = '<strong>' + fmtMoeda(totalBRL) + '</strong>';
+}
+
+function atualizarKPIsCaixa() {
+  var totalBRL = 0;
+  var moedas = [];
+  var instituicoes = [];
+  var maiorSaldo = 0, maiorDescricao = '';
+  
+  for (var i = 0; i < saldosCaixa.length; i++) {
+    var s = saldosCaixa[i];
+    totalBRL += s.valorBRL;
+    if (moedas.indexOf(s.moeda) === -1) moedas.push(s.moeda);
+    if (instituicoes.indexOf(s.instituicao) === -1) instituicoes.push(s.instituicao);
+    if (s.valorBRL > maiorSaldo) {
+      maiorSaldo = s.valorBRL;
+      maiorDescricao = s.descricao + ' (' + s.moeda + ')';
+    }
+  }
+  
+  document.getElementById('caixaTotalGeral').textContent = fmtMoeda(totalBRL);
+  document.getElementById('caixaTotalMoedas').textContent = moedas.length;
+  document.getElementById('caixaListaMoedas').textContent = moedas.length > 0 ? moedas.join(' · ') : 'Nenhuma moeda';
+  document.getElementById('caixaTotalInstituicoes').textContent = instituicoes.length;
+  document.getElementById('caixaListaInstituicoes').textContent = instituicoes.length > 0 ? instituicoes.join(' · ') : 'Nenhuma';
+  
+  if (maiorDescricao) {
+    document.getElementById('caixaMaiorSaldo').textContent = maiorDescricao;
+    document.getElementById('caixaMaiorSaldoDetalhe').textContent = fmtMoeda(maiorSaldo);
+  } else {
+    document.getElementById('caixaMaiorSaldo').textContent = '—';
+    document.getElementById('caixaMaiorSaldoDetalhe').textContent = '—';
+  }
+}
+
+function atualizarDashboardCaixa() {
+  var totalBRL = 0;
+  for (var i = 0; i < saldosCaixa.length; i++) {
+    totalBRL += saldosCaixa[i].valorBRL;
+  }
+  document.getElementById('dashCaixaTotal').textContent = fmtMoeda(totalBRL);
+  atualizarPatrimonioTotal();
+}
+
+function removerSaldo(index) {
+  if (confirm('Remover este saldo?')) {
+    saldosCaixa.splice(index, 1);
+    renderizarCaixa();
+    atualizarGraficosCaixa();
+    atualizarDashboardCaixa();
+    atualizarKPIsCaixa();
+  }
+}
+
+function atualizarTodasMoedas() {
+  if (saldosCaixa.length === 0) {
+    alert('Nenhum saldo cadastrado para atualizar.');
+    return;
+  }
+  var btn = document.getElementById('btnAtualizarCambio');
+  if (btn) { btn.textContent = '⏳ Atualizando...'; btn.disabled = true; }
+  
+  setTimeout(function() {
+    for (var i = 0; i < saldosCaixa.length; i++) {
+      var s = saldosCaixa[i];
+      s.cotacao = obterCotacaoMoeda(s.moeda);
+      s.valorBRL = s.valor * s.cotacao;
+    }
+    
+    renderizarCaixa();
+    atualizarGraficosCaixa();
+    atualizarDashboardCaixa();
+    atualizarKPIsCaixa();
+    
+    if (btn) { btn.textContent = '🔄 Atualizar Câmbio'; btn.disabled = false; }
+    alert('✅ Cotações atualizadas!');
+  }, 500);
+}
+
+// ============================================================
+// 14. GRÁFICOS DO CAIXA
+// ============================================================
+function atualizarGraficosCaixa() {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js não carregado. Tentando carregar novamente...');
+    return;
+  }
+  
+  // Distribuição por Moeda
+  var ctxMoeda = document.getElementById('chartDistribuicaoMoeda');
+  if (ctxMoeda) {
+    if (chartMoeda) {
+      chartMoeda.destroy();
+      chartMoeda = null;
+    }
+    
+    var moedas = {};
+    for (var i = 0; i < saldosCaixa.length; i++) {
+      var m = saldosCaixa[i].moeda;
+      moedas[m] = (moedas[m] || 0) + saldosCaixa[i].valorBRL;
+    }
+    var labels = Object.keys(moedas);
+    var data = Object.values(moedas);
+    
+    if (labels.length > 0) {
+      try {
+        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+        chartMoeda = new Chart(ctxMoeda, {
+          type: 'doughnut',
+          data: { 
+            labels: labels, 
+            datasets: [{ 
+              data: data, 
+              backgroundColor: cores.slice(0, data.length), 
+              borderWidth: 0 
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            cutout: '65%', 
+            plugins: { 
+              legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, 
+              tooltip: { 
+                callbacks: { 
+                  label: function(context) { 
+                    var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); 
+                    var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; 
+                    return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct + '%)'; 
+                  } 
+                } 
+              } 
+            } 
+          }
+        });
+      } catch (e) {
+        console.warn('Erro ao criar gráfico Moeda:', e);
+      }
+    }
+  }
+  
+  // Distribuição por Instituição
+  var ctxInst = document.getElementById('chartDistribuicaoInstituicaoCaixa');
+  if (ctxInst) {
+    if (chartInstituicaoCaixa) {
+      chartInstituicaoCaixa.destroy();
+      chartInstituicaoCaixa = null;
+    }
+    
+    var insts = {};
+    for (var i = 0; i < saldosCaixa.length; i++) {
+      var inst = saldosCaixa[i].instituicao;
+      insts[inst] = (insts[inst] || 0) + saldosCaixa[i].valorBRL;
+    }
+    var labels = Object.keys(insts);
+    var data = Object.values(insts);
+    
+    if (labels.length > 0) {
+      try {
+        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+        chartInstituicaoCaixa = new Chart(ctxInst, {
+          type: 'doughnut',
+          data: { 
+            labels: labels, 
+            datasets: [{ 
+              data: data, 
+              backgroundColor: cores.slice(0, data.length), 
+              borderWidth: 0 
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true, 
+            cutout: '65%', 
+            plugins: { 
+              legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, 
+              tooltip: { 
+                callbacks: { 
+                  label: function(context) { 
+                    var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); 
+                    var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; 
+                    return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct + '%)'; 
+                  } 
+                } 
+              } 
+            } 
+          }
+        });
+      } catch (e) {
+        console.warn('Erro ao criar gráfico Instituição Caixa:', e);
+      }
+    }
+  }
+}
+
+// ============================================================
+// 15. MODAL - NOVO SALDO (CAIXA)
+// ============================================================
+function abrirModalCaixa() {
+  document.getElementById('modalNovoSaldo').classList.add('active');
+  document.getElementById('inputDescricao').focus();
+  document.getElementById('btnSalvarSaldo').textContent = '💾 Salvar';
+  document.getElementById('btnSalvarSaldo').disabled = false;
+}
+
+function fecharModalCaixa() {
+  document.getElementById('modalNovoSaldo').classList.remove('active');
+  document.getElementById('formNovoSaldo').reset();
+  document.getElementById('btnSalvarSaldo').textContent = '💾 Salvar';
+  document.getElementById('btnSalvarSaldo').disabled = false;
+}
+
+document.getElementById('formNovoSaldo').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  var descricao = document.getElementById('inputDescricao').value.trim();
+  var moeda = document.getElementById('inputMoeda').value;
+  var valor = parseFloat(document.getElementById('inputValorSaldo').value);
+  var instituicao = document.getElementById('inputInstituicaoCaixa').value;
+  
+  if (!descricao) { alert('Digite uma descrição'); return; }
+  if (!valor || valor <= 0) { alert('Digite um valor válido'); return; }
+  
+  var btn = document.getElementById('btnSalvarSaldo');
+  btn.textContent = '⏳ Salvando...';
+  btn.disabled = true;
+  
+  try {
+    salvarSaldo(descricao, moeda, valor, instituicao);
+    fecharModalCaixa();
+    alert('✅ Saldo salvo com sucesso!');
+  } catch (error) {
+    alert('❌ Erro ao salvar saldo. Tente novamente.');
+    btn.textContent = '💾 Salvar';
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('modalNovoSaldo').addEventListener('click', function(e) {
+  if (e.target === this) fecharModalCaixa();
+});
+
+// ============================================================
+// 16. MODAL - EDITAR SALDO (CAIXA)
+// ============================================================
+var editCaixaIndex = -1;
+
+function abrirModalEditCaixa(index) {
+  editCaixaIndex = index;
+  var s = saldosCaixa[index];
+  document.getElementById('editInputDescricaoCaixa').value = s.descricao;
+  document.getElementById('editInputMoedaCaixa').value = s.moeda;
+  document.getElementById('editInputValorSaldoCaixa').value = s.valor;
+  document.getElementById('editInputInstituicaoCaixa').value = s.instituicao;
+  document.getElementById('modalEditarSaldoCaixa').classList.add('active');
+}
+
+function fecharModalEditCaixa() {
+  document.getElementById('modalEditarSaldoCaixa').classList.remove('active');
+  editCaixaIndex = -1;
+}
+
+document.getElementById('formEditarSaldoCaixa').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  if (editCaixaIndex < 0 || editCaixaIndex >= saldosCaixa.length) {
+    alert('Erro: saldo não encontrado.');
+    fecharModalEditCaixa();
+    return;
+  }
+  
+  var descricao = document.getElementById('editInputDescricaoCaixa').value.trim();
+  var moeda = document.getElementById('editInputMoedaCaixa').value;
+  var valor = parseFloat(document.getElementById('editInputValorSaldoCaixa').value);
+  var instituicao = document.getElementById('editInputInstituicaoCaixa').value;
+  
+  if (!descricao) { alert('Digite uma descrição'); return; }
+  if (!valor || valor <= 0) { alert('Digite um valor válido'); return; }
+  
+  var s = saldosCaixa[editCaixaIndex];
+  var cotacao = obterCotacaoMoeda(moeda);
+  
+  s.descricao = descricao;
+  s.moeda = moeda;
+  s.valor = valor;
+  s.cotacao = cotacao;
+  s.valorBRL = valor * cotacao;
+  s.instituicao = instituicao;
+  
+  renderizarCaixa();
+  atualizarGraficosCaixa();
+  atualizarDashboardCaixa();
+  atualizarKPIsCaixa();
+  fecharModalEditCaixa();
+  alert('✅ Saldo atualizado com sucesso!');
+});
+
+// ============================================================
+// 16.5 PATRIMÔNIO TOTAL (soma de Renda Variável + Renda Fixa + Caixa)
+// ============================================================
+function atualizarPatrimonioTotal() {
+  var totalRV = 0;
+  for (var i = 0; i < ativosRV.length; i++) totalRV += ativosRV[i].saldo;
+
+  var totalRF = 0;
+  for (var j = 0; j < ativosRF.length; j++) totalRF += ativosRF[j].valorAtual;
+
+  var totalCaixa = 0;
+  for (var k = 0; k < saldosCaixa.length; k++) totalCaixa += saldosCaixa[k].valorBRL;
+
+  var total = totalRV + totalRF + totalCaixa;
+
+  var elSidebar = document.getElementById('patrimonioTotal');
+  if (elSidebar) elSidebar.textContent = fmtMoeda(total);
+
+  var elDash = document.getElementById('dashPatrimonioTotal');
+  if (elDash) elDash.textContent = fmtMoeda(total);
+
+  var elCaixaDetalhe = document.getElementById('dashCaixaDetalhe');
+  if (elCaixaDetalhe) {
+    var pctCaixaPatrimonio = total > 0 ? (totalCaixa / total * 100) : 0;
+    elCaixaDetalhe.innerHTML = pctCaixaPatrimonio.toFixed(2).replace('.', ',') + '% <small>do patrimônio total</small>';
+  }
+
+  atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa);
+}
+
+function atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa) {
+  var total = totalRV + totalRF + totalCaixa;
+  var circunferencia = 2 * Math.PI * 40; // raio = 40 (mesmo valor usado no SVG)
+
+  var pctRV = total > 0 ? totalRV / total : 0;
+  var pctRF = total > 0 ? totalRF / total : 0;
+  var pctCaixa = total > 0 ? totalCaixa / total : 0;
+
+  var segRV = circunferencia * pctRV;
+  var segRF = circunferencia * pctRF;
+  var segCaixa = circunferencia * pctCaixa;
+
+  var donutRV = document.getElementById('donutRV');
+  var donutRF = document.getElementById('donutRF');
+  var donutCaixa = document.getElementById('donutCaixa');
+
+  if (donutRV) {
+    donutRV.setAttribute('stroke-dasharray', segRV.toFixed(2) + ' ' + (circunferencia - segRV).toFixed(2));
+    donutRV.setAttribute('stroke-dashoffset', '0');
+  }
+  if (donutRF) {
+    donutRF.setAttribute('stroke-dasharray', segRF.toFixed(2) + ' ' + (circunferencia - segRF).toFixed(2));
+    donutRF.setAttribute('stroke-dashoffset', (-segRV).toFixed(2));
+  }
+  if (donutCaixa) {
+    donutCaixa.setAttribute('stroke-dasharray', segCaixa.toFixed(2) + ' ' + (circunferencia - segCaixa).toFixed(2));
+    donutCaixa.setAttribute('stroke-dashoffset', (-(segRV + segRF)).toFixed(2));
+  }
+
+  var legPctRV = document.getElementById('legPctRV');
+  if (legPctRV) legPctRV.textContent = (pctRV * 100).toFixed(2).replace('.', ',') + '%';
+  var legPctRF = document.getElementById('legPctRF');
+  if (legPctRF) legPctRF.textContent = (pctRF * 100).toFixed(2).replace('.', ',') + '%';
+  var legPctCaixa = document.getElementById('legPctCaixa');
+  if (legPctCaixa) legPctCaixa.textContent = (pctCaixa * 100).toFixed(2).replace('.', ',') + '%';
+}
+
+// ============================================================
+// 17. INICIALIZAÇÃO
+// ============================================================
+function init() {
+  // Renda Variável - Dados de exemplo
+  if (ativosRV.length === 0) {
+    var exemplosRV = [
+      { codigo: 'VALE3', qtd: 520, preco: 54.20 },
+      { codigo: 'PETR4', qtd: 410, preco: 31.80 },
+      { codigo: 'ITUB4', qtd: 650, preco: 28.90 }
+    ];
+    for (var i = 0; i < exemplosRV.length; i++) {
+      try {
+        salvarAtivo(exemplosRV[i].codigo, exemplosRV[i].qtd, exemplosRV[i].preco);
+      } catch (error) {
+        console.warn('Erro ao carregar ativo de exemplo ' + exemplosRV[i].codigo + ':', error.message);
+      }
+    }
+  }
+  
+  // Renda Fixa - Dados de exemplo
+  if (ativosRF.length === 0) {
+    var exemplosRF = [
+      { nome: 'LTF', tipo: 'Tesouro Direto', instituicao: 'Governo', valorAplicado: 61109.88, dataEntrada: '2023-01-15', rentabilidade: 12.5, vencimento: '2027-03-01', valorAtual: 77942.44 },
+      { nome: 'RF FI', tipo: 'Fundo', instituicao: 'Mapfre', valorAplicado: 5337.70, dataEntrada: '2023-03-10', rentabilidade: 11.2, vencimento: '2025-05-15', valorAtual: 6737.80 },
+      { nome: 'Poupança Vitória', tipo: 'Poupança', instituicao: 'Caixa', valorAplicado: 67552.33, dataEntrada: '2022-07-01', rentabilidade: 6.5, vencimento: '', valorAtual: 55035.80 },
+      { nome: 'Poupança Rogério', tipo: 'Poupança', instituicao: 'Caixa', valorAplicado: 15000.00, dataEntrada: '2022-07-01', rentabilidade: 6.5, vencimento: '', valorAtual: 25990.37 }
+    ];
+    for (var i = 0; i < exemplosRF.length; i++) {
+      try {
+        var ex = exemplosRF[i];
+        salvarAplicacao(ex.nome, ex.tipo, ex.instituicao, ex.valorAplicado, ex.dataEntrada, ex.rentabilidade, ex.vencimento, ex.valorAtual);
+      } catch (error) {
+        console.warn('Erro ao carregar aplicação de exemplo ' + ex.nome + ':', error.message);
+      }
+    }
+  }
+  
+  // Caixa - Dados de exemplo
+  if (saldosCaixa.length === 0) {
+    var exemplosCaixa = [
+      { descricao: 'Conta Corrente', moeda: 'BRL', valor: 12899.15, instituicao: 'Nubank' },
+      { descricao: 'Reserva Emergência', moeda: 'BRL', valor: 5000.00, instituicao: 'Caixa' },
+      { descricao: 'Viagem EUA', moeda: 'USD', valor: 1000.00, instituicao: 'XP' },
+      { descricao: 'Investimento Exterior', moeda: 'EUR', valor: 500.00, instituicao: 'Rico' }
+    ];
+    for (var i = 0; i < exemplosCaixa.length; i++) {
+      try {
+        var ex = exemplosCaixa[i];
+        salvarSaldo(ex.descricao, ex.moeda, ex.valor, ex.instituicao);
+      } catch (error) {
+        console.warn('Erro ao carregar saldo de exemplo:', error.message);
+      }
+    }
+  }
+  
+  // Inicia atualizações automáticas
+  iniciarAtualizacaoAutomaticaRV();
+  iniciarAtualizacaoAutomaticaRF();
+  
+  // Atualiza gráficos após carregar
+  setTimeout(function() {
+    atualizarGraficosRV();
+    atualizarGraficosRF();
+    atualizarGraficosCaixa();
+  }, 500);
+}
+
+// Inicializar
+init();
+
+console.log('🔍 Explicação dos gráficos:');
+console.log('📊 Upside / Downside: Mostra a variação percentual de cada ativo em relação ao preço de compra. Valores positivos (verde) = upside (lucro), negativos (vermelho) = downside (prejuízo).');
+console.log('📊 Distribuição por Ativo: Mostra a proporção do valor total investido em cada ativo da carteira de Renda Variável.');
+console.log('📊 Distribuição por Tipo (RF): Mostra a distribuição dos investimentos em Renda Fixa por tipo de aplicação.');
+console.log('📊 Distribuição por Instituição (RF): Mostra a distribuição dos investimentos em Renda Fixa entre instituições financeiras.');
+console.log('📊 Distribuição por Moeda (Caixa): Mostra a distribuição do saldo em caixa entre diferentes moedas.');
+console.log('📊 Distribuição por Instituição (Caixa): Mostra a distribuição do saldo em caixa entre diferentes instituições.');
+</script>
+</body>
+</html>

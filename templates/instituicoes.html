@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newex · Instituições</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   FONTE
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul-escuro: #0c1b33;
+  --azul-card: #2d6fb0;
+  --azul-claro: #4a8fd4;
+  --verde-card: #28a745;
+  --lilas-card: #6f42c1;
+  --amarelo-card: #ffc107;
+  --cinza-fundo: #f0f2f5;
+  --branco: #ffffff;
+  --cinza-borda: #dce1e8;
+  --cinza-texto: #495057;
+  --cinza-claro: #6c757d;
+  --vermelho: #dc3545;
+  --fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Aptos Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fonte);
+  font-size: 11px;
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: 210px;
+  min-height: 100vh;
+  background: var(--azul-escuro);
+  color: #b0c4de;
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo h1 span { color: var(--azul-card); }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+
+.sidebar-nav { list-style: none; padding: 0 10px; }
+.sidebar-nav li {
+  padding: 6px 10px;
+  margin: 1px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8aa3c9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-nav li:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-nav li.active { background: var(--azul-card); color: #fff; }
+.sidebar-nav li .icone { font-size: 12px; width: 16px; text-align: center; }
+.sidebar-nav .grupo { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #4a6a8f; padding: 10px 10px 3px; font-weight: 700; }
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer .label { font-size: 8px; color: #5a7a9e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-footer .valor { font-size: 14px; font-weight: 800; color: #fff; }
+.sidebar-footer .delta { font-size: 9px; color: var(--verde-card); font-weight: 600; }
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  background: var(--branco);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--cinza-borda);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar .logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-card);
+}
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
+.topbar .spacer { flex: 1; }
+.topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
+.topbar .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-card); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+/* ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ */
+.main { margin-left: 210px; padding: 0; min-height: 100vh; }
+.content { padding: 14px 20px 32px; }
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi-card {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--cinza-borda);
+}
+.kpi-card .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-card .valor { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-card .delta { font-size: 9.5px; font-weight: 700; }
+.kpi-card .delta small { font-weight: 400; color: var(--cinza-claro); }
+
+.kpi-top { display: flex; justify-content: space-between; align-items: center; }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-ic { font-size: 14px; padding: 4px 8px; border-radius: 6px; }
+.kpi-value { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-delta { font-size: 9.5px; font-weight: 700; }
+.kpi-delta.up { color: var(--verde-card); }
+.kpi-delta.down { color: var(--vermelho); }
+
+.card-azul .valor { color: var(--azul-card); }
+.card-verde .valor { color: var(--verde-card); }
+.card-lilas .valor { color: var(--lilas-card); }
+.card-amarelo .valor { color: var(--amarelo-card); }
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+.panel {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cinza-borda);
+  margin-bottom: 14px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.form-group label {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cinza-claro);
+  letter-spacing: 0.3px;
+}
+.form-group input,
+.form-group select {
+  padding: 5px 8px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 5px;
+  font-size: 10px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+  width: 100%;
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+.form-group .btn {
+  padding: 5px 14px;
+  font-size: 9px;
+  height: 100%;
+  min-height: 30px;
+}
+
+/* ============================================================
+   TABELAS
+   ============================================================ */
+.table-wrap { overflow-x: auto; margin: 0 -2px; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+table th { text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--cinza-claro); font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table td { padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table tr:last-child td { border-bottom: none; }
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--fonte);
+}
+.btn-primary { background: var(--azul-card); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-ghost:hover { background: #f8f9fa; }
+.btn-success { background: var(--verde-card); color: #fff; }
+.btn-success:hover { opacity: 0.9; }
+.btn-danger { background: var(--vermelho); color: #fff; }
+.btn-danger:hover { opacity: 0.9; }
+.btn-sm { padding: 2px 6px; font-size: 7.5px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+.badge-corretora { background: #cce5ff; color: #004085; }
+.badge-banco { background: #d4edda; color: #155724; }
+.badge-fintech { background: #fff3cd; color: #856404; }
+.badge-outro { background: #f8d7da; color: #721c24; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 12px; }
+.modal .form-group label { display: block; font-size: 9px; font-weight: 700; color: var(--cinza-claro); margin-bottom: 3px; }
+.modal .form-group input, .modal .form-group select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+.modal .form-group input:focus, .modal .form-group select:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+.modal .btn-group { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.modal .btn-group .btn { padding: 6px 16px; font-size: 10px; }
+
+/* ============================================================
+   INFO BOX
+   ============================================================ */
+.info-box {
+  font-size: 9px;
+  color: var(--cinza-claro);
+  background: #eef2f7;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.chart-container { position: relative; width: 100%; min-height: 200px; }
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .sidebar { width: 56px; }
+  .sidebar .logo h1, .sidebar .logo small, .sidebar-nav li span, .sidebar-footer { display: none; }
+  .sidebar-nav li { justify-content: center; padding: 8px; }
+  .main { margin-left: 56px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .modal .form-row { grid-template-columns: 1fr; }
+}
+
+.editable-cell {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.2s;
+  color: var(--azul-card);
+  font-weight: 600;
+}
+.editable-cell:hover { background: #eef2f7; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+   SIDEBAR
+   ============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CARTEIRA<span>PESSOAL</span></h1>
+    <small>GESTÃO PATRIMONIAL</small>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li class="grupo">GERAL</li>
+    <li onclick="window.location.href='/'"><span class="icone">📊</span> Dashboard</li>
+
+    <li class="grupo">CARTEIRAS</li>
+    <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
+    <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
+    <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+
+    <li class="grupo">GESTÃO</li>
+    <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
+    <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
+    <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
+    <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
+    <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
+</ul>
+
+  <div class="sidebar-footer">
+    <div class="label">Patrimônio Total</div>
+    <div class="valor" id="patrimonioTotal">R$ 0,00</div>
+    <div class="delta">↑ 0,00% no ano</div>
+  </div>
+</aside>
+
+<!-- ============================================================
+   MODAL: EDITAR INSTITUIÇÃO
+   ============================================================ -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <h2>✏️ Editar Instituição</h2>
+    <form id="formEditar">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="editNome" required>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="editTipo">
+          <option value="Corretora">Corretora</option>
+          <option value="Banco">Banco</option>
+          <option value="Fintech">Fintech</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>CNPJ</label>
+        <input type="text" id="editCnpj" placeholder="00.000.000/0000-00">
+      </div>
+      <div class="form-group">
+        <label>Site</label>
+        <input type="text" id="editSite" placeholder="www.exemplo.com.br">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalEditar()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Atualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ -->
+<main class="main">
+
+  <header class="topbar">
+    <div class="logo-img">🏛️</div>
+    <div>
+      <h2>Instituições Financeiras</h2>
+      <p>Corretoras, bancos e outras instituições parceiras</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="usuario">
+      <div class="avatar">RS</div>
+      <div>
+        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card card-azul">
+        <div class="kpi-top">
+          <span class="kpi-label">Total de Instituições</span>
+          <span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">🏛️</span>
+        </div>
+        <div class="kpi-value" style="color:var(--azul-card);" id="totalInstituicoes">0</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);">Cadastradas no sistema</div>
+      </div>
+      <div class="kpi-card card-verde">
+        <div class="kpi-top">
+          <span class="kpi-label">Corretoras</span>
+          <span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">📈</span>
+        </div>
+        <div class="kpi-value" style="color:var(--verde-card);" id="totalCorretoras">0</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);">Ativas</div>
+      </div>
+      <div class="kpi-card card-lilas">
+        <div class="kpi-top">
+          <span class="kpi-label">Bancos</span>
+          <span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">🏦</span>
+        </div>
+        <div class="kpi-value" style="color:var(--lilas-card);" id="totalBancos">0</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);">Parceiros</div>
+      </div>
+      <div class="kpi-card card-amarelo">
+        <div class="kpi-top">
+          <span class="kpi-label">Fintechs</span>
+          <span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">📱</span>
+        </div>
+        <div class="kpi-value" style="color:#b8790f;" id="totalFintechs">0</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);">Digitais</div>
+      </div>
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <div class="panel">
+      <div class="panel-head"><h3>➕ Nova Instituição</h3></div>
+      <form id="formInstituicao">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" id="inputNome" placeholder="Ex: XP Investimentos" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="inputTipo" required>
+              <option value="Corretora">Corretora</option>
+              <option value="Banco">Banco</option>
+              <option value="Fintech">Fintech</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CNPJ</label>
+            <input type="text" id="inputCnpj" placeholder="00.000.000/0000-00">
+          </div>
+          <div class="form-group">
+            <label>Site</label>
+            <input type="text" id="inputSite" placeholder="www.exemplo.com.br">
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-success">💾 Salvar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- TABELA -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Lista de Instituições <small>Corretoras, bancos e fintechs</small></h3>
+        <div>
+          <button class="btn btn-ghost" onclick="exportarInstituicoes()">📤 Exportar</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Nome</th><th>Tipo</th><th>CNPJ</th><th>Site</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="instituicoesTableBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma instituição cadastrada.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h3>Distribuição por Tipo</h3></div>
+        <div class="chart-container"><canvas id="chartDistribuicaoTipo" height="220"></canvas></div>
+        <div class="info-box"><span>ℹ️</span><div>Distribuição das instituições por tipo (Corretora, Banco, Fintech).</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Top Instituições por Ativos</h3></div>
+        <div class="chart-container"><canvas id="chartTopInstituicoes" height="220"></canvas></div>
+        <div class="info-box"><span>ℹ️</span><div>Instituições com maior volume de ativos na carteira.</div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ============================================================
+// DADOS INICIAIS
+// ============================================================
+var instituicoesData = [
+    { id: 1, nome: 'XP Investimentos', tipo: 'Corretora', cnpj: '02.332.886/0001-04', site: 'www.xpi.com.br' },
+    { id: 2, nome: 'Itaú Unibanco', tipo: 'Banco', cnpj: '60.701.190/0001-04', site: 'www.itau.com.br' },
+    { id: 3, nome: 'Bradesco', tipo: 'Banco', cnpj: '60.746.948/0001-12', site: 'www.bradesco.com.br' },
+    { id: 4, nome: 'Santander', tipo: 'Banco', cnpj: '90.400.888/0001-42', site: 'www.santander.com.br' },
+    { id: 5, nome: 'Nubank', tipo: 'Fintech', cnpj: '18.236.120/0001-58', site: 'www.nubank.com.br' },
+    { id: 6, nome: 'Caixa Econômica Federal', tipo: 'Banco', cnpj: '00.360.305/0001-04', site: 'www.caixa.gov.br' },
+    { id: 7, nome: 'Rico Investimentos', tipo: 'Corretora', cnpj: '29.447.546/0001-90', site: 'www.rico.com.vc' },
+    { id: 8, nome: 'Banco do Brasil', tipo: 'Banco', cnpj: '00.000.000/0001-91', site: 'www.bb.com.br' },
+    { id: 9, nome: 'Inter', tipo: 'Fintech', cnpj: '00.416.968/0001-01', site: 'www.bancointer.com.br' },
+    { id: 10, nome: 'Wise', tipo: 'Fintech', cnpj: '33.762.512/0001-81', site: 'www.wise.com' }
+];
+
+var proximoId = 11;
+var chartDistribuicaoTipo = null;
+var chartTopInstituicoes = null;
+
+// ============================================================
+// FUNÇÕES AUXILIARES
+// ============================================================
+function fmtMoeda(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
+    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function badgeTipo(tipo) {
+    var classes = {
+        'Corretora': 'badge-corretora',
+        'Banco': 'badge-banco',
+        'Fintech': 'badge-fintech',
+        'Outro': 'badge-outro'
+    };
+    return '<span class="badge ' + (classes[tipo] || 'badge-outro') + '">' + tipo + '</span>';
+}
+
+// ============================================================
+// CARREGAR DO LOCALSTORAGE
+// ============================================================
+function carregarInstituicoes() {
+    var salvos = localStorage.getItem('instituicoes');
+    if (salvos) {
+        try {
+            var parsed = JSON.parse(salvos);
+            if (parsed.length > 0) {
+                instituicoesData = parsed;
+                for (var i = 0; i < instituicoesData.length; i++) {
+                    if (instituicoesData[i].id >= proximoId) {
+                        proximoId = instituicoesData[i].id + 1;
+                    }
+                }
+                console.log('📂 Instituições carregadas:', instituicoesData.length);
+            }
+        } catch(e) {
+            console.warn('Erro ao carregar instituições:', e);
+        }
+    }
+    renderizarInstituicoes();
+    atualizarKPIs();
+    atualizarGraficos();
+}
+
+function salvarInstituicoes() {
+    try {
+        localStorage.setItem('instituicoes', JSON.stringify(instituicoesData));
+        console.log('✅ Instituições salvas:', instituicoesData.length);
+    } catch(e) {
+        console.warn('Erro ao salvar instituições:', e);
+    }
+}
+
+// ============================================================
+// CRUD DE INSTITUIÇÕES
+// ============================================================
+function salvarInstituicao(nome, tipo, cnpj, site) {
+    var novaInstituicao = {
+        id: proximoId++,
+        nome: nome || 'Sem nome',
+        tipo: tipo || 'Outro',
+        cnpj: cnpj || '-',
+        site: site || '-'
+    };
+    
+    instituicoesData.push(novaInstituicao);
+    salvarInstituicoes();
+    renderizarInstituicoes();
+    atualizarKPIs();
+    atualizarGraficos();
+    
+    return novaInstituicao;
+}
+
+function excluirInstituicao(id) {
+    if (!confirm('Deseja excluir esta instituição?')) return;
+    
+    for (var i = 0; i < instituicoesData.length; i++) {
+        if (instituicoesData[i].id === id) {
+            instituicoesData.splice(i, 1);
+            break;
+        }
+    }
+    salvarInstituicoes();
+    renderizarInstituicoes();
+    atualizarKPIs();
+    atualizarGraficos();
+}
+
+function editarInstituicao(id, nome, tipo, cnpj, site) {
+    for (var i = 0; i < instituicoesData.length; i++) {
+        if (instituicoesData[i].id === id) {
+            instituicoesData[i].nome = nome || 'Sem nome';
+            instituicoesData[i].tipo = tipo || 'Outro';
+            instituicoesData[i].cnpj = cnpj || '-';
+            instituicoesData[i].site = site || '-';
+            break;
+        }
+    }
+    salvarInstituicoes();
+    renderizarInstituicoes();
+    atualizarKPIs();
+    atualizarGraficos();
+}
+
+function getInstituicaoById(id) {
+    for (var i = 0; i < instituicoesData.length; i++) {
+        if (instituicoesData[i].id === id) return instituicoesData[i];
+    }
+    return null;
+}
+
+// ============================================================
+// RENDERIZAÇÃO
+// ============================================================
+function renderizarInstituicoes() {
+    var tbody = document.getElementById('instituicoesTableBody');
+    if (!tbody) return;
+    
+    if (instituicoesData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma instituição cadastrada.</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    for (var i = 0; i < instituicoesData.length; i++) {
+        var inst = instituicoesData[i];
+        html += '<tr>' +
+            '<td class="tk"><span class="editable-cell" onclick="abrirModalEditar(' + inst.id + ')">' + inst.nome + '</span></td>' +
+            '<td>' + badgeTipo(inst.tipo) + '</td>' +
+            '<td>' + inst.cnpj + '</td>' +
+            '<td>' + (inst.site !== '-' ? '<a href="https://' + inst.site + '" target="_blank" style="color:var(--azul-card);text-decoration:none;">' + inst.site + '</a>' : '-') + '</td>' +
+            '<td>' +
+                '<button class="btn btn-sm btn-ghost" onclick="abrirModalEditar(' + inst.id + ')" title="Editar">✏️</button>' +
+                '<button class="btn btn-sm btn-danger" onclick="excluirInstituicao(' + inst.id + ')" title="Remover">✕</button>' +
+            '</td>' +
+        '</tr>';
+    }
+    tbody.innerHTML = html;
+}
+
+// ============================================================
+// KPIs
+// ============================================================
+function atualizarKPIs() {
+    var total = instituicoesData.length;
+    var corretoras = 0, bancos = 0, fintechs = 0;
+    
+    for (var i = 0; i < instituicoesData.length; i++) {
+        var tipo = instituicoesData[i].tipo;
+        if (tipo === 'Corretora') corretoras++;
+        else if (tipo === 'Banco') bancos++;
+        else if (tipo === 'Fintech') fintechs++;
+    }
+    
+    document.getElementById('totalInstituicoes').textContent = total;
+    document.getElementById('totalCorretoras').textContent = corretoras;
+    document.getElementById('totalBancos').textContent = bancos;
+    document.getElementById('totalFintechs').textContent = fintechs;
+}
+
+// ============================================================
+// GRÁFICOS
+// ============================================================
+function atualizarGraficos() {
+    if (typeof Chart === 'undefined') return;
+    
+    var ctxTipo = document.getElementById('chartDistribuicaoTipo');
+    if (ctxTipo) {
+        if (chartDistribuicaoTipo) { chartDistribuicaoTipo.destroy(); chartDistribuicaoTipo = null; }
+        
+        var tipos = { 'Corretora': 0, 'Banco': 0, 'Fintech': 0, 'Outro': 0 };
+        for (var i = 0; i < instituicoesData.length; i++) {
+            var t = instituicoesData[i].tipo;
+            if (tipos[t] !== undefined) tipos[t]++;
+        }
+        
+        var labels = [];
+        var data = [];
+        var cores = [];
+        var colorMap = { 'Corretora': '#2d6fb0', 'Banco': '#28a745', 'Fintech': '#b8790f', 'Outro': '#6c757d' };
+        
+        for (var key in tipos) {
+            if (tipos[key] > 0) {
+                labels.push(key);
+                data.push(tipos[key]);
+                cores.push(colorMap[key] || '#6c757d');
+            }
+        }
+        
+        if (labels.length > 0) {
+            try {
+                chartDistribuicaoTipo = new Chart(ctxTipo, {
+                    type: 'doughnut',
+                    data: { labels: labels, datasets: [{ data: data, backgroundColor: cores, borderWidth: 0 }] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '60%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 12 } },
+                            tooltip: { callbacks: { label: function(context) {
+                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + pct + '%)';
+                            } } }
+                        }
+                    }
+                });
+            } catch(e) { console.warn('Erro gráfico tipo:', e); }
+        }
+    }
+    
+    var ctxTop = document.getElementById('chartTopInstituicoes');
+    if (ctxTop) {
+        if (chartTopInstituicoes) { chartTopInstituicoes.destroy(); chartTopInstituicoes = null; }
+        
+        var ativosPorInstituicao = [
+            { nome: 'XP Investimentos', valor: 85000 },
+            { nome: 'Itaú', valor: 45000 },
+            { nome: 'Nubank', valor: 25000 },
+            { nome: 'Bradesco', valor: 15000 },
+            { nome: 'Rico', valor: 8000 }
+        ];
+        
+        var labels = [];
+        var data = [];
+        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545'];
+        
+        for (var i = 0; i < ativosPorInstituicao.length; i++) {
+            labels.push(ativosPorInstituicao[i].nome);
+            data.push(ativosPorInstituicao[i].valor);
+        }
+        
+        try {
+            chartTopInstituicoes = new Chart(ctxTop, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ativos (R$)',
+                        data: data,
+                        backgroundColor: cores,
+                        borderRadius: 6,
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) {
+                            return fmtMoeda(context.parsed.x);
+                        } } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { callback: function(value) { return fmtMoeda(value); }, font: { size: 8 } },
+                            grid: { color: '#e6e9f2' }
+                        },
+                        y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        } catch(e) { console.warn('Erro gráfico top:', e); }
+    }
+}
+
+// ============================================================
+// FORMULÁRIO
+// ============================================================
+document.getElementById('formInstituicao').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var nome = document.getElementById('inputNome').value.trim();
+    var tipo = document.getElementById('inputTipo').value;
+    var cnpj = document.getElementById('inputCnpj').value.trim();
+    var site = document.getElementById('inputSite').value.trim();
+    
+    if (!nome) { alert('Digite o nome da instituição.'); return; }
+    
+    var btn = this.querySelector('button[type="submit"]');
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+    
+    try {
+        salvarInstituicao(nome, tipo, cnpj, site);
+        document.getElementById('formInstituicao').reset();
+        alert('✅ Instituição salva com sucesso!');
+    } catch(error) {
+        alert('❌ Erro ao salvar instituição. Tente novamente.');
+        console.error(error);
+    }
+    btn.textContent = '💾 Salvar';
+    btn.disabled = false;
+});
+
+// ============================================================
+// MODAL EDITAR
+// ============================================================
+var editId = null;
+
+function abrirModalEditar(id) {
+    editId = id;
+    var inst = getInstituicaoById(id);
+    if (!inst) return;
+    
+    document.getElementById('editId').value = inst.id;
+    document.getElementById('editNome').value = inst.nome;
+    document.getElementById('editTipo').value = inst.tipo;
+    document.getElementById('editCnpj').value = inst.cnpj !== '-' ? inst.cnpj : '';
+    document.getElementById('editSite').value = inst.site !== '-' ? inst.site : '';
+    
+    document.getElementById('modalEditar').classList.add('active');
+}
+
+function fecharModalEditar() {
+    document.getElementById('modalEditar').classList.remove('active');
+    editId = null;
+}
+
+document.getElementById('formEditar').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var id = parseInt(document.getElementById('editId').value);
+    var nome = document.getElementById('editNome').value.trim();
+    var tipo = document.getElementById('editTipo').value;
+    var cnpj = document.getElementById('editCnpj').value.trim();
+    var site = document.getElementById('editSite').value.trim();
+    
+    if (!nome) { alert('Digite o nome da instituição.'); return; }
+    
+    var btn = this.querySelector('button[type="submit"]');
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+    
+    try {
+        editarInstituicao(id, nome, tipo, cnpj, site);
+        fecharModalEditar();
+        alert('✅ Instituição atualizada com sucesso!');
+    } catch(error) {
+        alert('❌ Erro ao atualizar instituição. Tente novamente.');
+        console.error(error);
+    }
+    btn.textContent = '💾 Atualizar';
+    btn.disabled = false;
+});
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharModalEditar(); });
+document.getElementById('modalEditar').addEventListener('click', function(e) { if (e.target === this) fecharModalEditar(); });
+
+// ============================================================
+// EXPORTAÇÃO
+// ============================================================
+function exportarInstituicoes() {
+    if (instituicoesData.length === 0) { alert('Nenhuma instituição para exportar.'); return; }
+    var csv = 'Nome,Tipo,CNPJ,Site\n';
+    for (var i = 0; i < instituicoesData.length; i++) {
+        var inst = instituicoesData[i];
+        csv += '"' + inst.nome + '","' + inst.tipo + '","' + inst.cnpj + '","' + inst.site + '"\n';
+    }
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'instituicoes_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+// ============================================================
+// PATRIMÔNIO TOTAL
+// ============================================================
+function atualizarPatrimonioTotal() {
+    var totalProventos = JSON.parse(localStorage.getItem('totalProventos') || '0');
+    var total = 178605.56 + totalProventos;
+    document.getElementById('patrimonioTotal').textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+carregarInstituicoes();
+atualizarPatrimonioTotal();
+
+console.log('🏛️ Módulo Instituições carregado!');
+console.log('📊 Total de instituições:', instituicoesData.length);
+</script>
+</body>
+</html>

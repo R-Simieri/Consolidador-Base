@@ -1,0 +1,63 @@
+{
+  "clientes": [
+    {
+      "id": 1,
+      "nome": "Rogério Simieri",
+      "documento": "111.111.111-11",
+      "dataEntrada": "2020-01-15",
+      "participacao": 33.78,
+      "status": "Ativo",
+      "patrimonio": 61609.38
+    },
+    {
+      "id": 2,
+      "nome": "Vitória Simieri",
+      "documento": "222.222.222-22",
+      "dataEntrada": "2020-06-10",
+      "participacao": 55.04,
+      "status": "Ativo",
+      "patrimonio": 97243.21
+    },
+    {
+      "id": 3,
+      "nome": "Manuella Cardoso",
+      "documento": "333.333.333-33",
+      "dataEntrada": "2021-03-01",
+      "participacao": 4.14,
+      "status": "Ativo",
+      "patrimonio": 7318.93
+    },
+    {
+      "id": 4,
+      "nome": "João Paulo Simieri",
+      "documento": "444.444.444-44",
+      "dataEntrada": "2022-07-20",
+      "participacao": 0.02,
+      "status": "Ativo",
+      "patrimonio": 29.45
+    },
+    {
+      "id": 5,
+      "nome": "Pedro Henrique Simieri",
+      "documento": "555.555.555-55",
+      "dataEntrada": "2022-07-20",
+      "participacao": 0.86,
+      "status": "Ativo",
+      "patrimonio": 1516.63
+    },
+    {
+      "id": 6,
+      "nome": "Josepha Simieri",
+      "documento": "666.666.666-66",
+      "dataEntrada": "2022-07-20",
+      "participacao": 6.16,
+      "status": "Ativo",
+      "patrimonio": 10887.96
+    }
+  ],
+  "movimentacoes": [],
+  "ativos_rv": [],
+  "ativos_rf": [],
+  "saldos_caixa": [],
+  "dados_clientes": {}
+}

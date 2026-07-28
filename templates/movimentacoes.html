@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newex · Movimentações</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul-escuro: #0c1b33;
+  --azul-card: #2d6fb0;
+  --azul-claro: #4a8fd4;
+  --verde-card: #28a745;
+  --lilas-card: #6f42c1;
+  --amarelo-card: #ffc107;
+  --cinza-fundo: #f0f2f5;
+  --branco: #ffffff;
+  --cinza-borda: #dce1e8;
+  --cinza-texto: #495057;
+  --cinza-claro: #6c757d;
+  --vermelho: #dc3545;
+  --fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Aptos Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fonte);
+  font-size: 11px;
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.5;
+}
+
+.sidebar {
+  width: 210px;
+  min-height: 100vh;
+  background: var(--azul-escuro);
+  color: #b0c4de;
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo h1 span { color: var(--azul-card); }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+
+.sidebar-nav { list-style: none; padding: 0 10px; }
+.sidebar-nav li {
+  padding: 6px 10px;
+  margin: 1px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8aa3c9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-nav li:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-nav li.active { background: var(--azul-card); color: #fff; }
+.sidebar-nav li .icone { font-size: 12px; width: 16px; text-align: center; }
+.sidebar-nav .grupo { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #4a6a8f; padding: 10px 10px 3px; font-weight: 700; }
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer .label { font-size: 8px; color: #5a7a9e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-footer .valor { font-size: 14px; font-weight: 800; color: #fff; }
+.sidebar-footer .delta { font-size: 9px; color: var(--verde-card); font-weight: 600; }
+
+.topbar {
+  background: var(--branco);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--cinza-borda);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar .logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-card);
+}
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
+.topbar .spacer { flex: 1; }
+.topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
+.topbar .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-card); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+.main { margin-left: 210px; padding: 0; min-height: 100vh; }
+.content { padding: 14px 20px 32px; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi-card {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--cinza-borda);
+}
+.kpi-card .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-card .valor { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-card .delta { font-size: 9.5px; font-weight: 700; }
+
+.kpi-top { display: flex; justify-content: space-between; align-items: center; }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-ic { font-size: 14px; padding: 4px 8px; border-radius: 6px; }
+.kpi-value { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-delta { font-size: 9.5px; font-weight: 700; }
+.kpi-delta.up { color: var(--verde-card); }
+.kpi-delta.down { color: var(--vermelho); }
+
+.card-azul .valor { color: var(--azul-card); }
+.card-verde .valor { color: var(--verde-card); }
+.card-lilas .valor { color: var(--lilas-card); }
+.card-amarelo .valor { color: var(--amarelo-card); }
+
+.panel {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cinza-borda);
+  margin-bottom: 14px;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.form-group label {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cinza-claro);
+  letter-spacing: 0.3px;
+}
+.form-group input, .form-group select {
+  padding: 5px 8px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 5px;
+  font-size: 10px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+  width: 100%;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+.form-group .btn {
+  padding: 5px 14px;
+  font-size: 9px;
+  height: 100%;
+  min-height: 30px;
+}
+
+.table-wrap { overflow-x: auto; margin: 0 -2px; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+table th { text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--cinza-claro); font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table td { padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table tr:last-child td { border-bottom: none; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--fonte);
+}
+.btn-primary { background: var(--azul-card); color: #fff; }
+.btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-ghost:hover { background: #f8f9fa; }
+.btn-success { background: var(--verde-card); color: #fff; }
+.btn-danger { background: var(--vermelho); color: #fff; }
+.btn-sm { padding: 2px 6px; font-size: 7.5px; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+.badge-credito { background: #d4edda; color: #155724; }
+.badge-debito { background: #f8d7da; color: #721c24; }
+
+.select-cliente {
+  padding: 3px 8px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 4px;
+  font-size: 9px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 12px; }
+.modal .form-group label { display: block; font-size: 9px; font-weight: 700; color: var(--cinza-claro); margin-bottom: 3px; }
+.modal .form-group input, .modal .form-group select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+.modal .form-group input:focus, .modal .form-group select:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+.modal .btn-group { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.modal .btn-group .btn { padding: 6px 16px; font-size: 10px; }
+
+.col-positivo { color: var(--verde-card); font-weight: 700; }
+.col-negativo { color: var(--vermelho); font-weight: 700; }
+
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .sidebar { width: 56px; }
+  .sidebar .logo h1, .sidebar .logo small, .sidebar-nav li span, .sidebar-footer { display: none; }
+  .sidebar-nav li { justify-content: center; padding: 8px; }
+  .main { margin-left: 56px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CARTEIRA<span>PESSOAL</span></h1>
+    <small>GESTÃO PATRIMONIAL</small>
+  </div>
+  <ul class="sidebar-nav">
+    <li class="grupo">GERAL</li>
+    <li onclick="window.location.href='/'"><span class="icone">📊</span> Dashboard</li>
+    <li class="grupo">CARTEIRAS</li>
+    <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
+    <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
+    <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+    <li class="grupo">GESTÃO</li>
+    <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
+    <li class="active"><span class="icone">💵</span> Movimentações</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
+    <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
+    <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
+    <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
+  </ul>
+  <div class="sidebar-footer">
+    <div class="label">Patrimônio Total</div>
+    <div class="valor" id="sidebarPatrimonio">R$ 178.605,56</div>
+    <div class="delta">↑ 18,96% no ano</div>
+  </div>
+</aside>
+
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <h2>✏️ Editar Movimentação</h2>
+    <form id="formEditar">
+      <input type="hidden" id="editId">
+      <div class="form-group"><label>Data</label><input type="date" id="editData"></div>
+      <div class="form-group"><label>Cliente</label><select id="editCliente"></select></div>
+      <div class="form-group"><label>Tipo</label><select id="editTipo"><option value="credito">Crédito (+) Aporte</option><option value="debito">Débito (-) Resgate</option></select></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="number" id="editValor" step="0.01" min="0.01"></div>
+      <div class="form-group"><label>Descrição</label><input type="text" id="editDescricao" placeholder="Ex: Aporte mensal..."></div>
+      <div class="btn-group"><button type="button" class="btn btn-ghost" onclick="fecharModalEditar()">Cancelar</button><button type="submit" class="btn btn-success">💾 Atualizar</button></div>
+    </form>
+  </div>
+</div>
+
+<main class="main">
+  <header class="topbar">
+    <div class="logo-img">💵</div>
+    <div><h2>Movimentações</h2><p>Extrato completo de aportes e retiradas · Integrado com Caixa</p></div>
+    <div class="spacer"></div>
+    <div class="usuario"><div class="avatar">RS</div><div><div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div><div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div></div></div>
+  </header>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card card-verde"><div class="kpi-top"><span class="kpi-label">Total de Créditos</span><span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">📈</span></div><div class="kpi-value" style="color:var(--verde-card);" id="totalCreditos">R$ 0,00</div><div class="kpi-delta" style="color:var(--cinza-claro);" id="qtdCreditos">0 movimentações</div></div>
+      <div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Total de Débitos</span><span class="kpi-ic" style="background:#fce4e4;color:var(--vermelho);">📉</span></div><div class="kpi-value" style="color:var(--vermelho);" id="totalDebitos">R$ 0,00</div><div class="kpi-delta" style="color:var(--cinza-claro);" id="qtdDebitos">0 movimentações</div></div>
+      <div class="kpi-card card-azul"><div class="kpi-top"><span class="kpi-label">Saldo Líquido</span><span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">💰</span></div><div class="kpi-value" style="color:var(--azul-card);" id="saldoLiquido">R$ 0,00</div><div class="kpi-delta" style="color:var(--cinza-claro);" id="totalMovimentacoes">0 movimentações</div></div>
+      <div class="kpi-card card-lilas"><div class="kpi-top"><span class="kpi-label">Última Movimentação</span><span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">🕐</span></div><div class="kpi-value" style="color:var(--lilas-card);font-size:12px;" id="ultimaMovimentacao">—</div><div class="kpi-delta" style="color:var(--cinza-claro);" id="ultimoCliente">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>➕ Nova Movimentação</h3></div>
+      <form id="formMovimentacao">
+        <div class="form-grid">
+          <div class="form-group"><label>Data</label><input type="date" id="inputData" required></div>
+          <div class="form-group"><label>Cliente</label><select id="inputCliente" required></select></div>
+          <div class="form-group"><label>Tipo</label><select id="inputTipo" required><option value="credito">Crédito (+) Aporte</option><option value="debito">Débito (-) Resgate</option></select></div>
+          <div class="form-group"><label>Valor (R$)</label><input type="number" id="inputValor" step="0.01" min="0.01" placeholder="0,00" required></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="inputDescricao" placeholder="Ex: Aporte mensal..."></div>
+          <div class="form-group"><label>&nbsp;</label><button type="submit" class="btn btn-success">💾 Salvar</button></div>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Histórico de Movimentações <small>Extrato completo</small></h3>
+        <div>
+          <select id="filtroMes" onchange="aplicarFiltros()" class="select-cliente">
+            <option value="">Todos os meses</option><option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option><option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option><option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option><option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+          </select>
+          <select id="filtroAno" onchange="aplicarFiltros()" class="select-cliente">
+            <option value="">Todos os anos</option><option value="2024">2024</option><option value="2025" selected>2025</option><option value="2026">2026</option>
+          </select>
+          <button class="btn btn-ghost" onclick="exportarMovimentacoes()">📤 Exportar</button>
+          <button class="btn btn-ghost" onclick="filtrarPorCliente()">🔍 Cliente</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Descrição</th><th>Ações</th></tr></thead>
+          <tbody id="movimentacoesTableBody"><tr><td colspan="6" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma movimentação cadastrada.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+var meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+var dadosClientes = {};
+var movimentacoes = [];
+var proximoId = 1;
+var filtroCliente = null;
+
+function fmtMoeda(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
+    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtData(data) {
+    if (!data) return '-';
+    var d = new Date(data);
+    return d.toLocaleDateString('pt-BR');
+}
+
+function getMesFromDate(data) {
+    if (!data) return 0;
+    var d = new Date(data);
+    return d.getMonth();
+}
+
+function getClienteNome(id) {
+    return dadosClientes[id] ? dadosClientes[id].nome : id;
+}
+
+// ============================================================
+// FUNÇÃO PARA ATUALIZAR SALDO DA CONTA CORRENTE
+// ============================================================
+function atualizarSaldoContaCorrente(valor, tipo) {
+    // Buscar os saldos do Caixa no localStorage
+    var saldos = JSON.parse(localStorage.getItem('saldosCaixa')) || [];
+    
+    // Procurar a conta corrente (descricao === 'Conta Corrente' e moeda === 'BRL')
+    var index = -1;
+    for (var i = 0; i < saldos.length; i++) {
+        if (saldos[i].descricao === 'Conta Corrente' && saldos[i].moeda === 'BRL') {
+            index = i;
+            break;
+        }
+    }
+    
+    if (index === -1) {
+        // Se não existir, criar uma nova conta corrente
+        saldos.push({
+            id: Date.now(),
+            descricao: 'Conta Corrente',
+            moeda: 'BRL',
+            valor: 12899.15,
+            cotacao: 1,
+            valorBRL: 12899.15,
+            instituicao: 'Nubank'
+        });
+        index = saldos.length - 1;
+    }
+    
+    // Atualizar o valor
+    if (tipo === 'credito') {
+        saldos[index].valor += valor;
+    } else {
+        saldos[index].valor -= valor;
+    }
+    saldos[index].valorBRL = saldos[index].valor * saldos[index].cotacao;
+    
+    // Salvar no localStorage
+    localStorage.setItem('saldosCaixa', JSON.stringify(saldos));
+    
+    // Calcular o total do caixa
+    var caixaTotal = 0;
+    for (var i = 0; i < saldos.length; i++) {
+        caixaTotal += saldos[i].valorBRL;
+    }
+    localStorage.setItem('caixaTotal', caixaTotal);
+    
+    // Notificar o Dashboard (se estiver aberto)
+    if (typeof atualizarCaixaDoDashboard === 'function') {
+        atualizarCaixaDoDashboard();
+    }
+    
+    // Notificar o módulo Caixa (se estiver aberto)
+    if (typeof atualizarTabelaCaixa === 'function') {
+        atualizarTabelaCaixa();
+    }
+    
+    return saldos[index].valor;
+}
+
+function carregarDadosDoLocalStorage() {
+    dadosClientes = {};
+    var clientesSalvos = localStorage.getItem('clientes');
+    if (clientesSalvos) {
+        try {
+            var listaClientes = JSON.parse(clientesSalvos);
+            for (var i = 0; i < listaClientes.length; i++) {
+                var c = listaClientes[i];
+                var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
+                dadosClientes[key] = {
+                    nome: c.nome,
+                    b5: 175253.61,
+                    b17: 178605.56,
+                    valorInicial: c.valorInicial || 0,
+                    dados: []
+                };
+                for (var mes = 0; mes < 12; mes++) {
+                    dadosClientes[key].dados.push([
+                        mes === 0 ? (c.valorInicial || 0) : 0,
+                        0, 0, 0, 0, 0, 0, 0
+                    ]);
+                }
+            }
+        } catch(e) {}
+    }
+    var salvos = localStorage.getItem('dadosClientes');
+    if (salvos) {
+        try {
+            var parsed = JSON.parse(salvos);
+            for (var key in parsed) {
+                if (dadosClientes[key] && parsed[key].dados) {
+                    for (var i = 0; i < dadosClientes[key].dados.length && i < parsed[key].dados.length; i++) {
+                        if (parsed[key].dados[i]) {
+                            dadosClientes[key].dados[i] = parsed[key].dados[i];
+                        }
+                    }
+                }
+            }
+        } catch(e) {}
+    }
+    atualizarSelectsClientes();
+}
+
+function atualizarSelectsClientes() {
+    var selects = ['inputCliente', 'editCliente'];
+    var keys = Object.keys(dadosClientes);
+    for (var s = 0; s < selects.length; s++) {
+        var select = document.getElementById(selects[s]);
+        if (!select) continue;
+        var html = '';
+        for (var i = 0; i < keys.length; i++) {
+            var c = dadosClientes[keys[i]];
+            if (c && c.nome) {
+                html += '<option value="' + keys[i] + '">' + c.nome + '</option>';
+            }
+        }
+        select.innerHTML = html;
+    }
+}
+
+function salvarDadosClientes() {
+    try {
+        var dadosParaSalvar = {};
+        for (var key in dadosClientes) {
+            dadosParaSalvar[key] = { dados: dadosClientes[key].dados };
+        }
+        localStorage.setItem('dadosClientes', JSON.stringify(dadosParaSalvar));
+    } catch(e) {}
+}
+
+function carregarMovimentacoes() {
+    var salvos = localStorage.getItem('movimentacoes');
+    if (salvos) {
+        try {
+            movimentacoes = JSON.parse(salvos);
+            for (var i = 0; i < movimentacoes.length; i++) {
+                if (movimentacoes[i].id >= proximoId) {
+                    proximoId = movimentacoes[i].id + 1;
+                }
+            }
+        } catch(e) { movimentacoes = []; }
+    }
+    renderizarMovimentacoes();
+    atualizarKPIs();
+}
+
+function salvarMovimentacoes() {
+    try { localStorage.setItem('movimentacoes', JSON.stringify(movimentacoes)); } catch(e) {}
+}
+
+function atualizarAporteNoHistorico(clienteId, mesIndex, valorAporte) {
+    var cliente = dadosClientes[clienteId];
+    if (!cliente) return false;
+    if (mesIndex < 0 || mesIndex >= cliente.dados.length) return false;
+    if (mesIndex === 0) {
+        alert('⚠️ O valor de Janeiro é o VALOR INICIAL do cliente.');
+        return false;
+    }
+    cliente.dados[mesIndex][1] = valorAporte;
+    var entradaAnterior = cliente.dados[mesIndex - 1][0] || 0;
+    var novaEntrada = entradaAnterior + valorAporte;
+    cliente.dados[mesIndex][0] = novaEntrada;
+    var txMes = cliente.dados[mesIndex][2] || 0;
+    var total = novaEntrada * (txMes / 100);
+    var txAdm = total / 2;
+    var ir = txAdm * 0.2;
+    var liquido = total - txAdm - ir;
+    var txNominal = novaEntrada > 0 ? (liquido / novaEntrada * 100) : 0;
+    cliente.dados[mesIndex][3] = total;
+    cliente.dados[mesIndex][4] = txAdm;
+    cliente.dados[mesIndex][5] = ir;
+    cliente.dados[mesIndex][6] = liquido;
+    cliente.dados[mesIndex][7] = txNominal;
+    for (var i = mesIndex + 1; i < cliente.dados.length; i++) {
+        var entradaAtual = cliente.dados[i][0] || 0;
+        var aporteAtual = cliente.dados[i][1] || 0;
+        var txMesAtual = cliente.dados[i][2] || 0;
+        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
+        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual;
+        var totalAtual = cliente.dados[i][0] * (txMesAtual / 100);
+        var txAdmAtual = totalAtual / 2;
+        var irAtual = txAdmAtual * 0.2;
+        var liquidoAtual = totalAtual - txAdmAtual - irAtual;
+        var txNominalAtual = cliente.dados[i][0] > 0 ? (liquidoAtual / cliente.dados[i][0] * 100) : 0;
+        cliente.dados[i][3] = totalAtual;
+        cliente.dados[i][4] = txAdmAtual;
+        cliente.dados[i][5] = irAtual;
+        cliente.dados[i][6] = liquidoAtual;
+        cliente.dados[i][7] = txNominalAtual;
+    }
+    salvarDadosClientes();
+    return true;
+}
+
+// ============================================================
+// FUNÇÃO PRINCIPAL: SALVAR MOVIMENTAÇÃO
+// ============================================================
+function salvarMovimentacao(data, clienteId, tipo, valor, descricao) {
+    var mesIndex = getMesFromDate(data);
+    var valorNum = parseFloat(valor);
+    var valorAporte = tipo === 'credito' ? valorNum : -valorNum;
+    
+    var atualizado = atualizarAporteNoHistorico(clienteId, mesIndex, valorAporte);
+    if (!atualizado) { 
+        alert('❌ Erro ao atualizar o histórico do cliente.'); 
+        return false; 
+    }
+    
+    var mov = {
+        id: proximoId++,
+        data: data,
+        cliente: clienteId,
+        tipo: tipo,
+        valor: valorNum,
+        descricao: descricao || '',
+        mesIndex: mesIndex,
+        clienteNome: getClienteNome(clienteId)
+    };
+    
+    movimentacoes.push(mov);
+    salvarMovimentacoes();
+    
+    // ============================================================
+    // ATUALIZAR SALDO DA CONTA CORRENTE
+    // ============================================================
+    var novoSaldo = atualizarSaldoContaCorrente(valorNum, tipo);
+    
+    renderizarMovimentacoes();
+    atualizarKPIs();
+    
+    alert('✅ Movimentação salva com sucesso!\n💰 Conta Corrente atualizada: ' + fmtMoeda(novoSaldo));
+    return true;
+}
+
+function aplicarFiltros() {
+    var mesFiltro = document.getElementById('filtroMes').value;
+    var anoFiltro = document.getElementById('filtroAno').value;
+    var lista = movimentacoes;
+    if (mesFiltro !== '') { lista = lista.filter(function(m) { var data = new Date(m.data); return data.getMonth() === parseInt(mesFiltro); }); }
+    if (anoFiltro !== '') { lista = lista.filter(function(m) { var data = new Date(m.data); return data.getFullYear() === parseInt(anoFiltro); }); }
+    if (filtroCliente) { lista = lista.filter(function(m) { return m.cliente === filtroCliente; }); }
+    renderizarMovimentacoesLista(lista);
+}
+
+function renderizarMovimentacoesLista(lista) {
+    var tbody = document.getElementById('movimentacoesTableBody');
+    if (!tbody) return;
+    if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma movimentação encontrada.</td></tr>'; return; }
+    lista.sort(function(a, b) { return new Date(b.data) - new Date(a.data); });
+    var html = '';
+    for (var i = 0; i < lista.length; i++) {
+        var m = lista[i];
+        var badge = m.tipo === 'credito' ? 'badge-credito' : 'badge-debito';
+        var sinal = m.tipo === 'credito' ? '+' : '-';
+        var cor = m.tipo === 'credito' ? 'col-positivo' : 'col-negativo';
+        html += '<tr><td>' + fmtData(m.data) + '</td><td>' + m.clienteNome + '</td><td><span class="badge ' + badge + '">' + (m.tipo === 'credito' ? 'Crédito' : 'Débito') + '</span></td><td class="' + cor + '">' + sinal + ' ' + fmtMoeda(m.valor) + '</td><td>' + (m.descricao || '-') + '</td><td><button class="btn btn-sm btn-ghost" onclick="abrirModalEditar(' + m.id + ')">✏️</button><button class="btn btn-sm btn-danger" onclick="excluirMovimentacao(' + m.id + ')">✕</button></td></tr>';
+    }
+    tbody.innerHTML = html;
+}
+
+function renderizarMovimentacoes() {
+    var lista = movimentacoes;
+    if (filtroCliente) { lista = movimentacoes.filter(function(m) { return m.cliente === filtroCliente; }); }
+    renderizarMovimentacoesLista(lista);
+}
+
+function atualizarKPIs() {
+    var totalCreditos = 0, totalDebitos = 0, qtdCreditos = 0, qtdDebitos = 0, ultima = null;
+    for (var i = 0; i < movimentacoes.length; i++) {
+        var m = movimentacoes[i];
+        if (m.tipo === 'credito') { totalCreditos += m.valor; qtdCreditos++; } else { totalDebitos += m.valor; qtdDebitos++; }
+        if (!ultima || new Date(m.data) > new Date(ultima.data)) { ultima = m; }
+    }
+    var saldo = totalCreditos - totalDebitos;
+    document.getElementById('totalCreditos').textContent = fmtMoeda(totalCreditos);
+    document.getElementById('qtdCreditos').textContent = qtdCreditos + ' movimentações';
+    document.getElementById('totalDebitos').textContent = fmtMoeda(totalDebitos);
+    document.getElementById('qtdDebitos').textContent = qtdDebitos + ' movimentações';
+    document.getElementById('saldoLiquido').textContent = fmtMoeda(saldo);
+    document.getElementById('totalMovimentacoes').textContent = movimentacoes.length + ' movimentações';
+    if (ultima) { document.getElementById('ultimaMovimentacao').textContent = fmtData(ultima.data) + ' · ' + (ultima.tipo === 'credito' ? '+' : '-') + fmtMoeda(ultima.valor); document.getElementById('ultimoCliente').textContent = ultima.clienteNome; } else { document.getElementById('ultimaMovimentacao').textContent = '—'; document.getElementById('ultimoCliente').textContent = '—'; }
+}
+
+function excluirMovimentacao(id) {
+    if (!confirm('Deseja excluir esta movimentação?')) return;
+    var index = -1;
+    for (var i = 0; i < movimentacoes.length; i++) { if (movimentacoes[i].id === id) { index = i; break; } }
+    if (index === -1) return;
+    var mov = movimentacoes[index];
+    var valorAporte = mov.tipo === 'credito' ? -mov.valor : mov.valor;
+    atualizarAporteNoHistorico(mov.cliente, mov.mesIndex, valorAporte);
+    movimentacoes.splice(index, 1);
+    salvarMovimentacoes();
+    renderizarMovimentacoes();
+    atualizarKPIs();
+}
+
+document.getElementById('inputData').valueAsDate = new Date();
+
+document.getElementById('formMovimentacao').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = document.getElementById('inputData').value;
+    var cliente = document.getElementById('inputCliente').value;
+    var tipo = document.getElementById('inputTipo').value;
+    var valor = parseFloat(document.getElementById('inputValor').value);
+    var descricao = document.getElementById('inputDescricao').value.trim();
+    if (!data) { alert('Selecione uma data.'); return; }
+    if (!valor || valor <= 0) { alert('Digite um valor válido.'); return; }
+    var btn = this.querySelector('button[type="submit"]');
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+    try {
+        var sucesso = salvarMovimentacao(data, cliente, tipo, valor, descricao);
+        if (sucesso) { document.getElementById('formMovimentacao').reset(); document.getElementById('inputData').valueAsDate = new Date(); }
+    } catch (error) { alert('❌ Erro ao salvar movimentação. Tente novamente.'); console.error(error); }
+    btn.textContent = '💾 Salvar';
+    btn.disabled = false;
+});
+
+var editId = null;
+
+function abrirModalEditar(id) {
+    editId = id;
+    var mov = null;
+    for (var i = 0; i < movimentacoes.length; i++) { if (movimentacoes[i].id === id) { mov = movimentacoes[i]; break; } }
+    if (!mov) return;
+    document.getElementById('editId').value = mov.id;
+    document.getElementById('editData').value = mov.data;
+    document.getElementById('editCliente').value = mov.cliente;
+    document.getElementById('editTipo').value = mov.tipo;
+    document.getElementById('editValor').value = mov.valor;
+    document.getElementById('editDescricao').value = mov.descricao || '';
+    document.getElementById('modalEditar').classList.add('active');
+}
+
+function fecharModalEditar() { document.getElementById('modalEditar').classList.remove('active'); editId = null; }
+
+document.getElementById('formEditar').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var id = parseInt(document.getElementById('editId').value);
+    var data = document.getElementById('editData').value;
+    var cliente = document.getElementById('editCliente').value;
+    var tipo = document.getElementById('editTipo').value;
+    var valor = parseFloat(document.getElementById('editValor').value);
+    var descricao = document.getElementById('editDescricao').value.trim();
+    if (!data) { alert('Selecione uma data.'); return; }
+    if (!valor || valor <= 0) { alert('Digite um valor válido.'); return; }
+    var btn = this.querySelector('button[type="submit"]');
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+    try {
+        var sucesso = editarMovimentacao(id, data, cliente, tipo, valor, descricao);
+        if (sucesso) { fecharModalEditar(); alert('✅ Movimentação atualizada com sucesso!'); }
+    } catch (error) { alert('❌ Erro ao atualizar movimentação. Tente novamente.'); console.error(error); }
+    btn.textContent = '💾 Atualizar';
+    btn.disabled = false;
+});
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharModalEditar(); });
+document.getElementById('modalEditar').addEventListener('click', function(e) { if (e.target === this) fecharModalEditar(); });
+
+function filtrarPorCliente() {
+    var keys = Object.keys(dadosClientes);
+    var opcoes = 'Selecione um cliente:\n0. Todos\n';
+    for (var i = 0; i < keys.length; i++) { opcoes += (i + 1) + '. ' + dadosClientes[keys[i]].nome + '\n'; }
+    var escolha = prompt(opcoes);
+    if (escolha === null) return;
+    if (escolha === '0' || escolha === '') { filtroCliente = null; } else {
+        var index = parseInt(escolha) - 1;
+        if (index >= 0 && index < keys.length) { filtroCliente = keys[index]; } else { alert('Opção inválida.'); return; }
+    }
+    renderizarMovimentacoes();
+}
+
+function exportarMovimentacoes() {
+    if (movimentacoes.length === 0) { alert('Nenhuma movimentação para exportar.'); return; }
+    var csv = 'Data,Cliente,Tipo,Valor,Descrição\n';
+    for (var i = 0; i < movimentacoes.length; i++) {
+        var m = movimentacoes[i];
+        csv += fmtData(m.data) + ',' + m.clienteNome + ',' + (m.tipo === 'credito' ? 'Crédito' : 'Débito') + ',' + m.valor.toFixed(2) + ',' + (m.descricao || '') + '\n';
+    }
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'movimentacoes_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+carregarDadosDoLocalStorage();
+carregarMovimentacoes();
+document.getElementById('filtroAno').value = new Date().getFullYear();
+
+// Inicializar caixa se não existir
+if (!localStorage.getItem('caixaTotal')) {
+    localStorage.setItem('caixaTotal', '12899.15');
+}
+
+// Garantir que a conta corrente existe no localStorage
+var saldos = JSON.parse(localStorage.getItem('saldosCaixa')) || [];
+var contaCorrenteExiste = false;
+for (var i = 0; i < saldos.length; i++) {
+    if (saldos[i].descricao === 'Conta Corrente' && saldos[i].moeda === 'BRL') {
+        contaCorrenteExiste = true;
+        break;
+    }
+}
+if (!contaCorrenteExiste) {
+    saldos.push({
+        id: Date.now(),
+        descricao: 'Conta Corrente',
+        moeda: 'BRL',
+        valor: 12899.15,
+        cotacao: 1,
+        valorBRL: 12899.15,
+        instituicao: 'Nubank'
+    });
+    localStorage.setItem('saldosCaixa', JSON.stringify(saldos));
+}
+
+console.log('💵 Módulo Movimentações carregado!');
+console.log('💰 Conta Corrente inicial: R$ ' + localStorage.getItem('caixaTotal'));
+console.log('🔗 Integração com módulo Clientes: ATIVADA');
+console.log('💰 Movimentações atualizam a Conta Corrente no Dashboard automaticamente!');
+</script>
+</body>
+</html>

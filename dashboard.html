@@ -1,0 +1,50 @@
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/clientes')
+def clientes():
+    return render_template('clientes.html')
+
+@app.route('/movimentacoes')
+def movimentacoes():
+    return render_template('movimentacoes.html')
+
+@app.route('/historico-mensal')
+def historico_mensal():
+    return render_template('historico-mensal.html')
+
+@app.route('/proventos')
+def proventos():
+    return render_template('proventos.html')
+
+@app.route('/instituicoes')
+def instituicoes():
+    return render_template('instituicoes.html')
+
+@app.route('/relatorios')
+def relatorios():
+    return render_template('relatorios.html')
+
+@app.route('/config')
+def config():
+    return render_template('config.html')
+
+@app.route('/renda-variavel')
+def renda_variavel():
+    return render_template('dashboard.html')
+
+@app.route('/renda-fixa')
+def renda_fixa():
+    return render_template('dashboard.html')
+
+@app.route('/caixa')
+def caixa():
+    return render_template('dashboard.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
