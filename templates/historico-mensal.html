@@ -201,7 +201,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
 .valor-positivo { color: var(--verde-card) !important; font-weight: 700; }
 .col-total { color: var(--azul-escuro); font-weight: 700; }
 .col-entrada { color: var(--azul-card); font-weight: 600; }
-.col-aporte { color: var(--verde-card); font-weight: 600; }
+.col-aporte { color: var(--azul-escuro); font-weight: 600; }
 .col-tx-adm { color: #b8790f; font-weight: 600; }
 .col-ir { color: var(--vermelho); font-weight: 600; }
 .col-liquido { color: #0000B8; font-weight: 700; }
@@ -379,7 +379,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
     <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
     <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
-    <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li class="active" onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
     <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
@@ -447,8 +447,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           </select>
           &nbsp;&nbsp;Ano:
           <select id="selectAno" class="select-cliente" onchange="carregarCliente()">
-            <option value="2024">2024</option>
-            <option value="2025" selected>2025</option>
+            <option value="2025">2025</option>
             <option value="2026">2026</option>
           </select>
         </h3>
@@ -693,9 +692,28 @@ var dadosClientesIniciais = {
 // ============================================================
 var dadosClientes = {};
 var clienteAtual = 'vitoria';
-var anoAtual = 2025;
+var anoAtual = new Date().getFullYear();
 var chartEvolucao = null;
 var chartComposicao = null;
+
+// Garante que o ano vigente esteja sempre selecionado e visível no seletor
+function definirAnoVigenteNoSeletor() {
+    var selectAno = document.getElementById('selectAno');
+    if (!selectAno) return;
+    var anoVigente = new Date().getFullYear();
+    var existeOpcao = false;
+    for (var i = 0; i < selectAno.options.length; i++) {
+        if (parseInt(selectAno.options[i].value) === anoVigente) { existeOpcao = true; break; }
+    }
+    if (!existeOpcao) {
+        var opt = document.createElement('option');
+        opt.value = anoVigente;
+        opt.textContent = anoVigente;
+        selectAno.appendChild(opt);
+    }
+    selectAno.value = anoVigente;
+    anoAtual = anoVigente;
+}
 
 // ============================================================
 // FUNÇÃO fmtMoeda CORRIGIDA - VALORES NEGATIVOS EM VERMELHO
@@ -846,6 +864,12 @@ function fmtNum(valor) {
     return valor.toFixed(4);
 }
 
+// Taxas (ex: Tx./Mês) exibidas com 4 dígitos após a vírgula
+function fmtPctTaxa(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0.0000%';
+    return (valor > 0 ? '+' : '') + valor.toFixed(4) + '%';
+}
+
 // ============================================================
 // CÁLCULOS
 // ============================================================
@@ -928,6 +952,25 @@ function calcularHistorico(cliente, ano) {
 }
 
 // ============================================================
+// TX. ADM. DO ADMINISTRADOR = SOMA DAS TX. ADM. PAGAS PELOS CLIENTES
+// (o administrador, chave 'rogerio', não paga taxa: ele recebe a soma
+// das taxas de administração dos demais clientes)
+// ============================================================
+var ADMIN_KEY = 'rogerio';
+
+function calcularSomaTxAdmOutrosClientes(ano) {
+    var somaPorMes = new Array(12).fill(0);
+    for (var key in dadosClientes) {
+        if (key === ADMIN_KEY) continue;
+        var outroCalc = calcularHistorico(dadosClientes[key], ano);
+        for (var i = 0; i < outroCalc.resultado.length && i < 12; i++) {
+            somaPorMes[i] += outroCalc.resultado[i].txAdm || 0;
+        }
+    }
+    return somaPorMes;
+}
+
+// ============================================================
 // RENDERIZAÇÃO
 // ============================================================
 function carregarCliente() {
@@ -947,6 +990,26 @@ function renderizarCliente() {
     
     document.getElementById('clienteNome').textContent = cliente.nome;
     var calc = calcularHistorico(cliente, anoAtual);
+    
+    // O administrador não paga Tx. Adm.: a coluna mostra a soma do que os demais clientes pagaram
+    if (clienteAtual === ADMIN_KEY) {
+        var somaTxAdm = calcularSomaTxAdmOutrosClientes(anoAtual);
+        var totalTxAdmAdmin = 0, totalIRAdmin = 0, totalLiquidoAdmin = 0;
+        for (var iAdm = 0; iAdm < calc.resultado.length; iAdm++) {
+            var r = calc.resultado[iAdm];
+            r.txAdm = somaTxAdm[iAdm] || 0;
+            r.ir = r.txAdm * 0.2;
+            r.liquido = r.total - r.txAdm - r.ir;
+            r.txNominal = r.entrada > 0 ? (r.liquido / r.entrada * 100) : 0;
+            totalTxAdmAdmin += r.txAdm;
+            totalIRAdmin += r.ir;
+            totalLiquidoAdmin += r.liquido;
+        }
+        calc.totalTxAdm = totalTxAdmAdmin;
+        calc.totalIR = totalIRAdmin;
+        calc.totalLiquido = totalLiquidoAdmin;
+        calc.totalTxAdmIR = totalTxAdmAdmin + totalIRAdmin;
+    }
     
     // Atualiza KPIs com cores
     document.getElementById('resultadoMensalPct').textContent = fmtPct(calc.resultadoMensalPct);
@@ -989,9 +1052,9 @@ function renderizarCliente() {
             '<td class="col-total">' + r.mes + '</td>' +
             '<td class="' + clsEntrada + '">' + entradaDisplay + '</td>' +
             '<td class="' + clsAporte + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'aporte\')">' + aporteDisplay + '</span></td>' +
-            '<td class="col-total"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')">' + fmtPct(r.txMes) + '</span></td>' +
+            '<td class="col-total"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')">' + fmtPctTaxa(r.txMes) + '</span></td>' +
             '<td class="' + clsTotal + '">' + totalDisplay + '</td>' +
-            '<td class="' + clsTxAdm + '">' + txAdmDisplay + '</td>' +
+            '<td class="' + clsTxAdm + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txAdm\')">' + txAdmDisplay + '</span></td>' +
             '<td class="' + clsIr + '">' + irDisplay + '</td>' +
             '<td class="' + clsLiquido + '">' + liquidoDisplay + '</td>' +
             '<td class="' + clsNominal + '">' + txNominalDisplay + '</td>' +
@@ -1107,23 +1170,20 @@ function abrirModalEditar(index, campo) {
     var cliente = dadosClientes[clienteAtual];
     var dados = cliente.dados[index];
     
-    if (index === 0 && campo === 'aporte') {
-        alert('⚠️ O valor de Janeiro é o VALOR INICIAL do cliente e não pode ser alterado aqui.\n\nPara alterar o valor inicial, edite o cliente no módulo "Clientes".');
-        return;
-    }
-    
     document.getElementById('editClienteId').value = clienteAtual;
     document.getElementById('editMesIndex').value = index;
     document.getElementById('editCampo').value = campo;
     
-    var titulo = campo === 'aporte' ? '✏️ Editar Aporte' : '✏️ Editar Tx./Mês';
-    document.getElementById('modalEditarTitle').textContent = titulo;
-    var label = campo === 'aporte' ? 'Valor do Aporte (R$)' : 'Taxa do Mês (%)';
-    document.getElementById('editLabel').textContent = label;
-    var valorAtual = campo === 'aporte' ? dados[1] : dados[2];
+    var titulos = { aporte: '✏️ Editar Aporte', txMes: '✏️ Editar Tx./Mês', txAdm: '✏️ Editar Tx. Adm.' };
+    document.getElementById('modalEditarTitle').textContent = titulos[campo] || '✏️ Editar';
+    var labels = { aporte: 'Valor do Aporte (R$)', txMes: 'Taxa do Mês (%)', txAdm: 'Tx. Adm. (R$)' };
+    document.getElementById('editLabel').textContent = labels[campo] || 'Valor';
+    var valoresPorCampo = { aporte: dados[1], txMes: dados[2], txAdm: dados[4] };
+    var valorAtual = valoresPorCampo[campo];
     document.getElementById('editValor').value = valorAtual;
     var mes = meses[index];
-    document.getElementById('editInfo').textContent = (campo === 'aporte' ? 'Digite o novo valor de aporte para ' : 'Digite a nova taxa para ') + mes + '.';
+    var infos = { aporte: 'Digite o novo valor de aporte para ', txMes: 'Digite a nova taxa para ', txAdm: 'Digite o novo valor de Tx. Adm. para ' };
+    document.getElementById('editInfo').textContent = (infos[campo] || 'Digite o novo valor para ') + mes + '.';
     
     document.getElementById('modalEditar').classList.add('active');
     document.getElementById('editValor').focus();
@@ -1146,24 +1206,40 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
     var cliente = dadosClientes[clienteId];
     if (!cliente) { alert('Cliente não encontrado.'); return; }
     
-    if (index === 0 && campo === 'aporte') {
-        alert('⚠️ O valor de Janeiro é o VALOR INICIAL do cliente e não pode ser alterado aqui.');
-        return;
-    }
-    
     if (campo === 'aporte') { 
         cliente.dados[index][1] = valor;
     } else if (campo === 'txMes') { 
         cliente.dados[index][2] = valor;
+    } else if (campo === 'txAdm') {
+        cliente.dados[index][4] = valor;
+    }
+    
+    // Recalcula a Entrada do mês editado.
+    // Janeiro: Entrada = Valor Inicial do cliente + Aporte de Janeiro.
+    // Demais meses: Entrada = Entrada anterior + Aporte do mês + Resultado (líquido) do mês anterior.
+    if (index === 0) {
+        var valorInicial = cliente.valorInicial || 0;
+        cliente.dados[0][0] = valorInicial + (cliente.dados[0][1] || 0);
+    } else {
+        var entradaAnterior = cliente.dados[index - 1][0] || 0;
+        var liquidoAnterior = cliente.dados[index - 1][6] || 0;
+        var aporteDoMes = cliente.dados[index][1] || 0;
+        cliente.dados[index][0] = entradaAnterior + aporteDoMes + liquidoAnterior;
     }
     
     var entrada = cliente.dados[index][0] || 0;
-    var aporte = cliente.dados[index][1] || 0;
     var txMes = cliente.dados[index][2] || 0;
     var total = entrada * (txMes / 100);
-    var txAdm = total / 2;
-    var ir = txAdm * 0.2;
-    var liquido = total - txAdm - ir;
+    var txAdm, ir, liquido;
+    if (campo === 'txAdm') {
+        txAdm = cliente.dados[index][4] || 0;
+        ir = txAdm * 0.2;
+        liquido = total - txAdm - ir;
+    } else {
+        txAdm = total / 2;
+        ir = txAdm * 0.2;
+        liquido = total - txAdm - ir;
+    }
     var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
     
     cliente.dados[index][3] = total;
@@ -1172,17 +1248,13 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
     cliente.dados[index][6] = liquido;
     cliente.dados[index][7] = txNominal;
     
-    if (index < cliente.dados.length - 1) {
-        var proxEntrada = cliente.dados[index][0] + cliente.dados[index][1];
-        cliente.dados[index + 1][0] = proxEntrada;
-    }
-    
+    // Propaga a cascata para os meses seguintes: Entrada = Entrada anterior + Aporte + Líquido anterior
     for (var i = index + 1; i < cliente.dados.length; i++) {
-        var entradaAtual = cliente.dados[i][0] || 0;
+        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
+        var liquidoAnteriorAtual = cliente.dados[i - 1][6] || 0;
         var aporteAtual = cliente.dados[i][1] || 0;
         var txMesAtual = cliente.dados[i][2] || 0;
-        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
-        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual;
+        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual + liquidoAnteriorAtual;
         var totalAtual = cliente.dados[i][0] * (txMesAtual / 100);
         var txAdmAtual = totalAtual / 2;
         var irAtual = txAdmAtual * 0.2;
@@ -1236,6 +1308,7 @@ function recarregarDados() {
 // INICIALIZAÇÃO
 // ============================================================
 carregarDadosDoLocalStorage();
+definirAnoVigenteNoSeletor();
 renderizarCliente();
 
 console.log('📅 Módulo Histórico Mensal carregado!');

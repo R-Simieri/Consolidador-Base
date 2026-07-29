@@ -289,6 +289,8 @@ table tr:last-child td { border-bottom: none; }
 
 .col-positivo { color: var(--verde-card); font-weight: 700; }
 .col-negativo { color: var(--vermelho); font-weight: 700; }
+.col-credito { color: var(--azul-escuro); font-weight: 700; }
+.col-debito { color: var(--vermelho); font-weight: 700; }
 
 @media (max-width: 1024px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -387,7 +389,7 @@ table tr:last-child td { border-bottom: none; }
             <option value="">Todos os meses</option><option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option><option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option><option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option><option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
           </select>
           <select id="filtroAno" onchange="aplicarFiltros()" class="select-cliente">
-            <option value="">Todos os anos</option><option value="2024">2024</option><option value="2025" selected>2025</option><option value="2026">2026</option>
+            <option value="">Todos os anos</option><option value="2025">2025</option><option value="2026">2026</option>
           </select>
           <button class="btn btn-ghost" onclick="exportarMovimentacoes()">📤 Exportar</button>
           <button class="btn btn-ghost" onclick="filtrarPorCliente()">🔍 Cliente</button>
@@ -436,10 +438,8 @@ function getClienteNome(id) {
 // FUNÇÃO PARA ATUALIZAR SALDO DA CONTA CORRENTE
 // ============================================================
 function atualizarSaldoContaCorrente(valor, tipo) {
-    // Buscar os saldos do Caixa no localStorage
     var saldos = JSON.parse(localStorage.getItem('saldosCaixa')) || [];
     
-    // Procurar a conta corrente (descricao === 'Conta Corrente' e moeda === 'BRL')
     var index = -1;
     for (var i = 0; i < saldos.length; i++) {
         if (saldos[i].descricao === 'Conta Corrente' && saldos[i].moeda === 'BRL') {
@@ -449,7 +449,6 @@ function atualizarSaldoContaCorrente(valor, tipo) {
     }
     
     if (index === -1) {
-        // Se não existir, criar uma nova conta corrente
         saldos.push({
             id: Date.now(),
             descricao: 'Conta Corrente',
@@ -462,7 +461,6 @@ function atualizarSaldoContaCorrente(valor, tipo) {
         index = saldos.length - 1;
     }
     
-    // Atualizar o valor
     if (tipo === 'credito') {
         saldos[index].valor += valor;
     } else {
@@ -470,25 +468,13 @@ function atualizarSaldoContaCorrente(valor, tipo) {
     }
     saldos[index].valorBRL = saldos[index].valor * saldos[index].cotacao;
     
-    // Salvar no localStorage
     localStorage.setItem('saldosCaixa', JSON.stringify(saldos));
     
-    // Calcular o total do caixa
     var caixaTotal = 0;
     for (var i = 0; i < saldos.length; i++) {
         caixaTotal += saldos[i].valorBRL;
     }
     localStorage.setItem('caixaTotal', caixaTotal);
-    
-    // Notificar o Dashboard (se estiver aberto)
-    if (typeof atualizarCaixaDoDashboard === 'function') {
-        atualizarCaixaDoDashboard();
-    }
-    
-    // Notificar o módulo Caixa (se estiver aberto)
-    if (typeof atualizarTabelaCaixa === 'function') {
-        atualizarTabelaCaixa();
-    }
     
     return saldos[index].valor;
 }
@@ -583,18 +569,23 @@ function salvarMovimentacoes() {
     try { localStorage.setItem('movimentacoes', JSON.stringify(movimentacoes)); } catch(e) {}
 }
 
-function atualizarAporteNoHistorico(clienteId, mesIndex, valorAporte) {
+function atualizarAporteNoHistorico(clienteId, mesIndex, deltaAporte) {
     var cliente = dadosClientes[clienteId];
     if (!cliente) return false;
     if (mesIndex < 0 || mesIndex >= cliente.dados.length) return false;
+    
+    cliente.dados[mesIndex][1] = (cliente.dados[mesIndex][1] || 0) + deltaAporte;
+    
     if (mesIndex === 0) {
-        alert('⚠️ O valor de Janeiro é o VALOR INICIAL do cliente.');
-        return false;
+        var valorInicial = cliente.valorInicial || 0;
+        cliente.dados[0][0] = valorInicial + cliente.dados[0][1];
+    } else {
+        var entradaAnterior = cliente.dados[mesIndex - 1][0] || 0;
+        var liquidoAnterior = cliente.dados[mesIndex - 1][6] || 0;
+        cliente.dados[mesIndex][0] = entradaAnterior + cliente.dados[mesIndex][1] + liquidoAnterior;
     }
-    cliente.dados[mesIndex][1] = valorAporte;
-    var entradaAnterior = cliente.dados[mesIndex - 1][0] || 0;
-    var novaEntrada = entradaAnterior + valorAporte;
-    cliente.dados[mesIndex][0] = novaEntrada;
+    
+    var novaEntrada = cliente.dados[mesIndex][0] || 0;
     var txMes = cliente.dados[mesIndex][2] || 0;
     var total = novaEntrada * (txMes / 100);
     var txAdm = total / 2;
@@ -606,12 +597,13 @@ function atualizarAporteNoHistorico(clienteId, mesIndex, valorAporte) {
     cliente.dados[mesIndex][5] = ir;
     cliente.dados[mesIndex][6] = liquido;
     cliente.dados[mesIndex][7] = txNominal;
+    
     for (var i = mesIndex + 1; i < cliente.dados.length; i++) {
-        var entradaAtual = cliente.dados[i][0] || 0;
+        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
+        var liquidoAnteriorAtual = cliente.dados[i - 1][6] || 0;
         var aporteAtual = cliente.dados[i][1] || 0;
         var txMesAtual = cliente.dados[i][2] || 0;
-        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
-        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual;
+        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual + liquidoAnteriorAtual;
         var totalAtual = cliente.dados[i][0] * (txMesAtual / 100);
         var txAdmAtual = totalAtual / 2;
         var irAtual = txAdmAtual * 0.2;
@@ -627,9 +619,6 @@ function atualizarAporteNoHistorico(clienteId, mesIndex, valorAporte) {
     return true;
 }
 
-// ============================================================
-// FUNÇÃO PRINCIPAL: SALVAR MOVIMENTAÇÃO
-// ============================================================
 function salvarMovimentacao(data, clienteId, tipo, valor, descricao) {
     var mesIndex = getMesFromDate(data);
     var valorNum = parseFloat(valor);
@@ -655,15 +644,49 @@ function salvarMovimentacao(data, clienteId, tipo, valor, descricao) {
     movimentacoes.push(mov);
     salvarMovimentacoes();
     
-    // ============================================================
-    // ATUALIZAR SALDO DA CONTA CORRENTE
-    // ============================================================
     var novoSaldo = atualizarSaldoContaCorrente(valorNum, tipo);
+    
+    if (typeof atualizarCaixaDoDashboard === 'function') {
+        atualizarCaixaDoDashboard();
+    }
     
     renderizarMovimentacoes();
     atualizarKPIs();
     
     alert('✅ Movimentação salva com sucesso!\n💰 Conta Corrente atualizada: ' + fmtMoeda(novoSaldo));
+    return true;
+}
+
+function editarMovimentacao(id, novaData, novoCliente, novoTipo, novoValor, novaDescricao) {
+    var index = -1;
+    for (var i = 0; i < movimentacoes.length; i++) { if (movimentacoes[i].id === id) { index = i; break; } }
+    if (index === -1) { alert('❌ Movimentação não encontrada.'); return false; }
+    var movAntiga = movimentacoes[index];
+    
+    var deltaReversao = movAntiga.tipo === 'credito' ? -movAntiga.valor : movAntiga.valor;
+    atualizarAporteNoHistorico(movAntiga.cliente, movAntiga.mesIndex, deltaReversao);
+    var tipoReversaoCaixa = movAntiga.tipo === 'credito' ? 'debito' : 'credito';
+    atualizarSaldoContaCorrente(movAntiga.valor, tipoReversaoCaixa);
+    
+    var novoMesIndex = getMesFromDate(novaData);
+    var novoValorNum = parseFloat(novoValor);
+    var deltaNovo = novoTipo === 'credito' ? novoValorNum : -novoValorNum;
+    var atualizado = atualizarAporteNoHistorico(novoCliente, novoMesIndex, deltaNovo);
+    if (!atualizado) { alert('❌ Erro ao atualizar o histórico do cliente.'); return false; }
+    var novoSaldo = atualizarSaldoContaCorrente(novoValorNum, novoTipo);
+    
+    movAntiga.data = novaData;
+    movAntiga.cliente = novoCliente;
+    movAntiga.tipo = novoTipo;
+    movAntiga.valor = novoValorNum;
+    movAntiga.descricao = novaDescricao || '';
+    movAntiga.mesIndex = novoMesIndex;
+    movAntiga.clienteNome = getClienteNome(novoCliente);
+    
+    salvarMovimentacoes();
+    if (typeof atualizarCaixaDoDashboard === 'function') { atualizarCaixaDoDashboard(); }
+    renderizarMovimentacoes();
+    atualizarKPIs();
     return true;
 }
 
@@ -687,7 +710,7 @@ function renderizarMovimentacoesLista(lista) {
         var m = lista[i];
         var badge = m.tipo === 'credito' ? 'badge-credito' : 'badge-debito';
         var sinal = m.tipo === 'credito' ? '+' : '-';
-        var cor = m.tipo === 'credito' ? 'col-positivo' : 'col-negativo';
+        var cor = m.tipo === 'credito' ? 'col-credito' : 'col-debito';
         html += '<tr><td>' + fmtData(m.data) + '</td><td>' + m.clienteNome + '</td><td><span class="badge ' + badge + '">' + (m.tipo === 'credito' ? 'Crédito' : 'Débito') + '</span></td><td class="' + cor + '">' + sinal + ' ' + fmtMoeda(m.valor) + '</td><td>' + (m.descricao || '-') + '</td><td><button class="btn btn-sm btn-ghost" onclick="abrirModalEditar(' + m.id + ')">✏️</button><button class="btn btn-sm btn-danger" onclick="excluirMovimentacao(' + m.id + ')">✕</button></td></tr>';
     }
     tbody.innerHTML = html;
@@ -722,8 +745,11 @@ function excluirMovimentacao(id) {
     for (var i = 0; i < movimentacoes.length; i++) { if (movimentacoes[i].id === id) { index = i; break; } }
     if (index === -1) return;
     var mov = movimentacoes[index];
-    var valorAporte = mov.tipo === 'credito' ? -mov.valor : mov.valor;
-    atualizarAporteNoHistorico(mov.cliente, mov.mesIndex, valorAporte);
+    var deltaReversao = mov.tipo === 'credito' ? -mov.valor : mov.valor;
+    atualizarAporteNoHistorico(mov.cliente, mov.mesIndex, deltaReversao);
+    var tipoReversao = mov.tipo === 'credito' ? 'debito' : 'credito';
+    atualizarSaldoContaCorrente(mov.valor, tipoReversao);
+    if (typeof atualizarCaixaDoDashboard === 'function') { atualizarCaixaDoDashboard(); }
     movimentacoes.splice(index, 1);
     salvarMovimentacoes();
     renderizarMovimentacoes();
@@ -829,14 +855,26 @@ function exportarMovimentacoes() {
 // ============================================================
 carregarDadosDoLocalStorage();
 carregarMovimentacoes();
-document.getElementById('filtroAno').value = new Date().getFullYear();
+(function garantirAnoVigenteNoFiltro() {
+    var selectAno = document.getElementById('filtroAno');
+    var anoVigente = new Date().getFullYear();
+    var existeOpcao = false;
+    for (var i = 0; i < selectAno.options.length; i++) {
+        if (selectAno.options[i].value === String(anoVigente)) { existeOpcao = true; break; }
+    }
+    if (!existeOpcao) {
+        var opt = document.createElement('option');
+        opt.value = anoVigente;
+        opt.textContent = anoVigente;
+        selectAno.appendChild(opt);
+    }
+    selectAno.value = anoVigente;
+})();
 
-// Inicializar caixa se não existir
 if (!localStorage.getItem('caixaTotal')) {
     localStorage.setItem('caixaTotal', '12899.15');
 }
 
-// Garantir que a conta corrente existe no localStorage
 var saldos = JSON.parse(localStorage.getItem('saldosCaixa')) || [];
 var contaCorrenteExiste = false;
 for (var i = 0; i < saldos.length; i++) {
