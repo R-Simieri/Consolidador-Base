@@ -429,6 +429,7 @@ table .total-row td {
 .btn-primary { background: var(--azul-card); color: #fff; }
 .btn-primary:hover { opacity: 0.9; }
 .btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-ghost:hover { background: #f8f9fa; }
 .btn-success { background: var(--verde-card); color: #fff; }
 .btn-danger { background: var(--vermelho); color: #fff; }
 .btn-sm { padding: 2px 6px; font-size: 7.5px; }
@@ -2834,6 +2835,38 @@ document.getElementById('formEditarAplicacaoRF').addEventListener('submit', func
 var saldosCaixa = [];
 var chartMoeda = null, chartInstituicaoCaixa = null;
 
+// ============================================================
+// PERSISTÊNCIA DO CAIXA NO LOCALSTORAGE
+// (mesma chave 'saldosCaixa' usada pelo módulo Movimentações,
+// para que os dois módulos fiquem sempre sincronizados)
+// ============================================================
+function carregarSaldosCaixaDoLocalStorage() {
+  var salvos = localStorage.getItem('saldosCaixa');
+  if (salvos) {
+    try {
+      var parsed = JSON.parse(salvos);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        saldosCaixa = parsed;
+        return true;
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar saldos do Caixa:', e);
+    }
+  }
+  return false;
+}
+
+function salvarSaldosCaixaNoLocalStorage() {
+  try {
+    localStorage.setItem('saldosCaixa', JSON.stringify(saldosCaixa));
+    var totalBRL = 0;
+    for (var i = 0; i < saldosCaixa.length; i++) totalBRL += saldosCaixa[i].valorBRL;
+    localStorage.setItem('caixaTotal', totalBRL);
+  } catch (e) {
+    console.warn('Erro ao salvar saldos do Caixa:', e);
+  }
+}
+
 function obterCotacaoMoeda(moeda) {
   var cotacoes = {
     'BRL': 1.00,
@@ -2865,6 +2898,7 @@ function salvarSaldo(descricao, moeda, valor, instituicao) {
   };
   
   saldosCaixa.push(novoSaldo);
+  salvarSaldosCaixaNoLocalStorage();
   renderizarCaixa();
   atualizarGraficosCaixa();
   atualizarDashboardCaixa();
@@ -2953,6 +2987,7 @@ function atualizarDashboardCaixa() {
 function removerSaldo(index) {
   if (confirm('Remover este saldo?')) {
     saldosCaixa.splice(index, 1);
+    salvarSaldosCaixaNoLocalStorage();
     renderizarCaixa();
     atualizarGraficosCaixa();
     atualizarDashboardCaixa();
@@ -2975,6 +3010,7 @@ function atualizarTodasMoedas() {
       s.valorBRL = s.valor * s.cotacao;
     }
     
+    salvarSaldosCaixaNoLocalStorage();
     renderizarCaixa();
     atualizarGraficosCaixa();
     atualizarDashboardCaixa();
@@ -3195,6 +3231,7 @@ document.getElementById('formEditarSaldoCaixa').addEventListener('submit', funct
   s.valorBRL = valor * cotacao;
   s.instituicao = instituicao;
   
+  salvarSaldosCaixaNoLocalStorage();
   renderizarCaixa();
   atualizarGraficosCaixa();
   atualizarDashboardCaixa();
@@ -3308,7 +3345,9 @@ function init() {
     }
   }
   
-  // Caixa - Dados de exemplo
+  // Caixa - Carrega dados reais do localStorage (integrado com Movimentações).
+  // Só usa os dados de exemplo abaixo na primeira vez, quando ainda não há nada salvo.
+  var caixaTinhaDadosSalvos = carregarSaldosCaixaDoLocalStorage();
   if (saldosCaixa.length === 0) {
     var exemplosCaixa = [
       { descricao: 'Conta Corrente', moeda: 'BRL', valor: 12899.15, instituicao: 'Nubank' },
@@ -3324,6 +3363,10 @@ function init() {
         console.warn('Erro ao carregar saldo de exemplo:', error.message);
       }
     }
+  } else if (caixaTinhaDadosSalvos) {
+    renderizarCaixa();
+    atualizarKPIsCaixa();
+    atualizarDashboardCaixa();
   }
   
   // Inicia atualizações automáticas
