@@ -314,9 +314,18 @@ table tr:last-child td { border-bottom: none; }
     <form id="formCliente">
       <input type="hidden" id="editClienteId">
       <div class="form-group"><label>Nome Completo</label><input type="text" id="inputNome" placeholder="Ex: João Silva" required></div>
-      <div class="form-row"><div class="form-group"><label>CPF/CNPJ</label><input type="text" id="inputDocumento" placeholder="000.000.000-00"></div><div class="form-group"><label>Data de Entrada</label><input type="date" id="inputDataEntrada"></div></div>
-      <div class="form-row"><div class="form-group"><label>Participação (%)</label><input type="number" id="inputParticipacao" placeholder="0,00" step="0.0001" min="0" max="100"></div><div class="form-group"><label>Valor Inicial (R$)</label><input type="number" id="inputValorInicial" placeholder="0,00" step="0.01" min="0"></div></div>
-      <div class="form-row"><div class="form-group"><label>Status</label><select id="inputStatus"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option><option value="Suspenso">Suspenso</option></select></div><div class="form-group"><label>Patrimônio (R$)</label><input type="number" id="inputPatrimonio" placeholder="0,00" step="0.01" min="0"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo</label>
+          <select id="inputTipoPessoa" onchange="atualizarMascaraDocumento()">
+            <option value="PF">Pessoa Física (CPF)</option>
+            <option value="PJ">Pessoa Jurídica (CNPJ)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>CPF/CNPJ</label><input type="text" id="inputDocumento" placeholder="000.000.000-00" maxlength="18"></div>
+      </div>
+      <div class="form-row"><div class="form-group"><label>Data de Entrada</label><input type="date" id="inputDataEntrada"></div><div class="form-group"><label>Participação (%)</label><input type="number" id="inputParticipacao" placeholder="0,00" step="0.0001" min="0" max="100"></div></div>
+      <div class="form-row"><div class="form-group"><label>Valor Inicial (R$)</label><input type="number" id="inputValorInicial" placeholder="0,00" step="0.01" min="0"></div><div class="form-group"><label>Status</label><select id="inputStatus"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option><option value="Suspenso">Suspenso</option></select></div></div>
+      <div class="form-group"><label>Patrimônio (R$)</label><input type="number" id="inputPatrimonio" placeholder="0,00" step="0.01" min="0"></div>
       <div class="form-group"><label>Observações</label><textarea id="inputObservacoes" rows="2" placeholder="Informações adicionais..."></textarea></div>
       <div class="btn-group"><button type="button" class="btn btn-ghost" onclick="fecharModalCliente()">Cancelar</button><button type="submit" class="btn btn-success" id="btnSalvarCliente">💾 Salvar</button></div>
     </form>
@@ -386,6 +395,50 @@ function badgeStatus(status) {
     var classes = { 'Ativo': 'badge-success', 'Inativo': 'badge-danger', 'Suspenso': 'badge-warning' };
     return '<span class="badge ' + (classes[status] || 'badge-info') + '">' + status + '</span>';
 }
+
+// ============================================================
+// MÁSCARAS CPF/CNPJ
+// ============================================================
+function aplicarMascaraCPF(valor) {
+    valor = valor.replace(/\D/g, '');
+    if (valor.length <= 11) {
+        return valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    return valor;
+}
+
+function aplicarMascaraCNPJ(valor) {
+    valor = valor.replace(/\D/g, '');
+    if (valor.length <= 14) {
+        return valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    return valor;
+}
+
+function atualizarMascaraDocumento() {
+    var tipo = document.getElementById('inputTipoPessoa').value;
+    var campo = document.getElementById('inputDocumento');
+    var valor = campo.value.replace(/\D/g, '');
+    if (tipo === 'PF') {
+        campo.placeholder = '000.000.000-00';
+        campo.maxLength = 14;
+        campo.value = aplicarMascaraCPF(valor);
+    } else {
+        campo.placeholder = '00.000.000/0000-00';
+        campo.maxLength = 18;
+        campo.value = aplicarMascaraCNPJ(valor);
+    }
+}
+
+document.getElementById('inputDocumento').addEventListener('input', function() {
+    var tipo = document.getElementById('inputTipoPessoa').value;
+    var valor = this.value.replace(/\D/g, '');
+    if (tipo === 'PF') {
+        this.value = aplicarMascaraCPF(valor);
+    } else {
+        this.value = aplicarMascaraCNPJ(valor);
+    }
+});
 
 function carregarClientes() {
     var salvos = localStorage.getItem('clientes');
@@ -519,6 +572,13 @@ function editarValorInicial(id) {
 var editClienteId = null;
 
 function abrirModalCliente(id) {
+    // Limpa todos os campos do formulário
+    document.getElementById('formCliente').reset();
+    document.getElementById('editClienteId').value = '';
+    document.getElementById('inputDocumento').value = '';
+    document.getElementById('inputTipoPessoa').value = 'PF';
+    document.getElementById('inputDataEntrada').value = new Date().toISOString().split('T')[0];
+    
     editClienteId = id || null;
     var modal = document.getElementById('modalCliente');
     var title = document.getElementById('modalClienteTitle');
@@ -537,12 +597,18 @@ function abrirModalCliente(id) {
             document.getElementById('inputStatus').value = cliente.status || 'Ativo';
             document.getElementById('inputPatrimonio').value = cliente.patrimonio || '';
             document.getElementById('inputObservacoes').value = cliente.observacoes || '';
+            // Detectar tipo de documento
+            var doc = cliente.documento || '';
+            if (doc.length > 14) {
+                document.getElementById('inputTipoPessoa').value = 'PJ';
+            } else {
+                document.getElementById('inputTipoPessoa').value = 'PF';
+            }
+            atualizarMascaraDocumento();
         }
     } else {
         title.textContent = '👤 Novo Cliente';
         btn.textContent = '💾 Salvar';
-        document.getElementById('formCliente').reset();
-        document.getElementById('editClienteId').value = '';
         document.getElementById('inputStatus').value = 'Ativo';
         document.getElementById('inputDataEntrada').value = new Date().toISOString().split('T')[0];
     }
@@ -604,6 +670,7 @@ function exportarClientes() {
 carregarClientes();
 console.log('👥 Módulo Clientes carregado!');
 console.log('✏️ Clique no Valor Inicial (em laranja) para editar diretamente.');
+console.log('📝 Máscaras de CPF/CNPJ aplicadas automaticamente.');
 </script>
 </body>
 </html>

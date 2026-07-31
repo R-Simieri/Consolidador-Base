@@ -584,13 +584,9 @@ var clientesNomes = {};
 // FUNÇÃO PARA CARREGAR CLIENTES - SEM DUPLICAÇÃO
 // ============================================================
 function carregarClientesProventos() {
-    // 1. LIMPAR clientes existentes
     clientesNomes = {};
-    
-    // 2. Adicionar "Clube (Todos)" como opção padrão
     clientesNomes['clube'] = 'Clube (Todos)';
     
-    // 3. Carregar clientes do localStorage
     var clientesSalvos = localStorage.getItem('clientes');
     if (clientesSalvos) {
         try {
@@ -601,7 +597,6 @@ function carregarClientesProventos() {
                 var c = listaClientes[i];
                 var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
                 
-                // Verificar se o cliente já existe (evitar duplicação)
                 var existe = false;
                 for (var existingKey in clientesNomes) {
                     if (clientesNomes[existingKey] === c.nome) {
@@ -610,7 +605,6 @@ function carregarClientesProventos() {
                     }
                 }
                 
-                // Se NÃO existir, adiciona
                 if (!existe) {
                     clientesNomes[key] = c.nome;
                     console.log('✅ Cliente adicionado:', c.nome);
@@ -621,8 +615,7 @@ function carregarClientesProventos() {
         }
     }
     
-    // 4. Se NENHUM cliente foi carregado, usar os fixos como fallback
-    if (Object.keys(clientesNomes).length <= 1) { // só tem "Clube (Todos)"
+    if (Object.keys(clientesNomes).length <= 1) {
         var clientesFixos = {
             'vitoria': 'Vitória Simieri',
             'rogerio': 'Rogério Simieri',
@@ -637,9 +630,7 @@ function carregarClientesProventos() {
         console.log('📂 Usando clientes fixos (fallback)');
     }
     
-    // 5. Atualizar os selects
     atualizarSelectsProventos();
-    
     console.log('👤 Total de clientes carregados:', Object.keys(clientesNomes).length);
 }
 
@@ -744,6 +735,7 @@ function salvarProventos() {
 // CRUD DE PROVENTOS
 // ============================================================
 function salvarProvento(data, ativo, cliente, tipo, valor) {
+    // Limpa os campos do formulário após salvar
     var novoProvento = {
         id: proximoId++,
         data: data,
@@ -1003,9 +995,11 @@ document.getElementById('formProvento').addEventListener('submit', function(e) {
     
     try {
         salvarProvento(data, ativo, cliente, tipo, valor);
+        // Limpa os campos do formulário
         document.getElementById('formProvento').reset();
         document.getElementById('inputData').valueAsDate = new Date();
         document.getElementById('inputAtivo').value = '';
+        document.getElementById('inputValor').value = '';
         alert('✅ Provento salvo com sucesso!');
     } catch(error) {
         alert('❌ Erro ao salvar provento. Tente novamente.');
@@ -1116,14 +1110,12 @@ function exportarProventos() {
 // CARREGAR DADOS DE EXEMPLO
 // ============================================================
 function carregarDadosExemplo() {
-    // Verificar se já existem proventos
     if (proventos.length > 0) return;
     
     var hoje = new Date();
     var mesAtual = hoje.getMonth();
     var anoAtual = hoje.getFullYear();
     
-    // Verificar se há clientes para associar os proventos
     var keys = Object.keys(clientesNomes);
     var cliente1 = keys[1] || 'vitoria';
     var cliente2 = keys[2] || 'rogerio';
@@ -1157,13 +1149,9 @@ function carregarDadosExemplo() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-// 1. Carregar clientes
 carregarClientesProventos();
-
-// 2. Carregar proventos
 carregarProventos();
 
-// 3. Carregar dados de exemplo se não houver
 if (proventos.length === 0) {
     carregarDadosExemplo();
 }
@@ -1173,6 +1161,7 @@ console.log('👤 Clientes disponíveis:', Object.keys(clientesNomes).length);
 console.log('💰 Total de proventos:', proventos.length);
 console.log('🔗 Integração com módulo Clientes: ATIVADA');
 console.log('✅ Sem duplicação de clientes!');
+console.log('📝 Campos são limpos automaticamente após salvar!');
 </script>
 </body>
 </html>

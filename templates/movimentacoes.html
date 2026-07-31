@@ -406,6 +406,10 @@ table tr:last-child td { border-bottom: none; }
 </main>
 
 <script>
+// ============================================================
+// CORREÇÃO: CLIENTES NO SELETOR
+// ============================================================
+
 var meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 var dadosClientes = {};
@@ -479,12 +483,19 @@ function atualizarSaldoContaCorrente(valor, tipo) {
     return saldos[index].valor;
 }
 
+// ============================================================
+// FUNÇÃO CORRIGIDA: CARREGAR CLIENTES DO LOCALSTORAGE
+// ============================================================
 function carregarDadosDoLocalStorage() {
     dadosClientes = {};
+    
+    // 1. Tentar carregar clientes do localStorage
     var clientesSalvos = localStorage.getItem('clientes');
     if (clientesSalvos) {
         try {
             var listaClientes = JSON.parse(clientesSalvos);
+            console.log('📂 Clientes encontrados:', listaClientes.length);
+            
             for (var i = 0; i < listaClientes.length; i++) {
                 var c = listaClientes[i];
                 var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
@@ -502,8 +513,42 @@ function carregarDadosDoLocalStorage() {
                     ]);
                 }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.warn('Erro ao carregar clientes:', e);
+        }
     }
+    
+    // 2. Se não houver clientes, usar dados padrão
+    if (Object.keys(dadosClientes).length === 0) {
+        console.log('📂 Nenhum cliente encontrado, usando dados padrão');
+        var clientesPadrao = [
+            { nome: 'Rogério Simieri', valorInicial: 50958.37 },
+            { nome: 'Vitória Simieri', valorInicial: 85814.40 },
+            { nome: 'Manuella Cardoso', valorInicial: 6230.46 },
+            { nome: 'João Paulo Simieri', valorInicial: 27.09 },
+            { nome: 'Pedro Henrique Simieri', valorInicial: 1396.04 },
+            { nome: 'Josepha Simieri', valorInicial: 10698.91 }
+        ];
+        for (var i = 0; i < clientesPadrao.length; i++) {
+            var c = clientesPadrao[i];
+            var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
+            dadosClientes[key] = {
+                nome: c.nome,
+                b5: 175253.61,
+                b17: 178605.56,
+                valorInicial: c.valorInicial || 0,
+                dados: []
+            };
+            for (var mes = 0; mes < 12; mes++) {
+                dadosClientes[key].dados.push([
+                    mes === 0 ? (c.valorInicial || 0) : 0,
+                    0, 0, 0, 0, 0, 0, 0
+                ]);
+            }
+        }
+    }
+    
+    // 3. Carregar dados adicionais do localStorage
     var salvos = localStorage.getItem('dadosClientes');
     if (salvos) {
         try {
@@ -519,16 +564,28 @@ function carregarDadosDoLocalStorage() {
             }
         } catch(e) {}
     }
+    
+    // 4. ATUALIZAR OS SELETORES
     atualizarSelectsClientes();
+    
+    console.log('👤 Total de clientes carregados:', Object.keys(dadosClientes).length);
 }
 
+// ============================================================
+// FUNÇÃO CORRIGIDA: ATUALIZAR SELETORES DE CLIENTES
+// ============================================================
 function atualizarSelectsClientes() {
     var selects = ['inputCliente', 'editCliente'];
     var keys = Object.keys(dadosClientes);
+    
     for (var s = 0; s < selects.length; s++) {
         var select = document.getElementById(selects[s]);
         if (!select) continue;
+        
         var html = '';
+        // Adicionar opção padrão
+        html += '<option value="">Selecione um cliente...</option>';
+        
         for (var i = 0; i < keys.length; i++) {
             var c = dadosClientes[keys[i]];
             if (c && c.nome) {
@@ -536,6 +593,7 @@ function atualizarSelectsClientes() {
             }
         }
         select.innerHTML = html;
+        console.log('✅ Select ' + selects[s] + ' atualizado com ' + (keys.length) + ' clientes');
     }
 }
 
@@ -767,6 +825,7 @@ document.getElementById('formMovimentacao').addEventListener('submit', function(
     var descricao = document.getElementById('inputDescricao').value.trim();
     if (!data) { alert('Selecione uma data.'); return; }
     if (!valor || valor <= 0) { alert('Digite um valor válido.'); return; }
+    if (!cliente) { alert('Selecione um cliente.'); return; }
     var btn = this.querySelector('button[type="submit"]');
     btn.textContent = '⏳ Salvando...';
     btn.disabled = true;
@@ -823,7 +882,9 @@ document.getElementById('modalEditar').addEventListener('click', function(e) { i
 function filtrarPorCliente() {
     var keys = Object.keys(dadosClientes);
     var opcoes = 'Selecione um cliente:\n0. Todos\n';
-    for (var i = 0; i < keys.length; i++) { opcoes += (i + 1) + '. ' + dadosClientes[keys[i]].nome + '\n'; }
+    for (var i = 0; i < keys.length; i++) {
+        opcoes += (i + 1) + '. ' + dadosClientes[keys[i]].nome + '\n';
+    }
     var escolha = prompt(opcoes);
     if (escolha === null) return;
     if (escolha === '0' || escolha === '') { filtroCliente = null; } else {
@@ -853,9 +914,14 @@ function exportarMovimentacoes() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-carregarDadosDoLocalStorage();
-carregarMovimentacoes();
-(function garantirAnoVigenteNoFiltro() {
+function init() {
+    // 1. Carregar clientes primeiro
+    carregarDadosDoLocalStorage();
+    
+    // 2. Carregar movimentações
+    carregarMovimentacoes();
+    
+    // 3. Garantir ano vigente no filtro
     var selectAno = document.getElementById('filtroAno');
     var anoVigente = new Date().getFullYear();
     var existeOpcao = false;
@@ -869,12 +935,17 @@ carregarMovimentacoes();
         selectAno.appendChild(opt);
     }
     selectAno.value = anoVigente;
-})();
+}
 
+// Inicializar
+init();
+
+// Inicializar caixa se não existir
 if (!localStorage.getItem('caixaTotal')) {
     localStorage.setItem('caixaTotal', '12899.15');
 }
 
+// Garantir que a conta corrente existe no localStorage
 var saldos = JSON.parse(localStorage.getItem('saldosCaixa')) || [];
 var contaCorrenteExiste = false;
 for (var i = 0; i < saldos.length; i++) {
@@ -897,9 +968,9 @@ if (!contaCorrenteExiste) {
 }
 
 console.log('💵 Módulo Movimentações carregado!');
+console.log('👤 Total de clientes:', Object.keys(dadosClientes).length);
 console.log('💰 Conta Corrente inicial: R$ ' + localStorage.getItem('caixaTotal'));
 console.log('🔗 Integração com módulo Clientes: ATIVADA');
-console.log('💰 Movimentações atualizam a Conta Corrente no Dashboard automaticamente!');
 </script>
 </body>
 </html>

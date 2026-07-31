@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renda Fixa · Carteira Pessoal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   FONTE E VARIÁVEIS - MESMO ESTILO DO MÓDULO ANTERIOR
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --azul-escuro: #0c1b33;
+  --azul-card: #2d6fb0;
+  --azul-claro: #4a8fd4;
+  --verde-card: #28a745;
+  --lilas-card: #6f42c1;
+  --amarelo-card: #ffc107;
+  --cinza-fundo: #f0f2f5;
+  --branco: #ffffff;
+  --cinza-borda: #dce1e8;
+  --cinza-texto: #495057;
+  --cinza-claro: #6c757d;
+  --vermelho: #dc3545;
+  --fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Aptos Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fonte);
+  font-size: 11px;
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.5;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ============================================================
+   TEMA ESCURO
+   ============================================================ */
+body.tema-escuro {
+  --cinza-fundo: #0d1117;
+  --branco: #161b22;
+  --cinza-borda: #30363d;
+  --cinza-texto: #c9d1d9;
+  --cinza-claro: #8b949e;
+  --azul-escuro: #0a1628;
+  --azul-card: #4a8fd4;
+  --azul-claro: #6fa8dc;
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+body.tema-escuro .panel,
+body.tema-escuro .kpi-card,
+body.tema-escuro .topbar,
+body.tema-escuro .modal {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+body.tema-escuro .panel-head h3,
+body.tema-escuro .modal h2 {
+  color: #f0f6fc;
+}
+
+body.tema-escuro .info-box {
+  background: #21262d;
+  color: #8b949e;
+}
+
+body.tema-escuro .table-wrap table th {
+  color: #8b949e;
+}
+
+body.tema-escuro .table-wrap table td {
+  border-bottom-color: #30363d;
+}
+
+body.tema-escuro .table-wrap table .total-row td {
+  background: #21262d;
+}
+
+body.tema-escuro .sidebar {
+  background: #0a1628;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: 210px;
+  min-height: 100vh;
+  background: var(--azul-escuro);
+  color: #b0c4de;
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  transition: background 0.3s;
+}
+
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo h1 span { color: var(--azul-card); }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+
+.sidebar-nav { list-style: none; padding: 0 10px; }
+.sidebar-nav li {
+  padding: 6px 10px;
+  margin: 1px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8aa3c9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-nav li:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-nav li.active { background: var(--azul-card); color: #fff; }
+.sidebar-nav li .icone { font-size: 12px; width: 16px; text-align: center; }
+.sidebar-nav .grupo { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #4a6a8f; padding: 10px 10px 3px; font-weight: 700; }
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer .label { font-size: 8px; color: #5a7a9e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-footer .valor { font-size: 14px; font-weight: 800; color: #fff; }
+.sidebar-footer .delta { font-size: 9px; color: var(--verde-card); font-weight: 600; }
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  background: var(--branco);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--cinza-borda);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: background 0.3s, border-color 0.3s;
+}
+.topbar .logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--azul-card);
+}
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
+.topbar .spacer { flex: 1; }
+.topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
+.topbar .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-card); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+/* ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ */
+.main { margin-left: 210px; padding: 0; min-height: 100vh; }
+.content { padding: 14px 20px 32px; }
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.kpi-card {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--cinza-borda);
+  transition: background 0.3s, border-color 0.3s;
+}
+.kpi-card .label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-card .valor { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-card .delta { font-size: 9.5px; font-weight: 700; }
+
+.kpi-top { display: flex; justify-content: space-between; align-items: center; }
+.kpi-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cinza-claro); }
+.kpi-ic { font-size: 14px; padding: 4px 8px; border-radius: 6px; }
+.kpi-value { font-size: 18px; font-weight: 800; margin: 3px 0 2px; }
+.kpi-delta { font-size: 9.5px; font-weight: 700; }
+.kpi-delta.up { color: var(--verde-card); }
+.kpi-delta.down { color: var(--vermelho); }
+
+.card-azul .valor { color: var(--azul-card); }
+.card-verde .valor { color: var(--verde-card); }
+.card-lilas .valor { color: var(--lilas-card); }
+.card-amarelo .valor { color: var(--amarelo-card); }
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+.panel {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--cinza-borda);
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
+
+/* ============================================================
+   TABELAS
+   ============================================================ */
+.table-wrap { overflow-x: auto; margin: 0 -2px; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+table th { text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--cinza-claro); font-weight: 700; padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table td { padding: 5px 6px; border-bottom: 1px solid var(--cinza-borda); white-space: nowrap; }
+table tr:last-child td { border-bottom: none; }
+table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px solid var(--cinza-borda); }
+
+.col-positivo { color: var(--verde-card); font-weight: 700; }
+.col-negativo { color: var(--vermelho); font-weight: 700; }
+.col-porcentagem-positiva { color: var(--verde-card); font-weight: 700; }
+.col-porcentagem-negativa { color: var(--vermelho); font-weight: 700; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+.badge-cdb { background: #d1ecf1; color: #0c5460; }
+.badge-tesouro { background: #fff3cd; color: #856404; }
+.badge-fundo { background: #cce5ff; color: #004085; }
+.badge-poupanca { background: #d4edda; color: #155724; }
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--fonte);
+}
+.btn-primary { background: var(--azul-card); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--branco); border: 1px solid var(--cinza-borda); color: var(--cinza-texto); }
+.btn-ghost:hover { background: #f8f9fa; }
+.btn-success { background: var(--verde-card); color: #fff; }
+.btn-danger { background: var(--vermelho); color: #fff; }
+.btn-sm { padding: 2px 6px; font-size: 7.5px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+
+/* ============================================================
+   MODAIS
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 460px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 12px; }
+.modal .form-group label { display: block; font-size: 9px; font-weight: 700; color: var(--cinza-claro); margin-bottom: 3px; }
+.modal .form-group input, .modal .form-group select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: var(--fonte);
+  background: var(--branco);
+  color: var(--cinza-texto);
+}
+.modal .form-group input:focus, .modal .form-group select:focus {
+  outline: none;
+  border-color: var(--azul-card);
+}
+.modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal .btn-group { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.modal .btn-group .btn { padding: 6px 16px; font-size: 10px; }
+
+/* ============================================================
+   INFO BOX
+   ============================================================ */
+.info-box {
+  font-size: 9px;
+  color: var(--cinza-claro);
+  background: #eef2f7;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  transition: background 0.3s;
+}
+
+.chart-container { position: relative; width: 100%; min-height: 200px; }
+
+/* ============================================================
+   EDITÁVEL
+   ============================================================ */
+.editable-value {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  color: var(--azul-escuro);
+  font-weight: 600;
+}
+.editable-value:hover { background: #eef2f7; }
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .sidebar { width: 56px; }
+  .sidebar .logo h1, .sidebar .logo small, .sidebar-nav li span, .sidebar-footer { display: none; }
+  .sidebar-nav li { justify-content: center; padding: 8px; }
+  .main { margin-left: 56px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .modal .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+   SIDEBAR
+   ============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <h1>CARTEIRA<span>PESSOAL</span></h1>
+    <small>GESTÃO PATRIMONIAL</small>
+  </div>
+  <ul class="sidebar-nav">
+    <li class="grupo">GERAL</li>
+    <li onclick="window.location.href='dashboard.html'"><span class="icone">📊</span> Dashboard</li>
+    <li class="grupo">CARTEIRAS</li>
+    <li onclick="window.location.href='renda-variavel.html'"><span class="icone">📈</span> Renda Variável</li>
+    <li class="active"><span class="icone">🏦</span> Renda Fixa</li>
+    <li onclick="window.location.href='caixa.html'"><span class="icone">💳</span> Caixa</li>
+    <li class="grupo">GESTÃO</li>
+    <li onclick="window.location.href='clientes.html'"><span class="icone">👥</span> Clientes</li>
+    <li onclick="window.location.href='movimentacoes.html'"><span class="icone">💵</span> Movimentações</li>
+    <li onclick="window.location.href='proventos.html'"><span class="icone">📊</span> Proventos</li>
+    <li onclick="window.location.href='historico-mensal.html'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li onclick="window.location.href='instituicoes.html'"><span class="icone">🏛️</span> Instituições</li>
+    <li onclick="window.location.href='relatorios.html'"><span class="icone">📄</span> Relatórios</li>
+    <li onclick="window.location.href='config.html'"><span class="icone">⚙️</span> Configurações</li>
+  </ul>
+  <div class="sidebar-footer">
+    <div class="label">Patrimônio Total</div>
+    <div class="valor" id="patrimonioTotal">R$ 178.605,56</div>
+    <div class="delta">↑ 18,96% no ano</div>
+  </div>
+</aside>
+
+<!-- ============================================================
+   MODAIS
+   ============================================================ -->
+
+<!-- MODAL: NOVA APLICAÇÃO -->
+<div class="modal-overlay" id="modalNovaAplicacao">
+  <div class="modal">
+    <h2>🏦 Nova Aplicação</h2>
+    <form id="formNovaAplicacao">
+      <div class="form-group">
+        <label>Nome do Ativo</label>
+        <input type="text" id="inputNomeAtivo" placeholder="Ex: CDB Liquidez" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="inputTipoAtivo">
+            <option value="CDB">CDB</option>
+            <option value="LCI">LCI</option>
+            <option value="LCA">LCA</option>
+            <option value="Tesouro Direto">Tesouro Direto</option>
+            <option value="Debênture">Debênture</option>
+            <option value="Fundo">Fundo</option>
+            <option value="Poupança">Poupança</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Instituição</label>
+          <select id="inputInstituicao">
+            <option value="XP">XP</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Santander">Santander</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Caixa">Caixa</option>
+            <option value="Governo">Governo</option>
+            <option value="Rico">Rico Investimentos</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor Aplicado (R$)</label>
+          <input type="number" id="inputValorAplicado" placeholder="0,00" step="0.01" min="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Data de Entrada</label>
+          <input type="date" id="inputDataEntrada">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rentabilidade Anual (%)</label>
+          <input type="number" id="inputRentabilidade" placeholder="Ex: 12.5" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Data de Vencimento</label>
+          <input type="date" id="inputVencimento">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Valor Atual (R$)</label>
+        <input type="number" id="inputValorAtual" placeholder="0,00" step="0.01">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-success" id="btnSalvarAplicacao">💾 Salvar Aplicação</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR APLICAÇÃO -->
+<div class="modal-overlay" id="modalEditarAplicacao">
+  <div class="modal">
+    <h2>✏️ Editar Aplicação</h2>
+    <form id="formEditarAplicacao">
+      <div class="form-group">
+        <label>Nome do Ativo</label>
+        <input type="text" id="editInputNome">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="editInputTipo">
+            <option value="CDB">CDB</option>
+            <option value="LCI">LCI</option>
+            <option value="LCA">LCA</option>
+            <option value="Tesouro Direto">Tesouro Direto</option>
+            <option value="Debênture">Debênture</option>
+            <option value="Fundo">Fundo</option>
+            <option value="Poupança">Poupança</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Instituição</label>
+          <select id="editInputInstituicao">
+            <option value="XP">XP</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Santander">Santander</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Caixa">Caixa</option>
+            <option value="Governo">Governo</option>
+            <option value="Rico">Rico Investimentos</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor Aplicado (R$)</label>
+          <input type="number" id="editInputValorAplicado" step="0.01" min="0.01">
+        </div>
+        <div class="form-group">
+          <label>Data de Entrada</label>
+          <input type="date" id="editInputDataEntrada">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rentabilidade Anual (%)</label>
+          <input type="number" id="editInputRentabilidade" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Data de Vencimento</label>
+          <input type="date" id="editInputVencimento">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Valor Atual (R$)</label>
+        <input type="number" id="editInputValorAtual" step="0.01">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-ghost" onclick="fecharModalEditar()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================ -->
+<main class="main">
+
+  <header class="topbar">
+    <div class="logo-img">🏦</div>
+    <div>
+      <h2>Renda Fixa</h2>
+      <p>CDB, LCI, Tesouro, Debêntures e outros</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="usuario">
+      <div class="avatar">RS</div>
+      <div>
+        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" id="rfKpiGrid">
+      <div class="kpi-card card-verde">
+        <div class="kpi-top"><span class="kpi-label">Total em Renda Fixa</span><span class="kpi-ic" style="background:#e6faf3;color:var(--verde-card);">🧾</span></div>
+        <div class="kpi-value" style="color:var(--verde-card);" id="rfTotalGeral">R$ 0,00</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);">Total aplicado</div>
+      </div>
+      <div class="kpi-card card-azul">
+        <div class="kpi-top"><span class="kpi-label">Rendimento Total</span><span class="kpi-ic" style="background:#eaf1ff;color:var(--azul-card);">📈</span></div>
+        <div class="kpi-value" style="color:var(--azul-card);" id="rfRendimentoTotal">R$ 0,00</div>
+        <div class="kpi-delta" id="rfRendimentoPct">0,00% acumulado</div>
+      </div>
+      <div class="kpi-card card-lilas">
+        <div class="kpi-top"><span class="kpi-label">Ativos ativos</span><span class="kpi-ic" style="background:#f2ecfe;color:var(--lilas-card);">📁</span></div>
+        <div class="kpi-value" style="color:var(--lilas-card);" id="rfTotalAtivos">0</div>
+        <div class="kpi-delta" style="color:var(--cinza-claro);" id="rfListaTipos">Nenhum ativo</div>
+      </div>
+      <div class="kpi-card card-amarelo">
+        <div class="kpi-top"><span class="kpi-label">Melhor Rentabilidade</span><span class="kpi-ic" style="background:#fff4e0;color:#b8790f;">🔥</span></div>
+        <div class="kpi-value" style="color:#b8790f;" id="rfMelhorAtivo">—</div>
+        <div class="kpi-delta" id="rfMelhorPct">—</div>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Carteira de Renda Fixa <small>CDB, LCI, Tesouro, Debêntures e outros</small></h3>
+        <div>
+          <button class="btn btn-primary" onclick="abrirModal()">+ Nova Aplicação</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ativo</th><th>Tipo</th><th>Instituição</th>
+              <th>Valor Aplicado</th><th>Data Entrada</th>
+              <th>Rent. Anual</th><th>Vencimento</th>
+              <th>Valor Atual</th><th>Rendimento</th>
+              <th>Rendimento %</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="rfTableBody">
+            <tr><td colspan="11" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma aplicação cadastrada. Clique em <b>+ Nova Aplicação</b> para começar.</td></tr>
+          </tbody>
+          <tfoot id="rfTableFoot" style="display:none;">
+            <tr class="total-row">
+              <td colspan="3"><strong>TOTAL</strong></td>
+              <td id="rfTotalAplicado"><strong>R$ 0,00</strong></td>
+              <td></td><td></td><td></td>
+              <td id="rfTotalAtual"><strong>R$ 0,00</strong></td>
+              <td id="rfTotalRendimento"><strong>R$ 0,00</strong></td>
+              <td id="rfTotalRendimentoPct"><strong>0,00%</strong></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h3>Distribuição por Tipo</h3></div>
+        <div class="chart-container"><canvas id="chartDistribuicaoTipo" height="220"></canvas></div>
+        <div class="info-box"><span>ℹ️</span><div>Distribuição dos investimentos por tipo de aplicação.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Distribuição por Instituição</h3></div>
+        <div class="chart-container"><canvas id="chartDistribuicaoInstituicao" height="220"></canvas></div>
+        <div class="info-box"><span>ℹ️</span><div>Distribuição dos investimentos por instituição financeira.</div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ============================================================
+   JAVASCRIPT
+   ============================================================ -->
+<script>
+// ============================================================
+// CONFIGURAÇÕES - CARREGAR TEMA
+// ============================================================
+function carregarTema() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        if (config && config.tema === 'escuro') {
+            document.body.classList.add('tema-escuro');
+        } else {
+            document.body.classList.remove('tema-escuro');
+        }
+    } catch(e) {
+        document.body.classList.remove('tema-escuro');
+    }
+}
+carregarTema();
+
+// ============================================================
+// FUNÇÕES AUXILIARES
+// ============================================================
+function fmtMoedaRF(v) { if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00'; return (v < 0 ? '-' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtPctRF(v) { if (v === undefined || v === null || isNaN(v)) return '0,00%'; return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+
+// ============================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================
+var aplicacoes = [];
+var chartTipo = null, chartInstituicao = null;
+var CHAVE_ARMAZENAMENTO = 'rendaFixa';
+
+// ============================================================
+// CÁLCULO DE RENDIMENTO
+// ============================================================
+function calcularRendimentoDiario(vAplicado, rendAnual, dataEntrada) {
+    if (!rendAnual || rendAnual <= 0 || !dataEntrada) return { valorAtual: vAplicado, rendimento: 0, rendimentoPct: 0 };
+    var entrada = new Date(dataEntrada);
+    var atual = new Date();
+    var diffDias = Math.max(0, Math.floor((atual - entrada) / (1000 * 60 * 60 * 24)));
+    if (diffDias === 0) return { valorAtual: vAplicado, rendimento: 0, rendimentoPct: 0 };
+    var taxaDiaria = Math.pow(1 + rendAnual / 100, 1/252) - 1;
+    var valorAtual = vAplicado * Math.pow(1 + taxaDiaria, diffDias);
+    var rendimento = valorAtual - vAplicado;
+    var rendimentoPct = (rendimento / vAplicado) * 100;
+    return { valorAtual: Math.round(valorAtual * 100) / 100, rendimento: Math.round(rendimento * 100) / 100, rendimentoPct: Math.round(rendimentoPct * 100) / 100 };
+}
+
+// ============================================================
+// CRUD
+// ============================================================
+function salvarAplicacao(nome, tipo, instituicao, vAplicado, dataEntrada, rendAnual, vencimento, valorAtual) {
+    vAplicado = parseFloat(vAplicado) || 0;
+    rendAnual = parseFloat(rendAnual) || 0;
+    var vAtual;
+    if (valorAtual && valorAtual > 0) { vAtual = parseFloat(valorAtual); }
+    else if (dataEntrada && rendAnual > 0) { var resultado = calcularRendimentoDiario(vAplicado, rendAnual, dataEntrada); vAtual = resultado.valorAtual; }
+    else { vAtual = vAplicado; }
+    var rendimento = vAtual - vAplicado;
+    var rendimentoPct = vAplicado > 0 ? (rendimento / vAplicado * 100) : 0;
+    var nova = {
+        id: Date.now(),
+        nome: nome || 'Sem nome',
+        tipo: tipo || 'Outro',
+        instituicao: instituicao || 'Outro',
+        valorAplicado: vAplicado,
+        dataEntrada: dataEntrada || '',
+        rentabilidade: rendAnual,
+        rentabilidadeDisplay: rendAnual > 0 ? rendAnual + '% a.a.' : '-',
+        vencimento: vencimento || '-',
+        valorAtual: vAtual,
+        rendimento: rendimento,
+        rendimentoPct: rendimentoPct
+    };
+    aplicacoes.push(nova);
+    try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(aplicacoes)); } catch(e) {}
+    renderizar();
+    atualizarKPIs();
+    atualizarGraficos();
+    return nova;
+}
+
+function renderizar() {
+    var tbody = document.getElementById('rfTableBody');
+    if (!tbody) return;
+    if (aplicacoes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma aplicação cadastrada. Clique em <b>+ Nova Aplicação</b> para começar.</td></tr>';
+        document.getElementById('rfTableFoot').style.display = 'none';
+        return;
+    }
+    document.getElementById('rfTableFoot').style.display = 'table-footer-group';
+    var totalAplicado = 0, totalAtual = 0, totalRendimento = 0, html = '';
+    for (var i = 0; i < aplicacoes.length; i++) {
+        var a = aplicacoes[i];
+        totalAplicado += a.valorAplicado;
+        totalAtual += a.valorAtual;
+        totalRendimento += a.rendimento;
+        var cls = a.rendimento > 0 ? 'col-positivo' : 'col-negativo';
+        var dataEntrada = a.dataEntrada ? new Date(a.dataEntrada).toLocaleDateString('pt-BR') : '';
+        var vencimento = a.vencimento !== '-' ? new Date(a.vencimento).toLocaleDateString('pt-BR') : '-';
+        html += '<tr><td class="tk"><span class="editable-value" onclick="abrirModalEditar(' + i + ')">' + a.nome + '</span></td><td><span class="badge badge-cdb">' + a.tipo + '</span></td><td>' + a.instituicao + '</td><td>' + fmtMoedaRF(a.valorAplicado) + '</td><td>' + dataEntrada + '</td><td>' + a.rentabilidadeDisplay + '</td><td>' + vencimento + '</td><td><span class="editable-value" onclick="abrirModalEditar(' + i + ')">' + fmtMoedaRF(a.valorAtual) + '</span></td><td class="' + cls + '">' + fmtMoedaRF(a.rendimento) + '</td><td class="' + cls + '">' + fmtPctRF(a.rendimentoPct) + '</td><td><button class="btn btn-sm btn-ghost" onclick="abrirModalEditar(' + i + ')">✏️</button><button class="btn btn-sm btn-danger" onclick="removerAplicacao(' + i + ')">✕</button></td></tr>';
+    }
+    tbody.innerHTML = html;
+    var rendimentoPctTotal = totalAplicado > 0 ? (totalRendimento / totalAplicado * 100) : 0;
+    document.getElementById('rfTotalAplicado').innerHTML = '<strong>' + fmtMoedaRF(totalAplicado) + '</strong>';
+    document.getElementById('rfTotalAtual').innerHTML = '<strong>' + fmtMoedaRF(totalAtual) + '</strong>';
+    document.getElementById('rfTotalRendimento').innerHTML = '<strong class="' + (totalRendimento > 0 ? 'col-positivo' : 'col-negativo') + '">' + fmtMoedaRF(totalRendimento) + '</strong>';
+    document.getElementById('rfTotalRendimentoPct').innerHTML = '<strong class="' + (rendimentoPctTotal > 0 ? 'col-porcentagem-positiva' : 'col-porcentagem-negativa') + '">' + fmtPctRF(rendimentoPctTotal) + '</strong>';
+}
+
+function atualizarKPIs() {
+    var totalAplicado = 0, totalAtual = 0, tipos = [], melhorRendimento = -999, melhorAtivo = '';
+    for (var i = 0; i < aplicacoes.length; i++) {
+        var a = aplicacoes[i];
+        totalAplicado += a.valorAplicado;
+        totalAtual += a.valorAtual;
+        if (tipos.indexOf(a.tipo) === -1) tipos.push(a.tipo);
+        if (a.rendimentoPct > melhorRendimento) { melhorRendimento = a.rendimentoPct; melhorAtivo = a.nome; }
+    }
+    var rendimentoTotal = totalAtual - totalAplicado;
+    var rendimentoPctTotal = totalAplicado > 0 ? (rendimentoTotal / totalAplicado * 100) : 0;
+    document.getElementById('rfTotalGeral').textContent = fmtMoedaRF(totalAplicado);
+    document.getElementById('rfRendimentoTotal').textContent = fmtMoedaRF(rendimentoTotal);
+    var rfRendimentoPct = document.getElementById('rfRendimentoPct');
+    rfRendimentoPct.textContent = fmtPctRF(rendimentoPctTotal);
+    rfRendimentoPct.className = 'kpi-delta ' + (rendimentoPctTotal > 0 ? 'up' : 'down');
+    document.getElementById('rfTotalAtivos').textContent = aplicacoes.length;
+    document.getElementById('rfListaTipos').textContent = tipos.length > 0 ? tipos.join(' · ') : 'Nenhum ativo';
+    if (melhorAtivo) {
+        document.getElementById('rfMelhorAtivo').textContent = melhorAtivo;
+        var rfMelhorPct = document.getElementById('rfMelhorPct');
+        rfMelhorPct.textContent = fmtPctRF(melhorRendimento);
+        rfMelhorPct.className = 'kpi-delta up';
+    } else {
+        document.getElementById('rfMelhorAtivo').textContent = '—';
+        document.getElementById('rfMelhorPct').textContent = '—';
+    }
+}
+
+function removerAplicacao(index) {
+    if (confirm('Remover ' + aplicacoes[index].nome + '?')) {
+        aplicacoes.splice(index, 1);
+        try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(aplicacoes)); } catch(e) {}
+        renderizar();
+        atualizarKPIs();
+        atualizarGraficos();
+    }
+}
+
+// ============================================================
+// GRÁFICOS
+// ============================================================
+function atualizarGraficos() {
+    if (typeof Chart === 'undefined') return;
+    
+    var ctxTipo = document.getElementById('chartDistribuicaoTipo');
+    if (ctxTipo) {
+        if (chartTipo) { chartTipo.destroy(); chartTipo = null; }
+        var tipos = {};
+        for (var i = 0; i < aplicacoes.length; i++) {
+            var t = aplicacoes[i].tipo;
+            tipos[t] = (tipos[t] || 0) + aplicacoes[i].valorAtual;
+        }
+        var labels = Object.keys(tipos), data = Object.values(tipos);
+        if (labels.length > 0) {
+            try {
+                var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+                chartTipo = new Chart(ctxTipo, {
+                    type: 'doughnut',
+                    data: { labels: labels, datasets: [{ data: data, backgroundColor: cores.slice(0, data.length), borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, tooltip: { callbacks: { label: function(context) { var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; return context.label + ': ' + fmtMoedaRF(context.parsed) + ' (' + pct + '%)'; } } } } }
+                });
+            } catch(e) { console.warn('Erro gráfico Tipo:', e); }
+        }
+    }
+    
+    var ctxInst = document.getElementById('chartDistribuicaoInstituicao');
+    if (ctxInst) {
+        if (chartInstituicao) { chartInstituicao.destroy(); chartInstituicao = null; }
+        var insts = {};
+        for (var i = 0; i < aplicacoes.length; i++) {
+            var inst = aplicacoes[i].instituicao;
+            insts[inst] = (insts[inst] || 0) + aplicacoes[i].valorAtual;
+        }
+        var labels = Object.keys(insts), data = Object.values(insts);
+        if (labels.length > 0) {
+            try {
+                var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14', '#20c997'];
+                chartInstituicao = new Chart(ctxInst, {
+                    type: 'doughnut',
+                    data: { labels: labels, datasets: [{ data: data, backgroundColor: cores.slice(0, data.length), borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } }, tooltip: { callbacks: { label: function(context) { var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0); var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0; return context.label + ': ' + fmtMoedaRF(context.parsed) + ' (' + pct + '%)'; } } } } }
+                });
+            } catch(e) { console.warn('Erro gráfico Instituição:', e); }
+        }
+    }
+}
+
+// ============================================================
+// MODAL - NOVA APLICAÇÃO (COM LIMPEZA DE CAMPOS)
+// ============================================================
+function abrirModal() {
+    document.getElementById('inputNomeAtivo').value = '';
+    document.getElementById('inputValorAplicado').value = '';
+    document.getElementById('inputDataEntrada').value = '';
+    document.getElementById('inputRentabilidade').value = '';
+    document.getElementById('inputVencimento').value = '';
+    document.getElementById('inputValorAtual').value = '';
+    document.getElementById('modalNovaAplicacao').classList.add('active');
+}
+function fecharModal() { document.getElementById('modalNovaAplicacao').classList.remove('active'); }
+
+document.getElementById('formNovaAplicacao').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var nome = document.getElementById('inputNomeAtivo').value.trim();
+    var tipo = document.getElementById('inputTipoAtivo').value;
+    var instituicao = document.getElementById('inputInstituicao').value;
+    var valorAplicado = parseFloat(document.getElementById('inputValorAplicado').value);
+    var dataEntrada = document.getElementById('inputDataEntrada').value;
+    var rentabilidade = parseFloat(document.getElementById('inputRentabilidade').value);
+    var vencimento = document.getElementById('inputVencimento').value;
+    var valorAtual = parseFloat(document.getElementById('inputValorAtual').value);
+    if (!nome) { alert('Digite o nome do ativo'); return; }
+    if (!valorAplicado || valorAplicado <= 0) { alert('Digite um valor válido'); return; }
+    var btn = document.getElementById('btnSalvarAplicacao');
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+    try {
+        salvarAplicacao(nome, tipo, instituicao, valorAplicado, dataEntrada, rentabilidade, vencimento, valorAtual);
+        fecharModal();
+        alert('✅ Aplicação salva!');
+    } catch (error) {
+        alert('❌ Erro ao salvar.');
+        console.error(error);
+    }
+    btn.textContent = '💾 Salvar Aplicação';
+    btn.disabled = false;
+});
+
+// ============================================================
+// MODAL - EDITAR APLICAÇÃO
+// ============================================================
+var editIndex = -1;
+function abrirModalEditar(index) {
+    editIndex = index;
+    var a = aplicacoes[index];
+    document.getElementById('editInputNome').value = a.nome;
+    document.getElementById('editInputTipo').value = a.tipo;
+    document.getElementById('editInputInstituicao').value = a.instituicao;
+    document.getElementById('editInputValorAplicado').value = a.valorAplicado;
+    document.getElementById('editInputDataEntrada').value = a.dataEntrada || '';
+    document.getElementById('editInputRentabilidade').value = a.rentabilidade || '';
+    document.getElementById('editInputVencimento').value = a.vencimento !== '-' ? a.vencimento : '';
+    document.getElementById('editInputValorAtual').value = a.valorAtual;
+    document.getElementById('modalEditarAplicacao').classList.add('active');
+}
+function fecharModalEditar() { document.getElementById('modalEditarAplicacao').classList.remove('active'); editIndex = -1; }
+
+document.getElementById('formEditarAplicacao').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (editIndex < 0 || editIndex >= aplicacoes.length) {
+        alert('Erro: aplicação não encontrada.');
+        fecharModalEditar();
+        return;
+    }
+    var nome = document.getElementById('editInputNome').value.trim();
+    var tipo = document.getElementById('editInputTipo').value;
+    var instituicao = document.getElementById('editInputInstituicao').value;
+    var valorAplicado = parseFloat(document.getElementById('editInputValorAplicado').value);
+    var dataEntrada = document.getElementById('editInputDataEntrada').value;
+    var rentabilidade = parseFloat(document.getElementById('editInputRentabilidade').value);
+    var vencimento = document.getElementById('editInputVencimento').value;
+    var valorAtual = parseFloat(document.getElementById('editInputValorAtual').value);
+    if (!nome) { alert('Digite o nome do ativo'); return; }
+    if (!valorAplicado || valorAplicado <= 0) { alert('Digite um valor válido'); return; }
+    var a = aplicacoes[editIndex];
+    a.nome = nome;
+    a.tipo = tipo;
+    a.instituicao = instituicao;
+    a.valorAplicado = valorAplicado;
+    a.dataEntrada = dataEntrada;
+    a.rentabilidade = rentabilidade;
+    a.rentabilidadeDisplay = rentabilidade > 0 ? rentabilidade + '% a.a.' : '-';
+    a.vencimento = vencimento || '-';
+    a.valorAtual = valorAtual || valorAplicado;
+    a.rendimento = a.valorAtual - a.valorAplicado;
+    a.rendimentoPct = a.valorAplicado > 0 ? (a.rendimento / a.valorAplicado * 100) : 0;
+    try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(aplicacoes)); } catch(e) {}
+    renderizar();
+    atualizarKPIs();
+    atualizarGraficos();
+    fecharModalEditar();
+    alert('✅ Aplicação atualizada com sucesso!');
+});
+
+// ============================================================
+// CARREGAR DADOS
+// ============================================================
+function carregarDados() {
+    try {
+        var salvos = localStorage.getItem(CHAVE_ARMAZENAMENTO);
+        if (salvos) {
+            var parsed = JSON.parse(salvos);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                aplicacoes = parsed;
+                renderizar();
+                atualizarKPIs();
+                atualizarGraficos();
+                return;
+            }
+        }
+    } catch(e) {}
+    
+    if (aplicacoes.length === 0) {
+        var exemplos = [
+            { nome: 'LTF', tipo: 'Tesouro Direto', instituicao: 'Governo', valorAplicado: 61109.88, dataEntrada: '2023-01-15', rentabilidade: 12.5, vencimento: '2027-03-01', valorAtual: 77942.44 }
+        ];
+        for (var i = 0; i < exemplos.length; i++) {
+            var ex = exemplos[i];
+            try { salvarAplicacao(ex.nome, ex.tipo, ex.instituicao, ex.valorAplicado, ex.dataEntrada, ex.rentabilidade, ex.vencimento, ex.valorAtual); } catch(e) {}
+        }
+    }
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+function init() {
+    carregarDados();
+    setInterval(function() {
+        if (aplicacoes.length > 0) {
+            var atualizado = false;
+            for (var i = 0; i < aplicacoes.length; i++) {
+                var a = aplicacoes[i];
+                if (a.dataEntrada && a.rentabilidade > 0) {
+                    var resultado = calcularRendimentoDiario(a.valorAplicado, a.rentabilidade, a.dataEntrada);
+                    if (Math.abs(resultado.valorAtual - a.valorAtual) > 0.01) {
+                        a.valorAtual = resultado.valorAtual;
+                        a.rendimento = resultado.rendimento;
+                        a.rendimentoPct = resultado.rendimentoPct;
+                        atualizado = true;
+                    }
+                }
+            }
+            if (atualizado) {
+                try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(aplicacoes)); } catch(e) {}
+                renderizar();
+                atualizarKPIs();
+                atualizarGraficos();
+            }
+        }
+    }, 60000);
+}
+
+init();
+
+window.addEventListener('pageshow', function(evento) {
+    if (evento.persisted) {
+        carregarDados();
+    }
+});
+
+console.log('🏦 Módulo Renda Fixa carregado!');
+console.log('🔄 Atualização automática de rendimentos a cada 60 segundos!');
+</script>
+</body>
+</html>

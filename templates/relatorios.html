@@ -265,7 +265,7 @@ body {
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
     <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
-</ul>
+  </ul>
 
   <div class="sidebar-footer">
     <div class="label">Patrimônio Total</div>
@@ -401,7 +401,7 @@ body {
 
 <script>
 // ============================================================
-// FUNÇÕES DOS RELATÓRIOS
+// FUNÇÕES DOS RELATÓRIOS - COM EXPORTAÇÃO FUNCIONAL
 // ============================================================
 function gerarRelatorio(tipo) {
     var preview = document.getElementById('previewContent');
@@ -417,49 +417,14 @@ function gerarRelatorio(tipo) {
         'completo': '📋 Relatório Completo'
     };
     
+    var dados = coletarDados(tipo);
     var html = '<h4 style="font-size:12px;font-weight:700;color:var(--azul-escuro);margin-bottom:10px;">' + (titulos[tipo] || 'Relatório') + '</h4>';
     html += '<p style="font-size:9px;color:var(--cinza-claro);margin-bottom:8px;">Gerado em: ' + new Date().toLocaleString('pt-BR') + '</p>';
     
-    if (tipo === 'carteira' || tipo === 'completo') {
-        html += `
-        <table style="width:100%;font-size:9px;border-collapse:collapse;">
-            <thead>
-                <tr><th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">Ativo</th>
-                <th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">Tipo</th>
-                <th style="text-align:right;padding:4px 6px;border-bottom:1px solid #dce1e8;">Qtde</th>
-                <th style="text-align:right;padding:4px 6px;border-bottom:1px solid #dce1e8;">Preço</th>
-                <th style="text-align:right;padding:4px 6px;border-bottom:1px solid #dce1e8;">Total</th></tr>
-            </thead>
-            <tbody>
-                <tr><td style="padding:4px 6px;">VALE3</td><td>Ação</td><td style="text-align:right;">520</td><td style="text-align:right;">R$ 58,40</td><td style="text-align:right;">R$ 30.368,00</td></tr>
-                <tr><td style="padding:4px 6px;">PETR4</td><td>Ação</td><td style="text-align:right;">410</td><td style="text-align:right;">R$ 33,50</td><td style="text-align:right;">R$ 13.735,00</td></tr>
-                <tr><td style="padding:4px 6px;">ITUB4</td><td>Ação</td><td style="text-align:right;">650</td><td style="text-align:right;">R$ 30,30</td><td style="text-align:right;">R$ 19.695,00</td></tr>
-                <tr style="border-top:2px solid #dce1e8;font-weight:700;"><td colspan="4" style="padding:4px 6px;">TOTAL</td><td style="text-align:right;padding:4px 6px;">R$ 63.798,00</td></tr>
-            </tbody>
-        </table>`;
-    } else if (tipo === 'clientes') {
-        html += `
-        <table style="width:100%;font-size:9px;border-collapse:collapse;">
-            <thead>
-                <tr><th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">Cliente</th>
-                <th style="text-align:right;padding:4px 6px;border-bottom:1px solid #dce1e8;">Participação</th>
-                <th style="text-align:right;padding:4px 6px;border-bottom:1px solid #dce1e8;">Patrimônio</th>
-                <th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">Status</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>Vitória Simieri</td><td style="text-align:right;">55,04%</td><td style="text-align:right;">R$ 97.243,21</td><td>Ativo</td></tr>
-                <tr><td>Rogério Simieri</td><td style="text-align:right;">33,78%</td><td style="text-align:right;">R$ 61.609,38</td><td>Ativo</td></tr>
-                <tr><td>Josepha Simieri</td><td style="text-align:right;">6,16%</td><td style="text-align:right;">R$ 10.887,96</td><td>Ativo</td></tr>
-                <tr style="border-top:2px solid #dce1e8;font-weight:700;"><td colspan="3" style="text-align:right;padding:4px 6px;">TOTAL</td><td style="text-align:right;padding:4px 6px;">R$ 169.740,55</td></tr>
-            </tbody>
-        </table>`;
+    if (dados && dados.length > 0) {
+        html += gerarTabelaPreview(dados);
     } else {
-        html += `
-        <div style="padding:20px 0;text-align:center;color:var(--cinza-claro);">
-            <p>📄 Relatório de <strong>${titulos[tipo] || tipo}</strong></p>
-            <p style="font-size:9px;margin-top:8px;">Clique em "Baixar" para gerar o arquivo completo.</p>
-            <p style="font-size:8px;color:var(--cinza-claro);margin-top:4px;">Formatos disponíveis: Excel (.xlsx) e CSV (.csv)</p>
-        </div>`;
+        html += '<p style="color:var(--cinza-claro);padding:20px 0;text-align:center;">Nenhum dado disponível para este relatório.</p>';
     }
     
     preview.innerHTML = html;
@@ -467,12 +432,109 @@ function gerarRelatorio(tipo) {
     document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth' });
 }
 
+function coletarDados(tipo) {
+    var dados = [];
+    try {
+        if (tipo === 'clientes') {
+            dados = JSON.parse(localStorage.getItem('clientes') || '[]');
+        } else if (tipo === 'movimentacoes') {
+            dados = JSON.parse(localStorage.getItem('movimentacoes') || '[]');
+        } else if (tipo === 'proventos') {
+            dados = JSON.parse(localStorage.getItem('proventos') || '[]');
+        } else if (tipo === 'carteira' || tipo === 'completo') {
+            // Coletar dados de todos os módulos
+            var clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+            var rf = JSON.parse(localStorage.getItem('rendaFixa') || '[]');
+            var rv = JSON.parse(localStorage.getItem('rendaVariavel') || '[]');
+            var caixa = JSON.parse(localStorage.getItem('saldosCaixa') || '[]');
+            dados = {
+                clientes: clientes,
+                rendaFixa: rf,
+                rendaVariavel: rv,
+                caixa: caixa,
+                totalClientes: clientes.length,
+                totalRF: rf.length,
+                totalRV: rv.length,
+                totalCaixa: caixa.length
+            };
+            return dados;
+        } else if (tipo === 'historico') {
+            var hist = JSON.parse(localStorage.getItem('dadosClientes') || '{}');
+            dados = Object.keys(hist).map(function(key) {
+                return { cliente: key, dados: hist[key].dados || [] };
+            });
+        } else if (tipo === 'renda-fixa') {
+            dados = JSON.parse(localStorage.getItem('rendaFixa') || '[]');
+        } else if (tipo === 'renda-variavel') {
+            dados = JSON.parse(localStorage.getItem('rendaVariavel') || '[]');
+        } else if (tipo === 'caixa') {
+            dados = JSON.parse(localStorage.getItem('saldosCaixa') || '[]');
+        }
+    } catch(e) {
+        console.warn('Erro ao coletar dados:', e);
+        dados = [];
+    }
+    return dados;
+}
+
+function gerarTabelaPreview(dados) {
+    if (!dados || dados.length === 0) return '<p style="color:var(--cinza-claro);padding:20px 0;text-align:center;">Nenhum dado disponível.</p>';
+    
+    var html = '<table style="width:100%;font-size:9px;border-collapse:collapse;">';
+    var headers = Object.keys(dados[0]);
+    html += '<thead><tr>';
+    for (var h = 0; h < headers.length; h++) {
+        html += '<th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">' + headers[h] + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+    
+    var maxRows = Math.min(dados.length, 10);
+    for (var i = 0; i < maxRows; i++) {
+        html += '<tr>';
+        for (var h = 0; h < headers.length; h++) {
+            var val = dados[i][headers[h]];
+            if (typeof val === 'number') {
+                val = 'R$ ' + val.toFixed(2);
+            } else if (typeof val === 'object') {
+                val = JSON.stringify(val).substring(0, 30) + '...';
+            }
+            html += '<td style="padding:4px 6px;border-bottom:1px solid #f0f2f5;">' + (val || '-') + '</td>';
+        }
+        html += '</tr>';
+    }
+    
+    if (dados.length > 10) {
+        html += '<tr><td colspan="' + headers.length + '" style="padding:4px 6px;text-align:center;color:var(--cinza-claro);">+' + (dados.length - 10) + ' registros adicionais...</td></tr>';
+    }
+    
+    html += '</tbody></table>';
+    return html;
+}
+
 function fecharPreview() {
     document.getElementById('previewPanel').style.display = 'none';
 }
 
 function baixarPreview() {
-    alert('📥 Download do relatório iniciado!\n\nFormato: Excel (.xlsx)\nArquivo: relatorio_' + new Date().toISOString().split('T')[0] + '.xlsx');
+    var content = document.getElementById('previewContent');
+    var html = content.innerHTML;
+    
+    // Criar arquivo HTML para download (simula PDF)
+    var blob = new Blob([
+        '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:6px;text-align:left;}th{background:#f0f2f5;}</style>' +
+        '</head><body>' + html + '</body></html>'
+    ], { type: 'text/html;charset=utf-8;' });
+    
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'relatorio_' + new Date().toISOString().split('T')[0] + '.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    
+    alert('📥 Download do relatório iniciado!\n\nFormato: HTML (pronto para impressão)\nArquivo: relatorio_' + new Date().toISOString().split('T')[0] + '.html');
 }
 
 // ============================================================
@@ -484,10 +546,49 @@ function atualizarPatrimonioTotal() {
     document.getElementById('patrimonioTotal').textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// ============================================================
+// EXPORTAÇÃO PARA CSV/EXCEL
+// ============================================================
+function exportarRelatorio(tipo) {
+    var dados = coletarDados(tipo);
+    if (!dados || dados.length === 0) {
+        alert('Nenhum dado disponível para exportar.');
+        return;
+    }
+    
+    var csv = '';
+    var headers = Object.keys(dados[0]);
+    csv += headers.join(',') + '\n';
+    
+    for (var i = 0; i < dados.length; i++) {
+        var row = [];
+        for (var h = 0; h < headers.length; h++) {
+            var val = dados[i][headers[h]];
+            if (typeof val === 'number') {
+                val = val.toFixed(2);
+            } else if (typeof val === 'object') {
+                val = JSON.stringify(val);
+            }
+            row.push('"' + (val || '') + '"');
+        }
+        csv += row.join(',') + '\n';
+    }
+    
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'relatorio_' + tipo + '_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
 atualizarPatrimonioTotal();
 
 console.log('📄 Módulo Relatórios carregado!');
-console.log('📊 Relatórios disponíveis para exportação em Excel e CSV');
+console.log('📊 Relatórios disponíveis para exportação em CSV e HTML');
+console.log('📥 Clique em "Baixar" para gerar o arquivo do relatório');
 </script>
 </body>
 </html>

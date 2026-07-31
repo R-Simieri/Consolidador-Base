@@ -38,6 +38,107 @@ body {
 }
 
 /* ============================================================
+   TEMA ESCURO
+   ============================================================ */
+body.tema-escuro {
+  --cinza-fundo: #0d1117;
+  --branco: #161b22;
+  --cinza-borda: #30363d;
+  --cinza-texto: #c9d1d9;
+  --cinza-claro: #8b949e;
+  --azul-escuro: #0a1628;
+  --azul-card: #4a8fd4;
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+body.tema-escuro .panel,
+body.tema-escuro .kpi-card,
+body.tema-escuro .topbar,
+body.tema-escuro .modal {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+body.tema-escuro .panel-head h3,
+body.tema-escuro .modal h2 {
+  color: #f0f6fc;
+}
+
+body.tema-escuro .info-box {
+  background: #21262d;
+  color: #8b949e;
+}
+
+body.tema-escuro .table-wrap table th {
+  color: #8b949e;
+}
+
+body.tema-escuro .table-wrap table td {
+  border-bottom-color: #30363d;
+}
+
+body.tema-escuro .table-wrap table .total-row td {
+  background: #21262d;
+}
+
+body.tema-escuro .sidebar {
+  background: #0a1628;
+}
+
+body.tema-escuro .card-azul .valor { color: #4a8fd4; }
+body.tema-escuro .btn-primary { background: #4a8fd4; }
+
+/* ============================================================
+   VALOR NEGATIVO
+   ============================================================ */
+.valor-negativo { 
+    color: var(--vermelho) !important; 
+    font-weight: 700; 
+}
+
+/* ============================================================
+   CAMPOS EDITÁVEIS
+   ============================================================ */
+.editable-cell {
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f0f2f5;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    transition: background 0.2s;
+    color: var(--azul-escuro);
+    font-weight: 600;
+    display: inline-block;
+}
+.editable-cell:hover {
+    background: #e6e9f2;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.15);
+}
+
+body.tema-escuro .editable-cell {
+    background: #21262d;
+    color: #c9d1d9;
+}
+body.tema-escuro .editable-cell:hover {
+    background: #30363d;
+}
+
+/* ============================================================
+   LOGO
+   ============================================================ */
+.logo-image {
+    text-align: center;
+    margin-bottom: 8px;
+}
+.logo-image img {
+    max-width: 60px;
+    height: auto;
+    display: inline-block;
+    border-radius: 8px;
+}
+
+/* ============================================================
    SIDEBAR
    ============================================================ */
 .sidebar {
@@ -193,12 +294,10 @@ table tr:last-child td { border-bottom: none; }
 table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px solid var(--cinza-borda); }
 
 /* ============================================================
-   CORES PARA VALORES NEGATIVOS E POSITIVOS
+   CORES PARA VALORES
    ============================================================ */
 .col-positivo { color: var(--verde-card); font-weight: 700; }
 .col-negativo { color: var(--vermelho); font-weight: 700; }
-.valor-negativo { color: var(--vermelho) !important; font-weight: 700; }
-.valor-positivo { color: var(--verde-card) !important; font-weight: 700; }
 .col-total { color: var(--azul-escuro); font-weight: 700; }
 .col-entrada { color: var(--azul-card); font-weight: 600; }
 .col-aporte { color: var(--azul-escuro); font-weight: 600; }
@@ -326,19 +425,6 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
 }
 
 /* ============================================================
-   CLIQUE PARA EDITAR
-   ============================================================ */
-.editable-cell {
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: background 0.2s;
-  color: var(--azul-card);
-  font-weight: 600;
-}
-.editable-cell:hover { background: #eef2f7; }
-
-/* ============================================================
    RESPONSIVO
    ============================================================ */
 @media (max-width: 1024px) {
@@ -362,6 +448,9 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
+    <div class="logo-image">
+      <img src="/static/images/logo.png" alt="Logo" onerror="this.style.display='none'">
+    </div>
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -379,21 +468,21 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
     <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
     <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
-    <li class="active" onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
+    <li class="active"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
     <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
-</ul>
+  </ul>
 
   <div class="sidebar-footer">
     <div class="label">Patrimônio Total</div>
-    <div class="valor">R$ 178.605,56</div>
+    <div class="valor" id="patrimonioTotal">R$ 178.605,56</div>
     <div class="delta">↑ 18,96% no ano</div>
   </div>
 </aside>
 
 <!-- ============================================================
-   MODAL: EDITAR APORTE OU TAXA
+   MODAL: EDITAR
    ============================================================ -->
 <div class="modal-overlay" id="modalEditar">
   <div class="modal">
@@ -404,7 +493,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
       <input type="hidden" id="editCampo">
       <div class="form-group">
         <label id="editLabel">Valor</label>
-        <input type="number" id="editValor" step="0.01" min="0">
+        <input type="number" id="editValor" step="0.0001" min="0">
       </div>
       <div class="info-text" id="editInfo">Digite o novo valor para este campo.</div>
       <div class="btn-group">
@@ -562,7 +651,7 @@ var meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
              "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 // ============================================================
-// DADOS INICIAIS DOS CLIENTES (FIXOS)
+// DADOS INICIAIS DOS CLIENTES (FIXOS) - SEM O ADMIN
 // ============================================================
 var dadosClientesIniciais = {
     vitoria: {
@@ -571,18 +660,18 @@ var dadosClientesIniciais = {
         b17: 178605.56,
         valorInicial: 85814.40,
         dados: [
-            [85814.40, 722.66, 2.7907, 2394.82, 1197.41, 239.48, 957.93, 1.12],
-            [87523.17, 750.84, 2.5490, 2230.93, 1115.47, 223.09, 892.37, 1.02],
-            [89166.38, 750.84, 4.1515, 3701.76, 1850.88, 370.18, 1480.70, 1.66],
-            [91397.92, 750.84, 3.1911, 2916.58, 1458.29, 291.66, 1166.63, 1.28],
-            [93087.36, 522.80, 3.2135, 2991.34, 1495.67, 299.13, 1196.53, 1.29],
-            [94549.48, 265.59, 3.0640, 2897.03, 1448.51, 289.70, 1158.81, 1.23],
-            [96459.13, 750.84, 0, 0, 0, 0, 0, 0],
-            [96459.13, 0, 0, 0, 0, 0, 0, 0],
-            [96459.13, 0, 0, 0, 0, 0, 0, 0],
-            [96459.13, 0, 0, 0, 0, 0, 0, 0],
-            [96459.13, 0, 0, 0, 0, 0, 0, 0],
-            [96459.13, 0, 0, 0, 0, 0, 0, 0]
+            [85814.40, 722.66, 2.7907, 0, 50.00, 20.00, 0, 0],
+            [0, 750.84, 2.5490, 0, 50.00, 20.00, 0, 0],
+            [0, 750.84, 4.1515, 0, 50.00, 20.00, 0, 0],
+            [0, 750.84, 3.1911, 0, 50.00, 20.00, 0, 0],
+            [0, 522.80, 3.2135, 0, 50.00, 20.00, 0, 0],
+            [0, 265.59, 3.0640, 0, 50.00, 20.00, 0, 0],
+            [0, 750.84, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0]
         ]
     },
     rogerio: {
@@ -591,18 +680,18 @@ var dadosClientesIniciais = {
         b17: 178605.56,
         valorInicial: 50958.37,
         dados: [
-            [50958.37, -3700.00, 2.7907, 1422.09, 711.05, 142.21, 568.84, 1.12],
-            [51268.30, -2856.35, 2.5490, 1306.81, 653.41, 130.68, 522.73, 1.02],
-            [51378.85, -2824.83, 4.1515, 2133.00, 1066.50, 213.30, 853.20, 1.66],
-            [52147.17, -4058.55, 3.1911, 1664.06, 832.03, 166.41, 665.63, 1.28],
-            [54218.25, -1716.37, 3.2135, 1742.29, 871.15, 174.23, 696.92, 1.29],
-            [57568.91, -577.77, 3.0640, 1763.93, 881.97, 176.39, 705.57, 1.23],
-            [59139.33, -2319.08, 0, 0, 0, 0, 0, 0],
-            [59200.78, 61.45, 0, 0, 0, 0, 0, 0],
-            [59200.78, 0, 0, 0, 0, 0, 0, 0],
-            [59200.78, 0, 0, 0, 0, 0, 0, 0],
-            [59200.78, 0, 0, 0, 0, 0, 0, 0],
-            [59200.78, 0, 0, 0, 0, 0, 0, 0]
+            [50958.37, -3700.00, 2.7907, 0, 50.00, 20.00, 0, 0],
+            [0, -2856.35, 2.5490, 0, 50.00, 20.00, 0, 0],
+            [0, -2824.83, 4.1515, 0, 50.00, 20.00, 0, 0],
+            [0, -4058.55, 3.1911, 0, 50.00, 20.00, 0, 0],
+            [0, -1716.37, 3.2135, 0, 50.00, 20.00, 0, 0],
+            [0, -577.77, 3.0640, 0, 50.00, 20.00, 0, 0],
+            [0, -2319.08, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 61.45, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0]
         ]
     },
     manuella: {
@@ -611,18 +700,18 @@ var dadosClientesIniciais = {
         b17: 178605.56,
         valorInicial: 6230.46,
         dados: [
-            [6230.46, 72.27, 2.7907, 173.87, 86.94, 17.39, 69.55, 1.12],
-            [6375.09, 75.08, 2.5490, 162.50, 81.25, 16.25, 65.00, 1.02],
-            [6515.17, 75.08, 4.1515, 270.48, 135.24, 27.05, 108.19, 1.66],
-            [6698.44, 75.08, 3.1911, 213.75, 106.88, 21.38, 85.50, 1.28],
-            [6896.57, 112.63, 3.2135, 221.62, 110.81, 22.16, 88.65, 1.29],
-            [7097.85, 112.63, 3.0640, 217.48, 108.74, 21.75, 86.99, 1.23],
-            [7259.92, 75.08, 0, 0, 0, 0, 0, 0],
-            [7259.92, 0, 0, 0, 0, 0, 0, 0],
-            [7259.92, 0, 0, 0, 0, 0, 0, 0],
-            [7259.92, 0, 0, 0, 0, 0, 0, 0],
-            [7259.92, 0, 0, 0, 0, 0, 0, 0],
-            [7259.92, 0, 0, 0, 0, 0, 0, 0]
+            [6230.46, 72.27, 2.7907, 0, 50.00, 20.00, 0, 0],
+            [0, 75.08, 2.5490, 0, 50.00, 20.00, 0, 0],
+            [0, 75.08, 4.1515, 0, 50.00, 20.00, 0, 0],
+            [0, 75.08, 3.1911, 0, 50.00, 20.00, 0, 0],
+            [0, 112.63, 3.2135, 0, 50.00, 20.00, 0, 0],
+            [0, 112.63, 3.0640, 0, 50.00, 20.00, 0, 0],
+            [0, 75.08, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0]
         ]
     },
     joao: {
@@ -631,18 +720,18 @@ var dadosClientesIniciais = {
         b17: 178605.56,
         valorInicial: 27.09,
         dados: [
-            [27.09, 0, 2.7907, 0.76, 0.38, 0.08, 0.30, 1.12],
-            [27.39, 0, 2.5490, 0.70, 0.35, 0.07, 0.28, 1.02],
-            [27.67, 0, 4.1515, 1.15, 0.57, 0.11, 0.46, 1.66],
-            [28.13, 0, 3.1911, 0.90, 0.45, 0.09, 0.36, 1.28],
-            [28.49, 0, 3.2135, 0.92, 0.46, 0.09, 0.37, 1.29],
-            [28.86, 0, 3.0640, 0.88, 0.44, 0.09, 0.35, 1.23],
-            [29.21, 0, 0, 0, 0, 0, 0, 0],
-            [29.21, 0, 0, 0, 0, 0, 0, 0],
-            [29.21, 0, 0, 0, 0, 0, 0, 0],
-            [29.21, 0, 0, 0, 0, 0, 0, 0],
-            [29.21, 0, 0, 0, 0, 0, 0, 0],
-            [29.21, 0, 0, 0, 0, 0, 0, 0]
+            [27.09, 0, 2.7907, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 2.5490, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 4.1515, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 3.1911, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 3.2135, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 3.0640, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0]
         ]
     },
     pedro: {
@@ -651,18 +740,18 @@ var dadosClientesIniciais = {
         b17: 178605.56,
         valorInicial: 1396.04,
         dados: [
-            [1396.04, 108.40, 2.7907, 38.96, 19.48, 3.90, 15.58, 1.12],
-            [1524.25, 112.63, 2.5490, 38.85, 19.43, 3.89, 15.54, 1.02],
-            [1000.00, -539.79, 4.1515, 41.52, 20.76, 4.15, 16.61, 1.66],
-            [1129.24, 112.63, 3.1911, 36.03, 18.02, 3.60, 14.41, 1.28],
-            [1312.59, 168.94, 3.2135, 42.18, 21.09, 4.22, 16.87, 1.29],
-            [1498.41, 168.94, 3.0640, 45.91, 22.96, 4.59, 18.36, 1.23],
-            [1504.40, -12.37, 0, 0, 0, 0, 0, 0],
-            [1504.40, 0, 0, 0, 0, 0, 0, 0],
-            [1504.40, 0, 0, 0, 0, 0, 0, 0],
-            [1504.40, 0, 0, 0, 0, 0, 0, 0],
-            [1504.40, 0, 0, 0, 0, 0, 0, 0],
-            [1504.40, 0, 0, 0, 0, 0, 0, 0]
+            [1396.04, 108.40, 2.7907, 0, 50.00, 20.00, 0, 0],
+            [0, 112.63, 2.5490, 0, 50.00, 20.00, 0, 0],
+            [0, -539.79, 4.1515, 0, 50.00, 20.00, 0, 0],
+            [0, 112.63, 3.1911, 0, 50.00, 20.00, 0, 0],
+            [0, 168.94, 3.2135, 0, 50.00, 20.00, 0, 0],
+            [0, 168.94, 3.0640, 0, 50.00, 20.00, 0, 0],
+            [0, -12.37, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0]
         ]
     },
     josepha: {
@@ -671,18 +760,18 @@ var dadosClientesIniciais = {
         b17: 178605.56,
         valorInicial: 10698.91,
         dados: [
-            [10698.91, 96.67, 2.7907, 298.57, 149.29, 29.86, 119.43, 1.12],
-            [11036.14, 217.80, 2.5490, 281.31, 140.65, 28.13, 112.52, 1.02],
-            [11438.66, 290.00, 4.1515, 474.88, 237.44, 47.49, 189.95, 1.66],
-            [11648.61, 20.00, 3.1911, 371.72, 185.86, 37.17, 148.69, 1.28],
-            [12059.30, 262.00, 3.2135, 387.52, 193.76, 38.75, 155.01, 1.29],
-            [12444.92, 230.61, 3.0640, 381.32, 190.66, 38.13, 152.53, 1.23],
-            [10800.17, -1797.28, 0, 0, 0, 0, 0, 0],
-            [10800.17, 0, 0, 0, 0, 0, 0, 0],
-            [10800.17, 0, 0, 0, 0, 0, 0, 0],
-            [10800.17, 0, 0, 0, 0, 0, 0, 0],
-            [10800.17, 0, 0, 0, 0, 0, 0, 0],
-            [10800.17, 0, 0, 0, 0, 0, 0, 0]
+            [10698.91, 96.67, 2.7907, 0, 50.00, 20.00, 0, 0],
+            [0, 217.80, 2.5490, 0, 50.00, 20.00, 0, 0],
+            [0, 290.00, 4.1515, 0, 50.00, 20.00, 0, 0],
+            [0, 20.00, 3.1911, 0, 50.00, 20.00, 0, 0],
+            [0, 262.00, 3.2135, 0, 50.00, 20.00, 0, 0],
+            [0, 230.61, 3.0640, 0, 50.00, 20.00, 0, 0],
+            [0, -1797.28, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0]
         ]
     }
 };
@@ -696,54 +785,197 @@ var anoAtual = new Date().getFullYear();
 var chartEvolucao = null;
 var chartComposicao = null;
 
-// Garante que o ano vigente esteja sempre selecionado e visível no seletor
-function definirAnoVigenteNoSeletor() {
-    var selectAno = document.getElementById('selectAno');
-    if (!selectAno) return;
-    var anoVigente = new Date().getFullYear();
-    var existeOpcao = false;
-    for (var i = 0; i < selectAno.options.length; i++) {
-        if (parseInt(selectAno.options[i].value) === anoVigente) { existeOpcao = true; break; }
-    }
-    if (!existeOpcao) {
-        var opt = document.createElement('option');
-        opt.value = anoVigente;
-        opt.textContent = anoVigente;
-        selectAno.appendChild(opt);
-    }
-    selectAno.value = anoVigente;
-    anoAtual = anoVigente;
-}
-
 // ============================================================
-// FUNÇÃO fmtMoeda CORRIGIDA - VALORES NEGATIVOS EM VERMELHO
+// FUNÇÕES AUXILIARES
 // ============================================================
 function fmtMoeda(valor) {
     if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
-    var negativo = valor < 0;
-    var abs = Math.abs(valor);
-    var formatado = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (negativo) {
-        return '-R$ ' + formatado;
+    if (valor < 0) {
+        return '<span class="valor-negativo">-R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
     }
-    return 'R$ ' + formatado;
+    return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtPct(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,00%';
+    if (valor < 0) {
+        return '<span class="valor-negativo">' + valor.toFixed(2).replace('.', ',') + '%</span>';
+    }
+    return (valor > 0 ? '+' : '') + valor.toFixed(2).replace('.', ',') + '%';
+}
+
+function fmtNum(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,0000';
+    return valor.toFixed(4);
+}
+
+function fmtPctTaxa(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,0000%';
+    if (valor < 0) {
+        return '<span class="valor-negativo">' + valor.toFixed(4).replace('.', ',') + '%</span>';
+    }
+    return (valor > 0 ? '+' : '') + valor.toFixed(4).replace('.', ',') + '%';
+}
+
+function fmtPctPercentual(valor) {
+    if (valor === undefined || valor === null || isNaN(valor)) return '0,00%';
+    if (valor < 0) {
+        return '<span class="valor-negativo">' + valor.toFixed(2).replace('.', ',') + '%</span>';
+    }
+    return valor.toFixed(2).replace('.', ',') + '%';
+}
+
+// ============================================================
+// FUNÇÃO PARA OBTER O NOME DO ADMINISTRADOR
+// ============================================================
+function getAdminName() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        if (config && config.nome) {
+            return config.nome;
+        }
+        return 'Newex Fundo de Investimentos Multimercado Ltda';
+    } catch(e) {
+        return 'Newex Fundo de Investimentos Multimercado Ltda';
+    }
+}
+
+// ============================================================
+// FUNÇÃO PARA CALCULAR HISTÓRICO INDIVIDUAL (COM TX./MÊS DINÂMICA)
+// ============================================================
+function calcularHistoricoIndividual(cliente, ano) {
+    var dados = cliente.dados;
+    var b5 = cliente.b5 || 175253.61;
+    var b17 = cliente.b17 || 178605.56;
+    var resultado = [];
+    
+    var totalEntrada = 0;
+    var totalAporte = 0;
+    var totalTxAdm = 0;
+    var totalIR = 0;
+    var totalLiquido = 0;
+    var totalResultado = 0;
+    
+    var entradaAnterior = 0;
+    var liquidoAnterior = 0;
+    
+    for (var i = 0; i < 12 && i < dados.length; i++) {
+        var entrada = 0;
+        var aporte = dados[i][1] || 0;
+        var txAdmPercentual = dados[i][4] || 50.00;
+        var irPercentual = dados[i][5] || 20.00;
+        
+        // ============================================================
+        // CÁLCULO DA ENTRADA
+        // ============================================================
+        if (i === 0) {
+            entrada = cliente.valorInicial || 0;
+        } else {
+            entrada = entradaAnterior + liquidoAnterior + aporte;
+        }
+        
+        // ============================================================
+        // CÁLCULO DA TX./MÊS DINÂMICA (SEM CONSIDERAR APORTES)
+        // ============================================================
+        var txMes;
+        if (i === 0) {
+            // Janeiro: usa a taxa salva
+            txMes = dados[i][2] || 0;
+        } else {
+            // Fevereiro em diante: calcula sem considerar aportes
+            var entradaMesAnterior = dados[i-1][0] || 0;
+            var aporteMesAtual = dados[i][1] || 0;
+            
+            // Patrimônio Final (Entrada atual) SEM considerar aporte
+            var patrimonioFinalSemAporte = entrada - aporteMesAtual;
+            
+            if (entradaMesAnterior > 0) {
+                // Tx./Mês = (Patrimônio Final Sem Aporte / Patrimônio Inicial) - 1
+                txMes = ((patrimonioFinalSemAporte / entradaMesAnterior) - 1) * 100;
+            } else {
+                txMes = dados[i][2] || 0;
+            }
+        }
+        
+        // ============================================================
+        // CÁLCULO DO TOTAL, TX. ADM., I.R. E LÍQUIDO
+        // ============================================================
+        var total = entrada * (txMes / 100);
+        var txAdm = total * (txAdmPercentual / 100);
+        var ir = txAdm * (irPercentual / 100);
+        var liquido = total - txAdm - ir;
+        var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
+        
+        totalEntrada = entrada;
+        totalAporte += aporte;
+        totalTxAdm += txAdm;
+        totalIR += ir;
+        totalLiquido += liquido;
+        totalResultado += total;
+        
+        resultado.push({
+            mes: meses[i],
+            entrada: entrada,
+            aporte: aporte,
+            txMes: txMes,
+            total: total,
+            txAdm: txAdm,
+            txAdmPercentual: txAdmPercentual,
+            ir: ir,
+            irPercentual: irPercentual,
+            liquido: liquido,
+            txNominal: txNominal
+        });
+        
+        entradaAnterior = entrada;
+        liquidoAnterior = liquido;
+    }
+    
+    var b78 = resultado.length > 0 ? resultado[resultado.length - 1].entrada : 0;
+    var cotas = b78 / b5;
+    var patrimonioLiquido = cotas * b17;
+    
+    var resultadoMensalPct = 0;
+    var resultadoMensalValor = 0;
+    if (b78 > 0) {
+        resultadoMensalPct = (patrimonioLiquido / b78) - 1;
+        resultadoMensalValor = patrimonioLiquido - b78;
+    }
+    
+    var totalTxAdmIR = totalTxAdm + totalIR;
+    var txNominalTotal = (resultado.length > 0 && resultado[0].entrada > 0) ? 
+        ((patrimonioLiquido - resultado[0].entrada) / resultado[0].entrada * 100) : 0;
+    
+    return {
+        resultado: resultado,
+        resultadoMensalPct: resultadoMensalPct * 100,
+        resultadoMensalValor: resultadoMensalValor,
+        b78: b78,
+        cotas: cotas,
+        patrimonio: patrimonioLiquido,
+        totalAporte: totalAporte,
+        totalTxAdm: totalTxAdm,
+        totalIR: totalIR,
+        totalLiquido: totalLiquido,
+        totalTxAdmIR: totalTxAdmIR,
+        txNominalTotal: txNominalTotal,
+        entradaInicial: resultado.length > 0 ? resultado[0].entrada : 0
+    };
 }
 
 // ============================================================
 // CARREGAR DADOS DO LOCALSTORAGE
 // ============================================================
 function carregarDadosDoLocalStorage() {
-    // 1. Primeiro, carregar os dados fixos
     dadosClientes = JSON.parse(JSON.stringify(dadosClientesIniciais));
     
-    // 2. Tentar carregar dados salvos do localStorage
     var salvos = localStorage.getItem('dadosClientes');
     if (salvos) {
         try {
             var parsed = JSON.parse(salvos);
             for (var key in dadosClientes) {
                 if (parsed[key] && parsed[key].dados) {
-                    for (var i = 0; i < dadosClientes[key].dados.length; i++) {
+                    for (var i = 0; i < dadosClientes[key].dados.length && i < parsed[key].dados.length; i++) {
                         if (parsed[key].dados[i]) {
                             dadosClientes[key].dados[i] = parsed[key].dados[i];
                         }
@@ -759,23 +991,18 @@ function carregarDadosDoLocalStorage() {
         }
     }
     
-    // 3. ============================================================
-    // INTEGRAÇÃO COM O MÓDULO CLIENTES
-    // ============================================================
+    // INTEGRAÇÃO COM O MÓDULO CLIENTES - NÃO ADICIONAR O ADMIN
     var clientesSalvos = localStorage.getItem('clientes');
+    var adminName = getAdminName();
     if (clientesSalvos) {
         try {
             var listaClientes = JSON.parse(clientesSalvos);
-            console.log('📂 Clientes encontrados:', listaClientes.length);
-            
             for (var i = 0; i < listaClientes.length; i++) {
                 var c = listaClientes[i];
-                // Criar uma chave única para o cliente
+                // PULAR O ADMIN - NÃO ADICIONAR COMO CLIENTE
+                if (c.nome === adminName) continue;
                 var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
-                
-                // Verificar se o cliente já existe no sistema
                 if (!dadosClientes[key]) {
-                    // Criar um novo cliente com dados padrão
                     dadosClientes[key] = {
                         nome: c.nome,
                         b5: 175253.61,
@@ -783,65 +1010,56 @@ function carregarDadosDoLocalStorage() {
                         valorInicial: c.valorInicial || 0,
                         dados: []
                     };
-                    
-                    // Inicializar 12 meses com dados padrão
                     for (var mes = 0; mes < 12; mes++) {
                         dadosClientes[key].dados.push([
-                            c.valorInicial || 0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0
+                            mes === 0 ? (c.valorInicial || 0) : 0,
+                            0, 0, 0, 50.00, 20.00, 0, 0
                         ]);
                     }
-                    
-                    console.log('🆕 Novo cliente integrado:', c.nome, 'chave:', key);
+                    console.log('🆕 Novo cliente integrado:', c.nome);
                 }
             }
-            
-            // Salvar os dados integrados no localStorage
             salvarDadosClientes();
-            
         } catch(e) {
             console.warn('Erro ao integrar clientes:', e);
         }
     }
     
-    // 4. Atualizar o seletor de clientes
     atualizarSeletorClientes();
-    
     console.log('📂 Total de clientes carregados:', Object.keys(dadosClientes).length);
+    console.log('👑 ADMIN removido da lista de clientes:', adminName);
 }
 
-// ============================================================
-// ATUALIZAR SELETOR DE CLIENTES
-// ============================================================
 function atualizarSeletorClientes() {
     var select = document.getElementById('selectCliente');
     if (!select) return;
     
     var html = '';
     var keys = Object.keys(dadosClientes);
-    var clienteSelecionado = clienteAtual || keys[0] || 'vitoria';
+    
+    // ORDENAR ALFABETICAMENTE
+    keys.sort(function(a, b) {
+        return dadosClientes[a].nome.localeCompare(dadosClientes[b].nome);
+    });
     
     for (var i = 0; i < keys.length; i++) {
-        var c = dadosClientes[keys[i]];
+        var key = keys[i];
+        var c = dadosClientes[key];
         if (c && c.nome) {
-            var selected = (keys[i] === clienteSelecionado) ? 'selected' : '';
-            html += '<option value="' + keys[i] + '" ' + selected + '>' + c.nome + '</option>';
+            var selected = (key === clienteAtual) ? 'selected' : '';
+            html += '<option value="' + key + '" ' + selected + '>' + c.nome + '</option>';
         }
     }
     
     select.innerHTML = html;
-    clienteAtual = clienteSelecionado;
+    
+    // Se o cliente atual não existir mais, selecionar o primeiro
+    if (!dadosClientes[clienteAtual] && keys.length > 0) {
+        clienteAtual = keys[0];
+        if (select) select.value = keys[0];
+    }
 }
 
-// ============================================================
-// SALVAR DADOS NO LOCALSTORAGE
-// ============================================================
 function salvarDadosClientes() {
     try {
         localStorage.setItem('dadosClientes', JSON.stringify(dadosClientes));
@@ -852,126 +1070,7 @@ function salvarDadosClientes() {
 }
 
 // ============================================================
-// FUNÇÕES AUXILIARES
-// ============================================================
-function fmtPct(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return '0,00%';
-    return (valor > 0 ? '+' : '') + valor.toFixed(2) + '%';
-}
-
-function fmtNum(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return '0,0000';
-    return valor.toFixed(4);
-}
-
-// Taxas (ex: Tx./Mês) exibidas com 4 dígitos após a vírgula
-function fmtPctTaxa(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return '0.0000%';
-    return (valor > 0 ? '+' : '') + valor.toFixed(4) + '%';
-}
-
-// ============================================================
-// CÁLCULOS
-// ============================================================
-function calcularHistorico(cliente, ano) {
-    var dados = cliente.dados;
-    var b5 = cliente.b5 || 175253.61;
-    var b17 = cliente.b17 || 0;
-    var resultado = [];
-    var totalEntrada = 0;
-    var totalAporte = 0;
-    var totalTxAdm = 0;
-    var totalIR = 0;
-    var totalLiquido = 0;
-    var entradaInicial = 0;
-    
-    // Determinar quantos meses mostrar com base no ano
-    var mesesCount = 12;
-    
-    for (var i = 0; i < mesesCount && i < dados.length; i++) {
-        var entrada = dados[i][0] || 0;
-        var aporte = dados[i][1] || 0;
-        var txMes = dados[i][2] || 0;
-        var total = dados[i][3] || 0;
-        var txAdm = dados[i][4] || 0;
-        var ir = dados[i][5] || 0;
-        var liquido = dados[i][6] || 0;
-        var txNominal = dados[i][7] || 0;
-        
-        if (i === 0) entradaInicial = entrada;
-        totalEntrada = entrada;
-        totalAporte += aporte;
-        totalTxAdm += txAdm;
-        totalIR += ir;
-        totalLiquido += liquido;
-        
-        resultado.push({
-            mes: meses[i],
-            entrada: entrada,
-            aporte: aporte,
-            txMes: txMes,
-            total: total,
-            txAdm: txAdm,
-            ir: ir,
-            liquido: liquido,
-            txNominal: txNominal
-        });
-    }
-    
-    var b78 = resultado.length > 0 ? resultado[resultado.length - 1].entrada : 0;
-    
-    var cotas = b78 / b5;
-    var patrimonioLiquido = cotas * b17;
-    
-    var resultadoMensalPct = 0;
-    var resultadoMensalValor = 0;
-    if (b78 > 0) {
-        resultadoMensalPct = (patrimonioLiquido / b78) - 1;
-        resultadoMensalValor = patrimonioLiquido - b78;
-    }
-    
-    var totalTxAdmIR = totalTxAdm + totalIR;
-    
-    var txNominalTotal = entradaInicial > 0 ? ((patrimonioLiquido - entradaInicial) / entradaInicial * 100) : 0;
-    
-    return {
-        resultado: resultado,
-        resultadoMensalPct: resultadoMensalPct * 100,
-        resultadoMensalValor: resultadoMensalValor,
-        b78: b78,
-        cotas: cotas,
-        patrimonio: patrimonioLiquido,
-        totalAporte: totalAporte,
-        totalTxAdm: totalTxAdm,
-        totalIR: totalIR,
-        totalLiquido: totalLiquido,
-        totalTxAdmIR: totalTxAdmIR,
-        txNominalTotal: txNominalTotal,
-        entradaInicial: entradaInicial
-    };
-}
-
-// ============================================================
-// TX. ADM. DO ADMINISTRADOR = SOMA DAS TX. ADM. PAGAS PELOS CLIENTES
-// (o administrador, chave 'rogerio', não paga taxa: ele recebe a soma
-// das taxas de administração dos demais clientes)
-// ============================================================
-var ADMIN_KEY = 'rogerio';
-
-function calcularSomaTxAdmOutrosClientes(ano) {
-    var somaPorMes = new Array(12).fill(0);
-    for (var key in dadosClientes) {
-        if (key === ADMIN_KEY) continue;
-        var outroCalc = calcularHistorico(dadosClientes[key], ano);
-        for (var i = 0; i < outroCalc.resultado.length && i < 12; i++) {
-            somaPorMes[i] += outroCalc.resultado[i].txAdm || 0;
-        }
-    }
-    return somaPorMes;
-}
-
-// ============================================================
-// RENDERIZAÇÃO
+// CARREGAR E RENDERIZAR CLIENTE
 // ============================================================
 function carregarCliente() {
     var select = document.getElementById('selectCliente');
@@ -989,57 +1088,38 @@ function renderizarCliente() {
     }
     
     document.getElementById('clienteNome').textContent = cliente.nome;
-    var calc = calcularHistorico(cliente, anoAtual);
     
-    // O administrador não paga Tx. Adm.: a coluna mostra a soma do que os demais clientes pagaram
-    if (clienteAtual === ADMIN_KEY) {
-        var somaTxAdm = calcularSomaTxAdmOutrosClientes(anoAtual);
-        var totalTxAdmAdmin = 0, totalIRAdmin = 0, totalLiquidoAdmin = 0;
-        for (var iAdm = 0; iAdm < calc.resultado.length; iAdm++) {
-            var r = calc.resultado[iAdm];
-            r.txAdm = somaTxAdm[iAdm] || 0;
-            r.ir = r.txAdm * 0.2;
-            r.liquido = r.total - r.txAdm - r.ir;
-            r.txNominal = r.entrada > 0 ? (r.liquido / r.entrada * 100) : 0;
-            totalTxAdmAdmin += r.txAdm;
-            totalIRAdmin += r.ir;
-            totalLiquidoAdmin += r.liquido;
-        }
-        calc.totalTxAdm = totalTxAdmAdmin;
-        calc.totalIR = totalIRAdmin;
-        calc.totalLiquido = totalLiquidoAdmin;
-        calc.totalTxAdmIR = totalTxAdmAdmin + totalIRAdmin;
-    }
+    // USAR LÓGICA INDIVIDUAL PARA TODOS OS CLIENTES
+    var calc = calcularHistoricoIndividual(cliente, anoAtual);
     
-    // Atualiza KPIs com cores
-    document.getElementById('resultadoMensalPct').textContent = fmtPct(calc.resultadoMensalPct);
-    document.getElementById('resultadoMensalPct').style.color = calc.resultadoMensalPct >= 0 ? '#28a745' : '#dc3545';
-    
-    document.getElementById('resultadoMensalValor').textContent = fmtMoeda(calc.resultadoMensalValor);
-    document.getElementById('resultadoMensalValor').style.color = calc.resultadoMensalValor >= 0 ? '#28a745' : '#dc3545';
-    
+    // ATUALIZAR KPIs
+    document.getElementById('resultadoMensalPct').innerHTML = fmtPct(calc.resultadoMensalPct);
+    document.getElementById('resultadoMensalValor').innerHTML = fmtMoeda(calc.resultadoMensalValor);
     document.getElementById('totalCotas').textContent = fmtNum(calc.cotas);
     document.getElementById('valorCotas').textContent = fmtMoeda(calc.cotas * (cliente.b17 || 0));
-    document.getElementById('patrimonioLiquido').textContent = fmtMoeda(calc.patrimonio);
+    document.getElementById('patrimonioLiquido').innerHTML = fmtMoeda(calc.patrimonio);
     document.getElementById('patrimonioBruto').textContent = 'B17: ' + fmtMoeda(cliente.b17 || 0);
-    document.getElementById('totalTxAdmIR').textContent = fmtMoeda(calc.totalTxAdmIR);
+    document.getElementById('totalTxAdmIR').innerHTML = fmtMoeda(calc.totalTxAdmIR);
     document.getElementById('totalTxAdm').textContent = 'Tx. Adm: ' + fmtMoeda(calc.totalTxAdm);
     
+    // RENDERIZAR TABELA DO CLIENTE
     var tbody = document.getElementById('historicoTableBody');
     var html = '';
     for (var i = 0; i < calc.resultado.length; i++) {
         var r = calc.resultado[i];
         
-        // Formata os valores
         var entradaDisplay = fmtMoeda(r.entrada);
         var aporteDisplay = fmtMoeda(r.aporte);
+        
+        // TX./MÊS CALCULADA DINAMICAMENTE - MAS PODE SER EDITADA
+        var txMesDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')" title="Insira um novo valor para Tx./Mês (sobrescreve o cálculo automático)">' + fmtPctTaxa(r.txMes) + '</span>';
+        
         var totalDisplay = fmtMoeda(r.total);
-        var txAdmDisplay = fmtMoeda(r.txAdm);
-        var irDisplay = fmtMoeda(r.ir);
+        var txAdmDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txAdmPct\')" title="Insira um novo percentual para Tx. Adm.">' + fmtPctPercentual(r.txAdmPercentual) + '</span>';
+        var irDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'irPct\')" title="Insira um novo percentual para I.R.">' + fmtPctPercentual(r.irPercentual) + '</span>';
         var liquidoDisplay = fmtMoeda(r.liquido);
         var txNominalDisplay = fmtPct(r.txNominal);
         
-        // Define as classes de cor
         var clsEntrada = r.entrada >= 0 ? 'col-entrada' : 'valor-negativo';
         var clsAporte = r.aporte >= 0 ? 'col-aporte' : 'valor-negativo';
         var clsTotal = r.total >= 0 ? 'col-total' : 'valor-negativo';
@@ -1051,10 +1131,10 @@ function renderizarCliente() {
         html += '<tr>' +
             '<td class="col-total">' + r.mes + '</td>' +
             '<td class="' + clsEntrada + '">' + entradaDisplay + '</td>' +
-            '<td class="' + clsAporte + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'aporte\')">' + aporteDisplay + '</span></td>' +
-            '<td class="col-total"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')">' + fmtPctTaxa(r.txMes) + '</span></td>' +
+            '<td class="' + clsAporte + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'aporte\')" title="Insira um novo valor">' + aporteDisplay + '</span></td>' +
+            '<td class="col-total">' + txMesDisplay + '</td>' +
             '<td class="' + clsTotal + '">' + totalDisplay + '</td>' +
-            '<td class="' + clsTxAdm + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txAdm\')">' + txAdmDisplay + '</span></td>' +
+            '<td class="' + clsTxAdm + '">' + txAdmDisplay + '</td>' +
             '<td class="' + clsIr + '">' + irDisplay + '</td>' +
             '<td class="' + clsLiquido + '">' + liquidoDisplay + '</td>' +
             '<td class="' + clsNominal + '">' + txNominalDisplay + '</td>' +
@@ -1062,24 +1142,16 @@ function renderizarCliente() {
     }
     tbody.innerHTML = html;
     
-    // Rodapé com cores
+    // RODAPÉ
     var totalResultado = calc.resultado.reduce(function(s, r) { return s + r.total; }, 0);
     
-    var clsTotalEntrada = calc.b78 >= 0 ? 'col-entrada' : 'valor-negativo';
-    var clsTotalAporte = calc.totalAporte >= 0 ? 'col-aporte' : 'valor-negativo';
-    var clsTotalResultado = totalResultado >= 0 ? 'col-total' : 'valor-negativo';
-    var clsTotalTxAdm = calc.totalTxAdm >= 0 ? 'col-tx-adm' : 'valor-negativo';
-    var clsTotalIR = calc.totalIR >= 0 ? 'col-ir' : 'valor-negativo';
-    var clsTotalLiquido = calc.totalLiquido >= 0 ? 'col-positivo' : 'valor-negativo';
-    var clsTotalNominal = calc.txNominalTotal >= 0 ? 'col-positivo' : 'valor-negativo';
-    
-    document.getElementById('totalEntrada').innerHTML = '<strong class="' + clsTotalEntrada + '">' + fmtMoeda(calc.b78) + '</strong>';
-    document.getElementById('totalAporte').innerHTML = '<strong class="' + clsTotalAporte + '">' + fmtMoeda(calc.totalAporte) + '</strong>';
-    document.getElementById('totalResultado').innerHTML = '<strong class="' + clsTotalResultado + '">' + fmtMoeda(totalResultado) + '</strong>';
-    document.getElementById('totalTxAdmFoot').innerHTML = '<strong class="' + clsTotalTxAdm + '">' + fmtMoeda(calc.totalTxAdm) + '</strong>';
-    document.getElementById('totalIRFoot').innerHTML = '<strong class="' + clsTotalIR + '">' + fmtMoeda(calc.totalIR) + '</strong>';
-    document.getElementById('totalLiquidoFoot').innerHTML = '<strong class="' + clsTotalLiquido + '">' + fmtMoeda(calc.totalLiquido) + '</strong>';
-    document.getElementById('totalTxNominalFoot').innerHTML = '<strong class="' + clsTotalNominal + '">' + fmtPct(calc.txNominalTotal) + '</strong>';
+    document.getElementById('totalEntrada').innerHTML = '<strong>' + fmtMoeda(calc.b78) + '</strong>';
+    document.getElementById('totalAporte').innerHTML = '<strong>' + fmtMoeda(calc.totalAporte) + '</strong>';
+    document.getElementById('totalResultado').innerHTML = '<strong>' + fmtMoeda(totalResultado) + '</strong>';
+    document.getElementById('totalTxAdmFoot').innerHTML = '<strong>' + fmtMoeda(calc.totalTxAdm) + '</strong>';
+    document.getElementById('totalIRFoot').innerHTML = '<strong>' + fmtMoeda(calc.totalIR) + '</strong>';
+    document.getElementById('totalLiquidoFoot').innerHTML = '<strong>' + fmtMoeda(calc.totalLiquido) + '</strong>';
+    document.getElementById('totalTxNominalFoot').innerHTML = '<strong>' + fmtPct(calc.txNominalTotal) + '</strong>';
     
     atualizarGraficos(cliente, calc);
 }
@@ -1174,16 +1246,40 @@ function abrirModalEditar(index, campo) {
     document.getElementById('editMesIndex').value = index;
     document.getElementById('editCampo').value = campo;
     
-    var titulos = { aporte: '✏️ Editar Aporte', txMes: '✏️ Editar Tx./Mês', txAdm: '✏️ Editar Tx. Adm.' };
+    var titulos = {
+        'aporte': '✏️ Editar Aporte',
+        'txMes': '✏️ Editar Tx./Mês',
+        'txAdmPct': '✏️ Editar Tx. Adm. (%)',
+        'irPct': '✏️ Editar I.R. (%)'
+    };
     document.getElementById('modalEditarTitle').textContent = titulos[campo] || '✏️ Editar';
-    var labels = { aporte: 'Valor do Aporte (R$)', txMes: 'Taxa do Mês (%)', txAdm: 'Tx. Adm. (R$)' };
+    
+    var labels = {
+        'aporte': 'Valor do Aporte (R$)',
+        'txMes': 'Taxa do Mês (%)',
+        'txAdmPct': 'Tx. Adm. (%)',
+        'irPct': 'I.R. (%)'
+    };
     document.getElementById('editLabel').textContent = labels[campo] || 'Valor';
-    var valoresPorCampo = { aporte: dados[1], txMes: dados[2], txAdm: dados[4] };
+    
+    var valoresPorCampo = {
+        'aporte': dados[1],
+        'txMes': dados[2],
+        'txAdmPct': dados[4],
+        'irPct': dados[5]
+    };
     var valorAtual = valoresPorCampo[campo];
     document.getElementById('editValor').value = valorAtual;
+    document.getElementById('editValor').step = campo === 'aporte' ? '0.01' : '0.0001';
+    
     var mes = meses[index];
-    var infos = { aporte: 'Digite o novo valor de aporte para ', txMes: 'Digite a nova taxa para ', txAdm: 'Digite o novo valor de Tx. Adm. para ' };
-    document.getElementById('editInfo').textContent = (infos[campo] || 'Digite o novo valor para ') + mes + '.';
+    var infos = {
+        'aporte': 'Digite o novo valor de aporte para ' + mes + '.',
+        'txMes': 'Digite a nova taxa para ' + mes + '. (Deixe em branco para cálculo automático)',
+        'txAdmPct': 'Digite o novo percentual de Tx. Adm. para ' + mes + '. (Padrão: 50%)',
+        'irPct': 'Digite o novo percentual de I.R. para ' + mes + '. (Padrão: 20%)'
+    };
+    document.getElementById('editInfo').textContent = infos[campo] || 'Digite o novo valor para ' + mes + '.';
     
     document.getElementById('modalEditar').classList.add('active');
     document.getElementById('editValor').focus();
@@ -1206,65 +1302,65 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
     var cliente = dadosClientes[clienteId];
     if (!cliente) { alert('Cliente não encontrado.'); return; }
     
+    // ATUALIZAR O CAMPO ESPECÍFICO
     if (campo === 'aporte') { 
         cliente.dados[index][1] = valor;
     } else if (campo === 'txMes') { 
         cliente.dados[index][2] = valor;
-    } else if (campo === 'txAdm') {
+    } else if (campo === 'txAdmPct') {
         cliente.dados[index][4] = valor;
+    } else if (campo === 'irPct') {
+        cliente.dados[index][5] = valor;
     }
     
-    // Recalcula a Entrada do mês editado.
-    // Janeiro: Entrada = Valor Inicial do cliente + Aporte de Janeiro.
-    // Demais meses: Entrada = Entrada anterior + Aporte do mês + Resultado (líquido) do mês anterior.
-    if (index === 0) {
-        var valorInicial = cliente.valorInicial || 0;
-        cliente.dados[0][0] = valorInicial + (cliente.dados[0][1] || 0);
-    } else {
-        var entradaAnterior = cliente.dados[index - 1][0] || 0;
-        var liquidoAnterior = cliente.dados[index - 1][6] || 0;
-        var aporteDoMes = cliente.dados[index][1] || 0;
-        cliente.dados[index][0] = entradaAnterior + aporteDoMes + liquidoAnterior;
-    }
-    
-    var entrada = cliente.dados[index][0] || 0;
-    var txMes = cliente.dados[index][2] || 0;
-    var total = entrada * (txMes / 100);
-    var txAdm, ir, liquido;
-    if (campo === 'txAdm') {
-        txAdm = cliente.dados[index][4] || 0;
-        ir = txAdm * 0.2;
-        liquido = total - txAdm - ir;
-    } else {
-        txAdm = total / 2;
-        ir = txAdm * 0.2;
-        liquido = total - txAdm - ir;
-    }
-    var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
-    
-    cliente.dados[index][3] = total;
-    cliente.dados[index][4] = txAdm;
-    cliente.dados[index][5] = ir;
-    cliente.dados[index][6] = liquido;
-    cliente.dados[index][7] = txNominal;
-    
-    // Propaga a cascata para os meses seguintes: Entrada = Entrada anterior + Aporte + Líquido anterior
-    for (var i = index + 1; i < cliente.dados.length; i++) {
-        var entradaAnteriorAtual = cliente.dados[i - 1][0] || 0;
-        var liquidoAnteriorAtual = cliente.dados[i - 1][6] || 0;
-        var aporteAtual = cliente.dados[i][1] || 0;
-        var txMesAtual = cliente.dados[i][2] || 0;
-        cliente.dados[i][0] = entradaAnteriorAtual + aporteAtual + liquidoAnteriorAtual;
-        var totalAtual = cliente.dados[i][0] * (txMesAtual / 100);
-        var txAdmAtual = totalAtual / 2;
-        var irAtual = txAdmAtual * 0.2;
-        var liquidoAtual = totalAtual - txAdmAtual - irAtual;
-        var txNominalAtual = cliente.dados[i][0] > 0 ? (liquidoAtual / cliente.dados[i][0] * 100) : 0;
-        cliente.dados[i][3] = totalAtual;
-        cliente.dados[i][4] = txAdmAtual;
-        cliente.dados[i][5] = irAtual;
-        cliente.dados[i][6] = liquidoAtual;
-        cliente.dados[i][7] = txNominalAtual;
+    // RECALCULAR TODOS OS MESES A PARTIR DO MÊS EDITADO
+    for (var i = index; i < cliente.dados.length; i++) {
+        var entrada = 0;
+        var aporte = cliente.dados[i][1] || 0;
+        var txMesSalva = cliente.dados[i][2] || 0;
+        var txAdmPct = cliente.dados[i][4] || 50.00;
+        var irPct = cliente.dados[i][5] || 20.00;
+        
+        if (i === 0) {
+            entrada = cliente.valorInicial || 0;
+        } else {
+            var entradaAnterior = cliente.dados[i-1][0] || 0;
+            var liquidoAnterior = cliente.dados[i-1][6] || 0;
+            entrada = entradaAnterior + liquidoAnterior + aporte;
+        }
+        
+        // ============================================================
+        // TX./MÊS: SE TIVER VALOR SALVO, USA O VALOR SALVO
+        // SENÃO, CALCULA AUTOMATICAMENTE
+        // ============================================================
+        var txMes;
+        if (txMesSalva > 0) {
+            txMes = txMesSalva;
+        } else if (i === 0) {
+            txMes = 0;
+        } else {
+            var entradaMesAnterior = cliente.dados[i-1][0] || 0;
+            var aporteMesAtual = cliente.dados[i][1] || 0;
+            var patrimonioFinalSemAporte = entrada - aporteMesAtual;
+            
+            if (entradaMesAnterior > 0) {
+                txMes = ((patrimonioFinalSemAporte / entradaMesAnterior) - 1) * 100;
+            } else {
+                txMes = 0;
+            }
+        }
+        
+        var total = entrada * (txMes / 100);
+        var txAdm = total * (txAdmPct / 100);
+        var ir = txAdm * (irPct / 100);
+        var liquido = total - txAdm - ir;
+        var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
+        
+        cliente.dados[i][0] = entrada;
+        cliente.dados[i][2] = txMes;
+        cliente.dados[i][3] = total;
+        cliente.dados[i][6] = liquido;
+        cliente.dados[i][7] = txNominal;
     }
     
     salvarDadosClientes();
@@ -1277,16 +1373,18 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecha
 document.getElementById('modalEditar').addEventListener('click', function(e) { if (e.target === this) fecharModalEditar(); });
 
 // ============================================================
-// EXPORTAR
+// EXPORTAR E RECARREGAR
 // ============================================================
 function exportarHistorico() {
     var cliente = dadosClientes[clienteAtual];
     if (!cliente) return;
-    var calc = calcularHistorico(cliente, anoAtual);
-    var csv = 'Mês,Entrada,Aporte,Tx./Mês,Total,Tx. Adm.,I.R. (20%),Líquido,Tx. Nominal\n';
+    
+    var calc = calcularHistoricoIndividual(cliente, anoAtual);
+    
+    var csv = 'Mês,Entrada,Aporte,Tx./Mês,Total,Tx. Adm. (%),I.R. (%),Líquido,Tx. Nominal\n';
     for (var i = 0; i < calc.resultado.length; i++) {
         var r = calc.resultado[i];
-        csv += r.mes + ',' + r.entrada.toFixed(2) + ',' + r.aporte.toFixed(2) + ',' + r.txMes.toFixed(4) + ',' + r.total.toFixed(2) + ',' + r.txAdm.toFixed(2) + ',' + r.ir.toFixed(2) + ',' + r.liquido.toFixed(2) + ',' + r.txNominal.toFixed(2) + '\n';
+        csv += r.mes + ',' + r.entrada.toFixed(2) + ',' + r.aporte.toFixed(2) + ',' + r.txMes.toFixed(4) + ',' + r.total.toFixed(2) + ',' + r.txAdmPercentual.toFixed(2) + ',' + r.irPercentual.toFixed(2) + ',' + r.liquido.toFixed(2) + ',' + r.txNominal.toFixed(4) + '\n';
     }
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
@@ -1307,16 +1405,32 @@ function recarregarDados() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-carregarDadosDoLocalStorage();
-definirAnoVigenteNoSeletor();
-renderizarCliente();
+function init() {
+    // Carregar tema
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        if (config && config.tema === 'escuro') {
+            document.body.classList.add('tema-escuro');
+        }
+    } catch(e) {}
+    
+    // DEFINIR ANO VIGENTE
+    var selectAno = document.getElementById('selectAno');
+    var anoVigente = new Date().getFullYear();
+    if (selectAno) {
+        selectAno.value = anoVigente;
+        anoAtual = anoVigente;
+    }
+    
+    carregarDadosDoLocalStorage();
+    renderizarCliente();
+    
+    console.log('📅 Módulo Histórico Mensal carregado!');
+    console.log('📅 Ano vigente:', anoVigente);
+    console.log('📊 Tx./Mês calculada automaticamente (sem considerar aportes)');
+}
 
-console.log('📅 Módulo Histórico Mensal carregado!');
-console.log('👤 Clientes disponíveis:', Object.keys(dadosClientes).length);
-console.log('🔗 Integração com módulo Clientes: ATIVADA');
-console.log('✅ Novos clientes são integrados automaticamente!');
-console.log('🔴 Valores negativos aparecem em VERMELHO!');
+init();
 </script>
-
 </body>
 </html>
