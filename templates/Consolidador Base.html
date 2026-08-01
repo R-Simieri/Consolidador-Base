@@ -1,0 +1,3268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consolidador de Planilhas Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 35px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(39, 174, 96, 0.2);
+            border: 2px solid #27ae60;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+        }
+        
+        .upload-section {
+            padding: 40px;
+            background: #f8fafc;
+        }
+        
+        .file-upload-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .file-upload-box {
+            background: white;
+            border: 2px solid #e0e6ff;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-upload-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .file-upload-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
+            border-color: #a3b8ff;
+        }
+        
+        .file-upload-box:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .file-upload-box h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .file-upload-box p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .upload-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            min-height: 24px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+        }
+        
+        .file-info.success {
+            color: #27ae60;
+            border-left-color: #27ae60;
+            background: #f0fff4;
+        }
+        
+        .file-info.error {
+            color: #e74c3c;
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+        
+        .status-section {
+            padding: 30px 40px;
+            background: white;
+            border-top: 1px solid #eef2ff;
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .process-button {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
+        }
+        
+        .process-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .process-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+        
+        .status-log {
+            background: #f8fafc;
+            border: 2px solid #e0e6ff;
+            border-radius: 12px;
+            padding: 25px;
+            height: 220px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .log-entry {
+            padding: 10px 0;
+            border-bottom: 1px solid #eef2ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .log-entry.success {
+            color: #27ae60;
+        }
+        
+        .log-entry.error {
+            color: #e74c3c;
+        }
+        
+        .log-entry.info {
+            color: #3498db;
+        }
+        
+        .log-entry.warning {
+            color: #f39c12;
+        }
+        
+        .filters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+        
+        .filter-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e0e6ff;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .filter-section:hover {
+            box-shadow: 0 12px 30px rgba(52, 152, 219, 0.15);
+            transform: translateY(-3px);
+        }
+        
+        .filter-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+        }
+        
+        .date-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group input, .filter-group select {
+            padding: 12px 15px;
+            border: 2px solid #d1d8ff;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-group input:focus, .filter-group select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+        
+        .filter-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #d1d8ff;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+            width: 100%;
+            min-height: 90px;
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-group textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .clear-filters {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .clear-filters:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        .apply-filters {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .apply-filters:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #2471a3 100%);
+            transform: translateY(-2px);
+        }
+        
+        .preview-section {
+            padding: 30px 40px;
+            background: #f8fafc;
+            border-top: 1px solid #eef2ff;
+            display: none;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .preview-header h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+        
+        .preview-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .preview-search {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 15px;
+            border: 2px solid #d1d8ff;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .preview-search:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+        
+        .column-filter {
+            padding: 12px 15px;
+            border: 2px solid #d1d8ff;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+            min-width: 200px;
+        }
+        
+        /* PRÉVIA ESTILO EXCEL - FONTE AJUSTADA PARA 11px */
+        .excel-preview-container {
+            max-height: 700px;
+            overflow: auto;
+            border: 1px solid #e0e0e0;
+            background: white;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .excel-preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            table-layout: fixed;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .excel-preview-table th {
+            background: #f2f2f2;
+            color: #000;
+            padding: 5px 7px;
+            text-align: center;
+            border: 1px solid #d0d0d0;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            height: 30px;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .excel-preview-table td {
+            padding: 4px 6px;
+            border: 1px solid #e0e0e0;
+            vertical-align: middle;
+            height: 24px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .excel-preview-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .excel-preview-table tr:hover {
+            background: #e3f2fd;
+        }
+        
+        /* Estilo das células específicas como no Excel */
+        .excel-currency {
+            text-align: right;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+            color: #000;
+        }
+        
+        .excel-percent {
+            text-align: right;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+            color: #000;
+        }
+        
+        .excel-date {
+            text-align: center;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+            color: #000;
+        }
+        
+        .excel-number {
+            text-align: right;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+            color: #000;
+        }
+        
+        .excel-text {
+            text-align: left;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+            color: #000;
+        }
+        
+        /* Filtros nas colunas */
+        .column-filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .filter-icon {
+            margin-left: 5px;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        
+        .filter-icon:hover {
+            opacity: 1;
+        }
+        
+        .column-filter-dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 200px;
+            display: none;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .column-filter-dropdown.active {
+            display: block;
+        }
+        
+        .filter-options {
+            margin-bottom: 10px;
+        }
+        
+        .filter-options input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d0d0d0;
+            border-radius: 3px;
+            font-size: 10px;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .filter-actions-small {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .filter-btn {
+            padding: 4px 10px;
+            font-size: 10px;
+            border: 1px solid #d0d0d0;
+            background: #f5f5f5;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .filter-btn.apply {
+            background: #4CAF50;
+            color: white;
+            border-color: #45a049;
+        }
+        
+        .filter-btn.clear {
+            background: #f44336;
+            color: white;
+            border-color: #d32f2f;
+        }
+        
+        /* Barra de rolagem personalizada para parecer com Excel */
+        .excel-preview-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .excel-preview-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .excel-preview-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 0;
+        }
+        
+        .excel-preview-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .download-button {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
+        }
+        
+        .download-button:hover {
+            background: linear-gradient(135deg, #219653 0%, #27ae60 100%);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+        
+        .close-preview-button {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .close-preview-button:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        .filter-indicator {
+            background: linear-gradient(135deg, #ffeaa7 0%, #ffd89b 100%);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            display: none;
+            border-left: 5px solid #f39c12;
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.1);
+        }
+        
+        .filter-indicator.active {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 2px solid #e0e6ff;
+            margin-bottom: 30px;
+            gap: 5px;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background: #f8fafc;
+            border: 2px solid #e0e6ff;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #2c3e50;
+            border-color: #e0e6ff #e0e6ff white #e0e6ff;
+            position: relative;
+            top: 2px;
+            border-top: 3px solid #667eea;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #f0f4ff;
+            color: #5d6d7e;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .results-info {
+            background: linear-gradient(135deg, #d5f4ff 0%, #e1f7ff 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+        }
+        
+        .stats-container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 150px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 2px solid #e0e6ff;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+        
+        .no-data {
+            padding: 50px;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 1.2rem;
+        }
+        
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        /* Controles de coluna */
+        .column-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toggle-columns-btn {
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .toggle-columns-btn:hover {
+            background: #2980b9;
+        }
+        
+        .column-selector {
+            display: none;
+            background: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        .column-selector.active {
+            display: block;
+        }
+        
+        .column-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .column-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .column-checkbox input {
+            margin: 0;
+        }
+        
+        .column-checkbox label {
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'Aptos Narrow', 'Calibri', 'Arial', sans-serif;
+        }
+        
+        /* Novo estilo para destaque em amarelo */
+        .highlight-yellow {
+            background-color: #FFFF00 !important;
+            font-weight: bold !important;
+        }
+        
+        /* Novo estilo para botão de divergências */
+        .divergencias-button {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.3);
+        }
+        
+        .divergencias-button:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                margin: 15px;
+            }
+            
+            .preview-search {
+                min-width: 250px;
+            }
+            
+            .excel-preview-table {
+                font-size: 10px;
+            }
+            
+            .excel-preview-table th,
+            .excel-preview-table td {
+                padding: 4px 5px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .header {
+                padding: 25px 30px;
+            }
+            
+            .upload-section, .status-section, .preview-section {
+                padding: 30px;
+            }
+            
+            .file-upload-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-header, .preview-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .action-buttons {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .excel-preview-table {
+                font-size: 9px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .excel-preview-table {
+                font-size: 8px;
+            }
+            
+            .excel-preview-table th,
+            .excel-preview-table td {
+                padding: 3px 4px;
+            }
+            
+            .tab {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .stat-box {
+                min-width: 120px;
+                padding: 12px 20px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .upload-button, .process-button, .download-button, .close-preview-button, .divergencias-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .filter-actions {
+                flex-direction: column;
+            }
+            
+            .tab-container {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 140px;
+                justify-content: center;
+            }
+            
+            .excel-preview-table {
+                font-size: 7px;
+            }
+        }
+        
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1><i class="fas fa-file-excel"></i> Consolidador de Planilhas Excel</h1>
+            <p>Consolide 3 planilhas com filtros avançados e prévia interativa</p>
+            <div class="security-badge">
+                <i class="fas fa-lock"></i>
+                <span>Processamento 100% Local</span>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-upload-container">
+                <!-- Planilha de Negociações -->
+                <div class="file-upload-box" onclick="document.getElementById('negociacoesFile').click()">
+                    <h3><i class="fas fa-handshake"></i> Planilha de Negociações</h3>
+                    <p>Contém dados de negócios, valores e status</p>
+                    <button class="upload-button"><i class="fas fa-upload"></i> Selecionar Arquivo</button>
+                    <input type="file" id="negociacoesFile" class="file-input" accept=".xlsx,.xls" onchange="handleFileSelect('negociacoes', this)">
+                    <div id="negociacoesInfo" class="file-info"></div>
+                </div>
+                
+                <!-- Planilha de Emissões -->
+                <div class="file-upload-box" onclick="document.getElementById('emissoesFile').click()">
+                    <h3><i class="fas fa-file-invoice"></i> Planilha de Emissões</h3>
+                    <p>Contém dados de emissões, prestadores e NFSe</p>
+                    <button class="upload-button"><i class="fas fa-upload"></i> Selecionar Arquivo</button>
+                    <input type="file" id="emissoesFile" class="file-input" accept=".xlsx,.xls" onchange="handleFileSelect('emissoes', this)">
+                    <div id="emissoesInfo" class="file-info"></div>
+                </div>
+                
+                <!-- Planilha de Análise -->
+                <div class="file-upload-box" onclick="document.getElementById('analiseFile').click()">
+                    <h3><i class="fas fa-chart-line"></i> Planilha de Análise</h3>
+                    <p>Contém dados complementares e financeiros</p>
+                    <button class="upload-button"><i class="fas fa-upload"></i> Selecionar Arquivo</button>
+                    <input type="file" id="analiseFile" class="file-input" accept=".xlsx,.xls" onchange="handleFileSelect('analise', this)">
+                    <div id="analiseInfo" class="file-info"></div>
+                </div>
+            </div>
+            
+            <!-- Container de Abas para Filtros -->
+            <div class="tab-container">
+                <div class="tab active" onclick="openTab('filter-tab')">
+                    <i class="fas fa-filter"></i> Filtros
+                </div>
+                <div class="tab" onclick="openTab('help-tab')">
+                    <i class="fas fa-question-circle"></i> Ajuda
+                </div>
+            </div>
+            
+            <!-- Conteúdo das Abas -->
+            <div id="filter-tab" class="tab-content active">
+                <!-- Seção de Filtros Avançados -->
+                <div class="filters-container">
+                    <!-- Filtro por Nº de Negociação -->
+                    <div class="filter-section fade-in">
+                        <h3><i class="fas fa-search"></i> Filtro por Nº de Negociação</h3>
+                        <div class="date-filters">
+                            <div class="filter-group">
+                                <label for="filtroNegocios"><i class="fas fa-hashtag"></i> Números de Negociação (separados por vírgula):</label>
+                                <textarea id="filtroNegocios" placeholder="Ex: 100800, 100804, 100805&#10;Ou: 100800-100805&#10;Ou deixe em branco para todos"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro por NFSe -->
+                    <div class="filter-section fade-in">
+                        <h3><i class="fas fa-receipt"></i> Filtro por NFSe</h3>
+                        <div class="date-filters">
+                            <div class="filter-group">
+                                <label for="filtroNFSe"><i class="fas fa-file-alt"></i> Números de NFSe (separados por vírgula):</label>
+                                <textarea id="filtroNFSe" placeholder="Ex: 18464, 18447, 18443&#10;Ou: 18464-18447&#10;Ou deixe em branco para todas"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtros de Data -->
+                    <div class="filter-section fade-in">
+                        <h3><i class="fas fa-calendar-alt"></i> Filtros de Data</h3>
+                        <div class="date-filters">
+                            <div class="filter-group">
+                                <label for="tipoFiltroData"><i class="fas fa-clock"></i> Filtrar por:</label>
+                                <select id="tipoFiltroData">
+                                    <option value="negociacao">Data de Negociação</option>
+                                    <option value="emissao">Data de Emissão</option>
+                                    <option value="vencimento">Data de Vencimento</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="dataInicio"><i class="fas fa-calendar-plus"></i> Data Inicial:</label>
+                                <input type="date" id="dataInicio">
+                            </div>
+                            <div class="filter-group">
+                                <label for="dataFim"><i class="fas fa-calendar-minus"></i> Data Final:</label>
+                                <input type="date" id="dataFim">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Indicador de Filtros Ativos -->
+                <div id="filterIndicator" class="filter-indicator">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Filtros ativos:</strong> <span id="activeFiltersText">Nenhum filtro aplicado</span>
+                    </div>
+                </div>
+                
+                <!-- Botões de Ação dos Filtros -->
+                <div class="filter-actions">
+                    <button class="clear-filters" onclick="limparTodosFiltros()">
+                        <i class="fas fa-broom"></i> Limpar Todos os Filtros
+                    </button>
+                    <button class="apply-filters" onclick="aplicarFiltros()">
+                        <i class="fas fa-play-circle"></i> Aplicar Filtros e Processar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tab de Ajuda -->
+            <div id="help-tab" class="tab-content">
+                <div class="instructions" style="background: linear-gradient(135deg, #fff8e1 0%, #fff5e6 100%); border-left: 5px solid #ffc107; padding: 25px; margin: 25px 0; border-radius: 0 12px 12px 0; box-shadow: 0 5px 15px rgba(255, 193, 7, 0.1);">
+                    <h3><i class="fas fa-book"></i> Como Usar os Filtros</h3>
+                    <p><strong>Filtro por Nº de Negociação:</strong></p>
+                    <ul>
+                        <li>Digite os números separados por vírgula: <code>100800, 100804, 100805</code></li>
+                        <li>Para um intervalo, use hífen: <code>100800-100805</code></li>
+                        <li>Deixe em branco para mostrar todos os negócios</li>
+                    </ul>
+                    
+                    <p><strong>Filtro por NFSe:</strong></p>
+                    <ul>
+                        <li>Digite os números separados por vírgula: <code>18464, 18447, 18443</code></li>
+                        <li>Para um intervalo, use hífen: <code>18464-18447</code></li>
+                        <li>Deixe em branco para mostrar todas as NFSe</li>
+                    </ul>
+                    
+                    <p><strong>Filtros de Data:</strong></p>
+                    <ul>
+                        <li>Selecione o tipo de data para filtrar</li>
+                        <li>Defina uma data inicial e/ou final</li>
+                        <li>Deixe em branco para não filtrar por data</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-section">
+            <div class="status-header">
+                <h2><i class="fas fa-tasks"></i> Status do Processamento</h2>
+                <button id="processButton" class="process-button" onclick="processFiles()" disabled>
+                    <i class="fas fa-cogs"></i> Processar e Gerar Planilha Base
+                </button>
+            </div>
+            
+            <div id="statusLog" class="status-log">
+                <div class="log-entry info"><i class="fas fa-info-circle"></i> Aguardando upload dos arquivos...</div>
+            </div>
+        </div>
+        
+        <!-- Seção de Prévia -->
+        <div class="preview-section" id="previewSection">
+            <div class="preview-header">
+                <h2><i class="fas fa-table"></i> Prévia da Planilha Consolidada</h2>
+                <div class="action-buttons">
+                    <button class="close-preview-button" onclick="closePreview()">
+                        <i class="fas fa-times"></i> Fechar Prévia
+                    </button>
+                    <button class="download-button" onclick="downloadExcel()">
+                        <i class="fas fa-download"></i> Baixar Planilha
+                    </button>
+                    <button class="divergencias-button" onclick="downloadDivergencias()">
+                        <i class="fas fa-exclamation-triangle"></i> Baixar Divergências
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Informações de Resultados -->
+            <div id="resultsInfo" class="results-info">
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <div class="stat-value" id="statTotalRows">0</div>
+                        <div class="stat-label">Total de Linhas</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statFilteredRows">0</div>
+                        <div class="stat-label">Linhas Filtradas</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statColumns">0</div>
+                        <div class="stat-label">Colunas</div>
+                    </div>
+                </div>
+                <div id="activeFiltersInfo" class="filter-info"></div>
+            </div>
+            
+            <!-- Controles da Prévia -->
+            <div class="preview-controls">
+                <input type="text" class="preview-search" id="previewSearch" placeholder="Buscar em todas as colunas..." onkeyup="filterExcelPreview()">
+                <select class="column-filter" id="columnFilter" onchange="filterExcelPreview()">
+                    <option value="">Todas as colunas</option>
+                </select>
+                <button class="toggle-columns-btn" onclick="toggleColumnSelector()">
+                    <i class="fas fa-columns"></i> Selecionar Colunas
+                </button>
+                <button class="clear-filters" onclick="clearPreviewFilters()" style="flex: 0;">
+                    <i class="fas fa-times-circle"></i> Limpar Filtros
+                </button>
+            </div>
+            
+            <!-- Seletor de Colunas -->
+            <div class="column-selector" id="columnSelector">
+                <div class="column-checkboxes" id="columnCheckboxes">
+                    <!-- Checkboxes serão adicionados dinamicamente -->
+                </div>
+                <div class="filter-actions-small" style="margin-top: 15px;">
+                    <button class="filter-btn apply" onclick="applyColumnSelection()">
+                        <i class="fas fa-check"></i> Aplicar
+                    </button>
+                    <button class="filter-btn clear" onclick="selectAllColumns()">
+                        <i class="fas fa-check-double"></i> Todas
+                    </button>
+                    <button class="filter-btn" onclick="toggleColumnSelector()">
+                        <i class="fas fa-times"></i> Fechar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Container da Prévia no estilo Excel -->
+            <div class="excel-preview-container" id="excelPreviewContainer">
+                <table class="excel-preview-table" id="excelPreviewTable">
+                    <thead id="excelPreviewTableHeader">
+                        <!-- Cabeçalho será preenchido dinamicamente -->
+                    </thead>
+                    <tbody id="excelPreviewTableBody">
+                        <!-- Dados serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="close-preview-button" onclick="closePreview()">
+                    <i class="fas fa-times"></i> Fechar Prévia
+                </button>
+                <button class="download-button" onclick="downloadExcel()">
+                    <i class="fas fa-download"></i> Baixar Planilha Filtrada
+                </button>
+                <button class="divergencias-button" onclick="downloadDivergencias()">
+                    <i class="fas fa-exclamation-triangle"></i> Baixar Divergências
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let files = {
+            negociacoes: null,
+            emissoes: null,
+            analise: null
+        };
+        
+        let consolidatedData = null;
+        let filteredData = null;
+        let previewVisible = false;
+        
+        let activeFilters = {
+            negocios: [],
+            nfse: [],
+            dataInicio: null,
+            dataFim: null,
+            tipoData: 'negociacao'
+        };
+        
+        // Variáveis para controle da prévia
+        let allColumns = [];
+        let previewSearchTerm = '';
+        let previewFilterColumn = '';
+        let visibleColumns = [];
+        let columnFilters = {};
+        
+        // Função para mostrar prévia no estilo Excel
+        function showPreview(data) {
+            const previewSection = document.getElementById('previewSection');
+            const tableHeader = document.getElementById('excelPreviewTableHeader');
+            const tableBody = document.getElementById('excelPreviewTableBody');
+            const columnFilter = document.getElementById('columnFilter');
+            const columnCheckboxes = document.getElementById('columnCheckboxes');
+            
+            updateStats(data);
+            
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+            columnCheckboxes.innerHTML = '';
+            
+            if (!data || data.length <= 1) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="50" class="no-data">
+                            <i class="fas fa-inbox"></i>
+                            <div>Nenhum dado disponível para exibição</div>
+                        </td>
+                    </tr>
+                `;
+                previewSection.style.display = 'block';
+                previewVisible = true;
+                previewSection.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            
+            const headers = data[0];
+            allColumns = headers;
+            
+            // Inicializar colunas visíveis (todas por padrão)
+            if (visibleColumns.length === 0) {
+                visibleColumns = headers.map((_, index) => index);
+            }
+            
+            // Atualizar filtro de colunas
+            columnFilter.innerHTML = '<option value="">Todas as colunas</option>';
+            headers.forEach((header, index) => {
+                if (header && header.trim() !== '') {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${String.fromCharCode(65 + index)}: ${header}`;
+                    columnFilter.appendChild(option);
+                }
+            });
+            
+            // Criar checkboxes para seleção de colunas
+            headers.forEach((header, index) => {
+                if (header && header.trim() !== '') {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'column-checkbox';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `col_${index}`;
+                    checkbox.checked = visibleColumns.includes(index);
+                    checkbox.dataset.columnIndex = index;
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `col_${index}`;
+                    label.textContent = `${String.fromCharCode(65 + index)}: ${header}`;
+                    
+                    checkboxDiv.appendChild(checkbox);
+                    checkboxDiv.appendChild(label);
+                    columnCheckboxes.appendChild(checkboxDiv);
+                }
+            });
+            
+            // Criar cabeçalho da tabela Excel
+            const headerRow = document.createElement('tr');
+            visibleColumns.forEach((colIndex) => {
+                const header = headers[colIndex];
+                const th = document.createElement('th');
+                
+                const columnHeader = document.createElement('div');
+                columnHeader.className = 'column-filter-header';
+                
+                const headerText = document.createElement('span');
+                headerText.textContent = `${String.fromCharCode(65 + colIndex)}: ${header || `Col ${colIndex + 1}`}`;
+                headerText.style.flex = '1';
+                headerText.style.overflow = 'hidden';
+                headerText.style.textOverflow = 'ellipsis';
+                
+                const filterIcon = document.createElement('i');
+                filterIcon.className = 'fas fa-filter filter-icon';
+                filterIcon.title = 'Filtrar coluna';
+                filterIcon.dataset.columnIndex = colIndex;
+                filterIcon.onclick = function(e) {
+                    e.stopPropagation();
+                    showColumnFilterDialog(colIndex, header);
+                };
+                
+                columnHeader.appendChild(headerText);
+                columnHeader.appendChild(filterIcon);
+                th.appendChild(columnHeader);
+                th.dataset.columnIndex = colIndex;
+                th.title = header || `Coluna ${colIndex + 1}`;
+                headerRow.appendChild(th);
+            });
+            tableHeader.appendChild(headerRow);
+            
+            // Mostrar as primeiras 200 linhas
+            const maxRows = Math.min(200, data.length - 1);
+            
+            for (let i = 1; i <= maxRows; i++) {
+                const row = data[i];
+                const tr = document.createElement('tr');
+                tr.dataset.rowIndex = i;
+                
+                visibleColumns.forEach((colIndex) => {
+                    const td = document.createElement('td');
+                    const cellValue = row[colIndex] !== undefined ? row[colIndex] : '';
+                    
+                    // Aplicar formatação baseada no tipo de dado
+                    if (colIndex === 0) {
+                        // Nº Negócio
+                        td.className = 'excel-number';
+                        td.textContent = cellValue;
+                    } else if ([3, 5, 7, 11, 12, 13, 14].includes(colIndex)) {
+                        // Valores monetários
+                        td.className = 'excel-currency';
+                        td.textContent = cellValue ? formatCurrency(cellValue) : '';
+                    } else if ([6, 15, 16].includes(colIndex)) {
+                        // Percentuais
+                        td.className = 'excel-percent';
+                        td.textContent = cellValue ? formatPercent(cellValue) : '';
+                    } else if ([2, 8, 9].includes(colIndex)) {
+                        // Datas
+                        td.className = 'excel-date';
+                        td.textContent = cellValue || '';
+                    } else if ([21].includes(colIndex)) {
+                        // Números inteiros
+                        td.className = 'excel-number';
+                        td.textContent = cellValue || '';
+                    } else {
+                        // Texto
+                        td.className = 'excel-text';
+                        td.textContent = cellValue || '';
+                        if (typeof cellValue === 'string' && cellValue.length > 50) {
+                            td.textContent = cellValue.substring(0, 50);
+                            td.title = cellValue;
+                        }
+                    }
+                    
+                    td.dataset.columnIndex = colIndex;
+                    td.dataset.rawValue = cellValue;
+                    td.dataset.displayValue = td.textContent;
+                    tr.appendChild(td);
+                });
+                
+                tableBody.appendChild(tr);
+            }
+            
+            // Adicionar linha informativa se houver mais dados
+            if (data.length - 1 > maxRows) {
+                const infoRow = document.createElement('tr');
+                const infoCell = document.createElement('td');
+                infoCell.colSpan = visibleColumns.length;
+                infoCell.style.textAlign = 'center';
+                infoCell.style.padding = '8px';
+                infoCell.style.color = '#666';
+                infoCell.style.fontStyle = 'italic';
+                infoCell.style.fontSize = '10px';
+                infoCell.innerHTML = `
+                    <i class="fas fa-info-circle"></i>
+                    Mostrando ${maxRows} de ${data.length - 1} linhas.
+                    <br>
+                    <small>Use os filtros acima para buscar dados específicos</small>
+                `;
+                infoRow.appendChild(infoCell);
+                tableBody.appendChild(infoRow);
+            }
+            
+            previewSection.style.display = 'block';
+            previewVisible = true;
+            
+            // Aplicar filtros iniciais
+            filterExcelPreview();
+            
+            // Aplicar destaque amarelo na prévia
+            applyYellowHighlight();
+            
+            previewSection.scrollIntoView({ behavior: 'smooth' });
+            
+            addLog('Prévia estilo Excel gerada com sucesso.', 'success');
+        }
+        
+        // Função para mostrar diálogo de filtro de coluna
+        function showColumnFilterDialog(columnIndex, columnName) {
+            // Remover diálogos anteriores
+            const existingDialog = document.querySelector('.column-filter-dropdown.active');
+            if (existingDialog) {
+                existingDialog.remove();
+            }
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'column-filter-dropdown active';
+            dialog.style.position = 'absolute';
+            
+            // Posicionar próximo ao ícone de filtro
+            const filterIcon = document.querySelector(`.filter-icon[data-column-index="${columnIndex}"]`);
+            const rect = filterIcon.getBoundingClientRect();
+            dialog.style.top = (rect.bottom + window.scrollY) + 'px';
+            dialog.style.left = (rect.left + window.scrollX) + 'px';
+            
+            dialog.innerHTML = `
+                <div style="margin-bottom: 8px; font-weight: bold; font-size: 11px;">
+                    Filtrar: ${String.fromCharCode(65 + columnIndex)}: ${columnName}
+                </div>
+                <div class="filter-options">
+                    <input type="text" id="columnFilterInput_${columnIndex}" 
+                           placeholder="Digite para filtrar..." 
+                           style="width: 100%; padding: 5px; font-size: 10px;">
+                </div>
+                <div class="filter-actions-small">
+                    <button class="filter-btn apply" onclick="applyColumnFilter(${columnIndex})" style="font-size: 10px;">
+                        <i class="fas fa-check"></i> Aplicar
+                    </button>
+                    <button class="filter-btn clear" onclick="clearColumnFilter(${columnIndex})" style="font-size: 10px;">
+                        <i class="fas fa-times"></i> Limpar
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            // Fechar diálogo ao clicar fora
+            setTimeout(() => {
+                const closeHandler = function(e) {
+                    if (!dialog.contains(e.target) && e.target !== filterIcon) {
+                        dialog.remove();
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                document.addEventListener('click', closeHandler);
+            }, 100);
+            
+            // Focar no input
+            setTimeout(() => {
+                const input = document.getElementById(`columnFilterInput_${columnIndex}`);
+                if (input) input.focus();
+            }, 50);
+        }
+        
+        // Função para aplicar filtro de coluna
+        function applyColumnFilter(columnIndex) {
+            const input = document.getElementById(`columnFilterInput_${columnIndex}`);
+            if (input) {
+                columnFilters[columnIndex] = input.value.toLowerCase().trim();
+                filterExcelPreview();
+                
+                // Fechar diálogo
+                const dialog = document.querySelector('.column-filter-dropdown.active');
+                if (dialog) dialog.remove();
+            }
+        }
+        
+        // Função para limpar filtro de coluna
+        function clearColumnFilter(columnIndex) {
+            delete columnFilters[columnIndex];
+            filterExcelPreview();
+            
+            // Fechar diálogo
+            const dialog = document.querySelector('.column-filter-dropdown.active');
+            if (dialog) dialog.remove();
+        }
+        
+        // Função para filtrar a prévia Excel
+        function filterExcelPreview() {
+            const searchInput = document.getElementById('previewSearch');
+            const columnSelect = document.getElementById('columnFilter');
+            
+            previewSearchTerm = searchInput.value.toLowerCase().trim();
+            previewFilterColumn = columnSelect.value;
+            
+            const tableBody = document.getElementById('excelPreviewTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            
+            let visibleCount = 0;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let shouldShow = true;
+                
+                // Ignorar linha informativa
+                if (cells.length === 1) {
+                    row.style.display = '';
+                    continue;
+                }
+                
+                // Aplicar filtro de busca global
+                if (previewSearchTerm) {
+                    shouldShow = false;
+                    for (let j = 0; j < cells.length; j++) {
+                        const cell = cells[j];
+                        
+                        if (previewFilterColumn && cell.dataset.columnIndex != previewFilterColumn) {
+                            continue;
+                        }
+                        
+                        const rawValue = cell.dataset.rawValue;
+                        const displayValue = cell.dataset.displayValue || cell.textContent.toLowerCase();
+                        
+                        if (rawValue && rawValue.toString().toLowerCase().includes(previewSearchTerm) ||
+                            displayValue.includes(previewSearchTerm)) {
+                            shouldShow = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Aplicar filtros de coluna específicos
+                if (shouldShow && Object.keys(columnFilters).length > 0) {
+                    for (let j = 0; j < cells.length; j++) {
+                        const cell = cells[j];
+                        const colIndex = cell.dataset.columnIndex;
+                        
+                        if (columnFilters[colIndex]) {
+                            const rawValue = cell.dataset.rawValue;
+                            const displayValue = cell.dataset.displayValue || cell.textContent.toLowerCase();
+                            
+                            if (!rawValue || !rawValue.toString().toLowerCase().includes(columnFilters[colIndex])) {
+                                if (!displayValue.includes(columnFilters[colIndex])) {
+                                    shouldShow = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (shouldShow) {
+                    row.style.display = '';
+                    visibleCount++;
+                    
+                    // Destacar termos de busca
+                    if (previewSearchTerm) {
+                        highlightExcelSearchTerms(row);
+                    }
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+            
+            // Atualizar contagem na busca
+            searchInput.placeholder = `Buscar... (${visibleCount} linhas visíveis)`;
+            
+            // Reaplicar destaque amarelo após filtrar
+            applyYellowHighlight();
+        }
+        
+        // Função para destacar termos na prévia Excel
+        function highlightExcelSearchTerms(row) {
+            const cells = row.getElementsByTagName('td');
+            const searchTerm = previewSearchTerm.toLowerCase();
+            
+            for (let cell of cells) {
+                const originalContent = cell.innerHTML;
+                
+                // Remover destaques anteriores
+                let cleanContent = originalContent.replace(/<mark class="search-highlight">/g, '');
+                cleanContent = cleanContent.replace(/<\/mark>/g, '');
+                
+                if (previewFilterColumn && cell.dataset.columnIndex != previewFilterColumn) {
+                    cell.innerHTML = cleanContent;
+                    continue;
+                }
+                
+                const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                cell.innerHTML = cleanContent.replace(regex, '<mark class="search-highlight">$1</mark>');
+            }
+        }
+        
+        // Função para limpar todos os filtros da prévia
+        function clearPreviewFilters() {
+            document.getElementById('previewSearch').value = '';
+            document.getElementById('columnFilter').value = '';
+            previewSearchTerm = '';
+            previewFilterColumn = '';
+            columnFilters = {};
+            filterExcelPreview();
+            
+            // Remover destaques
+            const marks = document.querySelectorAll('.search-highlight');
+            marks.forEach(mark => {
+                const parent = mark.parentNode;
+                parent.replaceChild(document.createTextNode(mark.textContent), mark);
+                parent.normalize();
+            });
+            
+            // Remover diálogos de filtro
+            const dialogs = document.querySelectorAll('.column-filter-dropdown');
+            dialogs.forEach(dialog => dialog.remove());
+            
+            // Reaplicar destaque amarelo
+            applyYellowHighlight();
+        }
+        
+        // Função para alternar seletor de colunas
+        function toggleColumnSelector() {
+            const selector = document.getElementById('columnSelector');
+            selector.classList.toggle('active');
+        }
+        
+        // Função para aplicar seleção de colunas
+        function applyColumnSelection() {
+            const checkboxes = document.querySelectorAll('.column-checkbox input[type="checkbox"]');
+            visibleColumns = [];
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    visibleColumns.push(parseInt(checkbox.dataset.columnIndex));
+                }
+            });
+            
+            // Se nenhuma coluna selecionada, mostrar todas
+            if (visibleColumns.length === 0) {
+                selectAllColumns();
+            } else {
+                // Regerar a prévia com as colunas selecionadas
+                if (filteredData) {
+                    showPreview(filteredData);
+                }
+            }
+            
+            toggleColumnSelector();
+        }
+        
+        // Função para selecionar todas as colunas
+        function selectAllColumns() {
+            const checkboxes = document.querySelectorAll('.column-checkbox input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            visibleColumns = allColumns.map((_, index) => index);
+            
+            // Regerar a prévia
+            if (filteredData) {
+                showPreview(filteredData);
+            }
+        }
+        
+        function openTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(tab => tab.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+        }
+        
+        function handleFileSelect(type, input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const fileInfo = document.getElementById(`${type}Info`);
+            
+            if (!file.name.match(/\.(xlsx|xls)$/i)) {
+                fileInfo.textContent = '❌ Erro: Por favor, selecione um arquivo Excel (.xlsx ou .xls)';
+                fileInfo.className = 'file-info error';
+                files[type] = null;
+                updateProcessButton();
+                return;
+            }
+            
+            files[type] = file;
+            fileInfo.textContent = `✅ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            fileInfo.className = 'file-info success';
+            
+            addLog(`Arquivo "${type}" carregado: ${file.name}`, 'success');
+            updateProcessButton();
+        }
+        
+        function updateProcessButton() {
+            const button = document.getElementById('processButton');
+            const allFilesLoaded = files.negociacoes && files.emissoes && files.analise;
+            button.disabled = !allFilesLoaded;
+        }
+        
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('statusLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'exclamation-circle';
+            if (type === 'warning') icon = 'exclamation-triangle';
+            
+            entry.innerHTML = `<i class="fas fa-${icon}"></i> [${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function formatDateBR(date) {
+            if (!date) return '';
+            if (date instanceof Date && !isNaN(date)) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+            
+            if (typeof date === 'string') {
+                const parsedDate = new Date(date);
+                if (!isNaN(parsedDate)) {
+                    return formatDateBR(parsedDate);
+                }
+            }
+            
+            return date;
+        }
+        
+        function parseExcelDate(excelDate) {
+            if (!excelDate) return null;
+            
+            if (excelDate instanceof Date) return excelDate;
+            
+            if (typeof excelDate === 'number') {
+                const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+                return date;
+            }
+            
+            if (typeof excelDate === 'string') {
+                const formats = [
+                    /(\d{2})\/(\d{2})\/(\d{4})/,
+                    /(\d{4})-(\d{2})-(\d{2})/,
+                ];
+                
+                for (const format of formats) {
+                    const match = excelDate.match(format);
+                    if (match) {
+                        if (format === formats[0]) {
+                            return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
+                        } else {
+                            return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+                        }
+                    }
+                }
+                
+                const parsed = new Date(excelDate);
+                if (!isNaN(parsed)) return parsed;
+            }
+            
+            return null;
+        }
+        
+        function processarListaNumeros(input) {
+            if (!input || input.trim() === '') return [];
+            
+            const numeros = [];
+            const partes = input.split(',');
+            
+            for (let parte of partes) {
+                parte = parte.trim();
+                if (!parte) continue;
+                
+                if (parte.includes('-')) {
+                    const intervalo = parte.split('-');
+                    const inicio = parseInt(intervalo[0].trim());
+                    const fim = parseInt(intervalo[1].trim());
+                    
+                    if (!isNaN(inicio) && !isNaN(fim)) {
+                        for (let i = Math.min(inicio, fim); i <= Math.max(inicio, fim); i++) {
+                            numeros.push(i.toString());
+                        }
+                    }
+                } else {
+                    numeros.push(parte);
+                }
+            }
+            
+            return numeros;
+        }
+        
+        // CORREÇÃO CRÍTICA: Função parseCurrency corrigida para valores altos
+        function parseCurrency(value) {
+            if (value === null || value === undefined || value === '') return 0;
+            
+            if (typeof value === 'number') {
+                return value;
+            }
+            
+            if (typeof value === 'string') {
+                let cleaned = value.replace(/[^\d,.-]/g, '').trim();
+                
+                if (cleaned.includes(',')) {
+                    if (cleaned.match(/\d{1,3}(\.\d{3})*,\d{2}$/)) {
+                        // Formato brasileiro: 1.766.142,53
+                        cleaned = cleaned.replace(/\./g, '');
+                        cleaned = cleaned.replace(',', '.');
+                    }
+                    else if (cleaned.match(/\d{1,3},\d{3}/)) {
+                        // Formato inglês com vírgula: 1,766,142.53
+                        cleaned = cleaned.replace(/,/g, '');
+                    }
+                    else if (cleaned.match(/,\d{2}$/)) {
+                        // Formato: 1766142,53
+                        cleaned = cleaned.replace(',', '.');
+                    }
+                } else if (cleaned.includes('.')) {
+                    const parts = cleaned.split('.');
+                    if (parts.length > 2) {
+                        // Formato inglês: 1,766,142.53 (já sem vírgulas)
+                        if (parts[parts.length - 1].length === 2) {
+                            cleaned = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
+                        }
+                    }
+                }
+                
+                let num = parseFloat(cleaned);
+                
+                if (isNaN(num)) {
+                    // Tentativa alternativa de extrair números
+                    const numbers = value.match(/[\d,\.]+/g);
+                    if (numbers && numbers.length > 0) {
+                        let numericStr = numbers.join('');
+                        // Remover pontos que são separadores de milhar
+                        if (numericStr.includes('.') && numericStr.includes(',')) {
+                            // Formato brasileiro: 1.766.142,53
+                            numericStr = numericStr.replace(/\./g, '');
+                            numericStr = numericStr.replace(',', '.');
+                        } else if (numericStr.includes(',')) {
+                            // Formato com vírgula como decimal
+                            numericStr = numericStr.replace(',', '.');
+                        }
+                        num = parseFloat(numericStr);
+                    }
+                }
+                
+                // CORREÇÃO: Verificar se o valor está muito baixo (dividido por 1000)
+                // Se o valor original tem "R$ 1.766.142,53" e o parseado é 1766.14253,
+                // multiplicar por 1000
+                if (num < 10000 && value.includes('.')) {
+                    const dotCount = (value.match(/\./g) || []).length;
+                    if (dotCount >= 2) {
+                        // Provavelmente está dividido por 1000
+                        num = num * 1000;
+                    }
+                }
+                
+                return isNaN(num) ? 0 : num;
+            }
+            
+            return 0;
+        }
+        
+        function parsePercent(value) {
+            if (!value && value !== 0) return 0;
+            
+            if (typeof value === 'number') {
+                return value > 1 ? value / 100 : value;
+            }
+            
+            if (typeof value === 'string') {
+                let cleaned = value.replace('%', '').trim();
+                cleaned = cleaned.replace(',', '.');
+                let num = parseFloat(cleaned);
+                
+                if (num > 1) {
+                    num = num / 100;
+                }
+                
+                return isNaN(num) ? 0 : num;
+            }
+            
+            return 0;
+        }
+        
+        function formatCurrency(value) {
+            if (!value && value !== 0) return '';
+            const num = typeof value === 'number' ? value : parseCurrency(value);
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num || 0);
+        }
+        
+        function formatPercent(value) {
+            if (!value && value !== 0) return '';
+            const num = parsePercent(value);
+            
+            if (num < 0.001) {
+                return (num * 100).toFixed(4) + '%';
+            } else if (num < 0.01) {
+                return (num * 100).toFixed(3) + '%';
+            } else {
+                return (num * 100).toFixed(2) + '%';
+            }
+        }
+        
+        // CORREÇÃO CRÍTICA: Função processarNumerosNegocio corrigida para remover duplicatas
+        function processarNumerosNegocio(numNegocioStr) {
+            if (!numNegocioStr) return [];
+            
+            const str = numNegocioStr.toString().trim();
+            
+            if (str.includes('-')) {
+                const partes = str.split('-');
+                const numeros = [];
+                
+                for (let parte of partes) {
+                    parte = parte.trim();
+                    if (parte && !isNaN(parseInt(parte))) {
+                        numeros.push(parte);
+                    }
+                }
+                
+                // CORREÇÃO: Remover duplicatas mantendo a ordem
+                const numerosUnicos = [];
+                const visto = new Set();
+                for (const num of numeros) {
+                    if (!visto.has(num)) {
+                        visto.add(num);
+                        numerosUnicos.push(num);
+                    }
+                }
+                
+                return numerosUnicos.length > 0 ? numerosUnicos : [str];
+            }
+            
+            if (str.includes(',') || str.includes(';') || str.includes('/')) {
+                const separadores = /[,;\/]/;
+                const partes = str.split(separadores);
+                const numeros = [];
+                
+                for (let parte of partes) {
+                    parte = parte.trim();
+                    if (parte && !isNaN(parseInt(parte))) {
+                        numeros.push(parte);
+                    }
+                }
+                
+                // CORREÇÃO: Remover duplicatas mantendo a ordem
+                const numerosUnicos = [];
+                const visto = new Set();
+                for (const num of numeros) {
+                    if (!visto.has(num)) {
+                        visto.add(num);
+                        numerosUnicos.push(num);
+                    }
+                }
+                
+                return numerosUnicos.length > 0 ? numerosUnicos : [str];
+            }
+            
+            return [str];
+        }
+        
+        function coletarFiltros() {
+            const filtroNegocios = document.getElementById('filtroNegocios').value;
+            activeFilters.negocios = processarListaNumeros(filtroNegocios);
+            
+            const filtroNFSe = document.getElementById('filtroNFSe').value;
+            activeFilters.nfse = processarListaNumeros(filtroNFSe);
+            
+            activeFilters.tipoData = document.getElementById('tipoFiltroData').value;
+            activeFilters.dataInicio = document.getElementById('dataInicio').value || null;
+            activeFilters.dataFim = document.getElementById('dataFim').value || null;
+            
+            atualizarIndicadorFiltros();
+        }
+        
+        function atualizarIndicadorFiltros() {
+            const indicator = document.getElementById('filterIndicator');
+            const textElement = document.getElementById('activeFiltersText');
+            let filtersText = [];
+            
+            if (activeFilters.negocios.length > 0) {
+                filtersText.push(`${activeFilters.negocios.length} negócio(s)`);
+            }
+            
+            if (activeFilters.nfse.length > 0) {
+                filtersText.push(`${activeFilters.nfse.length} NFSe(s)`);
+            }
+            
+            if (activeFilters.dataInicio || activeFilters.dataFim) {
+                let dataText = 'Data: ';
+                if (activeFilters.dataInicio) dataText += `de ${activeFilters.dataInicio} `;
+                if (activeFilters.dataFim) dataText += `até ${activeFilters.dataFim}`;
+                filtersText.push(dataText);
+            }
+            
+            if (filtersText.length > 0) {
+                textElement.textContent = filtersText.join(' | ');
+                indicator.classList.add('active');
+            } else {
+                textElement.textContent = 'Nenhum filtro aplicado';
+                indicator.classList.remove('active');
+            }
+        }
+        
+        function limparTodosFiltros() {
+            document.getElementById('filtroNegocios').value = '';
+            document.getElementById('filtroNFSe').value = '';
+            document.getElementById('tipoFiltroData').value = 'negociacao';
+            document.getElementById('dataInicio').value = '';
+            document.getElementById('dataFim').value = '';
+            
+            activeFilters = {
+                negocios: [],
+                nfse: [],
+                dataInicio: null,
+                dataFim: null,
+                tipoData: 'negociacao'
+            };
+            
+            atualizarIndicadorFiltros();
+            addLog('Todos os filtros foram limpos', 'info');
+        }
+        
+        function aplicarFiltros() {
+            coletarFiltros();
+            
+            if (consolidatedData) {
+                filteredData = aplicarFiltrosNosDados(consolidatedData);
+                showPreview(filteredData);
+            } else {
+                processFiles();
+            }
+        }
+        
+        async function processFiles() {
+            const button = document.getElementById('processButton');
+            button.disabled = true;
+            button.textContent = 'Processando...';
+            
+            try {
+                addLog('Iniciando processamento dos arquivos...', 'info');
+                
+                coletarFiltros();
+                
+                const [negociacoesData, emissoesData, analiseData] = await Promise.all([
+                    readExcelFile(files.negociacoes),
+                    readExcelFile(files.emissoes),
+                    readExcelFile(files.analise)
+                ]);
+                
+                addLog('Arquivos lidos com sucesso', 'success');
+                
+                consolidatedData = consolidateData(negociacoesData, emissoesData, analiseData);
+                
+                filteredData = aplicarFiltrosNosDados(consolidatedData);
+                
+                showPreview(filteredData);
+                
+            } catch (error) {
+                addLog(`❌ Erro durante o processamento: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Processar e Gerar Planilha Base';
+            }
+        }
+        
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array', cellDates: true, raw: false });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+                        resolve(jsonData);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        function consolidateData(negociacoes, emissoes, analise) {
+            addLog('Consolidando dados das planilhas...', 'info');
+            
+            // Criar mapa para armazenar valores de impostos da planilha Análise
+            const analiseImpostosMap = new Map(); // Mapa para coluna H da planilha Análise
+            const analiseMap = new Map();
+            const negociacoesMap = new Map();
+            
+            // Processar planilha de Análise com colunas corretas
+            if (analise && analise.length > 0) {
+                // Encontrar índices das colunas por cabeçalho (se disponível)
+                let nomeFantasiaIndex = 4; // Padrão: coluna E (índice 4)
+                let razaoSocialIndex = 11; // Padrão: coluna L (índice 11)
+                let impostosIndex = 7; // Coluna H da planilha Análise (índice 7)
+                
+                // Verificar se há cabeçalhos
+                if (analise[0] && Array.isArray(analise[0])) {
+                    const headers = analise[0];
+                    for (let i = 0; i < headers.length; i++) {
+                        const header = String(headers[i]).toLowerCase().trim();
+                        if (header.includes('nome') && header.includes('fantasia')) {
+                            nomeFantasiaIndex = i;
+                        }
+                        if (header.includes('razão') || header.includes('razao') || header.includes('social')) {
+                            razaoSocialIndex = i;
+                        }
+                        if (header.includes('imposto') || header.includes('vlr') || i === 7) {
+                            impostosIndex = i;
+                        }
+                    }
+                }
+                
+                addLog(`Mapeamento Análise: Nome Fantasia coluna ${nomeFantasiaIndex + 1}, Razão Social coluna ${razaoSocialIndex + 1}, Impostos coluna ${impostosIndex + 1}`, 'info');
+                
+                for (let i = 1; i < analise.length; i++) {
+                    const row = analise[i];
+                    if (row && row[0]) {
+                        const numerosNegocio = processarNumerosNegocio(row[0]);
+                        
+                        for (const numNegocio of numerosNegocio) {
+                            // CORREÇÃO: Usar índices corretos para Nome Fantasia e Razão Social
+                            analiseMap.set(numNegocio, {
+                                dataNegociacao: row[1],
+                                nomeFantasia: row[nomeFantasiaIndex] || '', // Coluna D/E (índice 3/4)
+                                cliente: row[6],
+                                valorLiquido: parseCurrency(row[8]),
+                                cet: parsePercent(row[9]),
+                                importAtrelada: row[10],
+                                razaoSocial: row[razaoSocialIndex] || '', // Coluna J (índice 9/10)
+                                rawNumNegocio: row[0]
+                            });
+                            
+                            // CORREÇÃO: Armazenar valor da coluna H (impostos) da planilha Análise
+                            if (row[impostosIndex] !== undefined) {
+                                analiseImpostosMap.set(numNegocio, parseCurrency(row[impostosIndex]));
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Processar planilha de Negociações
+            if (negociacoes && negociacoes.length > 0) {
+                for (let i = 1; i < negociacoes.length; i++) {
+                    const row = negociacoes[i];
+                    if (row && row[0]) {
+                        const numerosNegocio = processarNumerosNegocio(row[0]);
+                        
+                        for (const numNegocio of numerosNegocio) {
+                            // CORREÇÃO: Extrair o valor correto da coluna G (Valor Líquido)
+                            const valorLiquidoStr = row[6] ? row[6].toString().trim() : '0';
+                            const valorLiquido = parseCurrency(valorLiquidoStr);
+                            
+                            negociacoesMap.set(numNegocio, {
+                                cliente: row[4],
+                                dataNegociacao: row[2],
+                                valorLiquido: valorLiquido, // Usar valor extraído e convertido
+                                cet: parsePercent(row[7]),
+                                status: row[3],
+                                importAtrelada: row[8],
+                                pisCofins: parseCurrency(row[5]),
+                                rawNumNegocio: row[0]
+                            });
+                            
+                            // Log para debug do negócio 103483
+                            if (numNegocio === '103483') {
+                                console.log(`DEBUG 103483 - Negociações:`, {
+                                    numNegocio: numNegocio,
+                                    valorLiquidoStr: valorLiquidoStr,
+                                    valorLiquido: valorLiquido,
+                                    row6: row[6],
+                                    row: row
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Processar planilha de Emissões
+            const emissaoMap = new Map();
+            const nfseMap = new Map();
+            const loteMap = new Map();
+            const prestadorMap = new Map();
+            const statusEmissaoMap = new Map();
+            const dataEmissaoMap = new Map();
+            const dataVencimentoMap = new Map();
+            
+            if (emissoes && emissoes.length > 0) {
+                // CORREÇÃO CRÍTICA: Criar um mapa temporário para rastrear negócios já processados por linha
+                const linhaNegocioProcessado = new Map();
+                
+                for (let i = 1; i < emissoes.length; i++) {
+                    const row = emissoes[i];
+                    if (row && row[10]) {
+                        const numerosNegocio = processarNumerosNegocio(row[10]);
+                        // CORREÇÃO: Extrair corretamente o valor da coluna H (índice 7)
+                        const vlrServicoStr = row[7] ? row[7].toString().trim() : '0';
+                        const vlrServico = parseCurrency(vlrServicoStr);
+                        const nfse = row[0] ? row[0].toString().trim() : '';
+                        
+                        // CORREÇÃO CRÍTICA: Para cada negócio único nesta linha, somar o valor apenas uma vez
+                        const negociosUnicos = [...new Set(numerosNegocio)];
+                        
+                        for (const numNegocio of negociosUnicos) {
+                            // Verificar se este negócio já foi processado nesta linha (evitar duplicatas)
+                            const linhaKey = `${i}_${numNegocio}`;
+                            if (linhaNegocioProcessado.has(linhaKey)) {
+                                continue; // Já processou este negócio nesta linha
+                            }
+                            linhaNegocioProcessado.set(linhaKey, true);
+                            
+                            if (!emissaoMap.has(numNegocio)) {
+                                emissaoMap.set(numNegocio, 0);
+                                nfseMap.set(numNegocio, []);
+                            }
+                            emissaoMap.set(numNegocio, (emissaoMap.get(numNegocio) || 0) + vlrServico);
+                            
+                            if (nfse && !nfseMap.get(numNegocio).includes(nfse)) {
+                                nfseMap.get(numNegocio).push(nfse);
+                            }
+                            
+                            if (row[2] && !loteMap.has(numNegocio)) {
+                                loteMap.set(numNegocio, row[2]);
+                            }
+                            if (row[3] && !prestadorMap.has(numNegocio)) {
+                                prestadorMap.set(numNegocio, row[3]);
+                            }
+                            if (row[6] && !statusEmissaoMap.has(numNegocio)) {
+                                statusEmissaoMap.set(numNegocio, row[6]);
+                            }
+                            if (row[8] && !dataEmissaoMap.has(numNegocio)) {
+                                dataEmissaoMap.set(numNegocio, row[8]);
+                            }
+                            if (row[9] && !dataVencimentoMap.has(numNegocio)) {
+                                dataVencimentoMap.set(numNegocio, row[9]);
+                            }
+                            
+                            // Log para debug do negócio 103483
+                            if (numNegocio === '103483') {
+                                console.log(`DEBUG 103483 - Emissões:`, {
+                                    numNegocio: numNegocio,
+                                    vlrServicoStr: vlrServicoStr,
+                                    vlrServico: vlrServico,
+                                    nfse: nfse,
+                                    row7: row[7],
+                                    row: row
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Consolidar dados
+            const consolidatedRows = [];
+            
+            const headers = [
+                'Nº Negócio', 'Cliente', 'Dta Negoc.', 'Vlr Liq. Negoc.', 'Check-in',
+                'Vlr-Impostos', 'Cet (% a.m.)', 'Vlr. Serv. Total', 'Dta Emissão',
+                'Dta Venc.', 'Status Neg.', 'IR (1,5%)', 'PIS/COFINS (4,65%)',
+                'Valor Liquido', 'Juros', 'Taxa', 'Diferença %', 'Nome do Lote',
+                'Prestador', 'Status Emissão', 'Import. Atrelada', 'Prazo',
+                'Data Extrato.', 'Dias Dif.', 'Vlr  Extrato.', 'Dif. R$',
+                'Observação', 'Dados Bancários', 'Financiador', 'Nome Fantasia',
+                'Razão Social do Financiador', 'NFSe'
+            ];
+            
+            consolidatedRows.push(headers);
+            
+            // Obter todos os números de negócio únicos
+            const allNegocios = new Set([
+                ...negociacoesMap.keys(),
+                ...emissaoMap.keys(),
+                ...analiseMap.keys()
+            ]);
+            
+            let totalNegocios = allNegocios.size;
+            let negociosProcessados = 0;
+            
+            addLog(`Encontrados ${totalNegocios} números de negócio únicos`, 'info');
+            
+            // CORREÇÃO: Ordenar os negócios pela data de vencimento
+            const negociosComVencimento = [];
+            for (const numNegocio of allNegocios) {
+                const dataVencimento = dataVencimentoMap.get(numNegocio);
+                const dataVencimentoDate = parseExcelDate(dataVencimento);
+                negociosComVencimento.push({
+                    numNegocio,
+                    dataVencimento: dataVencimentoDate
+                });
+            }
+            
+            // Ordenar pela data de vencimento (ordem crescente)
+            negociosComVencimento.sort((a, b) => {
+                if (!a.dataVencimento && !b.dataVencimento) return 0;
+                if (!a.dataVencimento) return 1;
+                if (!b.dataVencimento) return -1;
+                return a.dataVencimento - b.dataVencimento;
+            });
+            
+            // Processar cada número de negócio na ordem correta
+            for (const {numNegocio} of negociosComVencimento) {
+                const negData = negociacoesMap.get(numNegocio) || {};
+                const anaData = analiseMap.get(numNegocio) || {};
+                
+                // Dados das emissões
+                const vlrServTotal = emissaoMap.get(numNegocio) || 0;
+                const nfseList = nfseMap.get(numNegocio) || [];
+                const nfseConcatenada = nfseList.join(', ');
+                
+                // CORREÇÃO: Reduzir array para 32 colunas
+                const row = new Array(32).fill('');
+                
+                // Preencher dados básicos
+                row[0] = numNegocio;
+                row[1] = negData.cliente || anaData.cliente || '';
+                
+                // Data de negociação
+                const dataNeg = negData.dataNegociacao || anaData.dataNegociacao;
+                const dataNegDate = parseExcelDate(dataNeg);
+                row[2] = formatDateBR(dataNegDate);
+                
+                // Valor Líquido da Negociação - CORREÇÃO: usar valor convertido corretamente
+                const valorLiquidoNeg = negData.valorLiquido || anaData.valorLiquido || 0;
+                row[3] = valorLiquidoNeg;
+                
+                // Campos vazias
+                row[4] = '';
+                
+                // CORREÇÃO: Coluna F (índice 5) - Vlr-Impostos
+                // Buscar valor da coluna H da planilha Análise
+                const vlrImpostosAnalise = analiseImpostosMap.get(numNegocio) || 0;
+                row[5] = vlrImpostosAnalise;
+                
+                // CET
+                const cetValue = parsePercent(negData.cet || anaData.cet || 0);
+                row[6] = cetValue;
+                
+                // Valor Serviço Total - CORREÇÃO: usar valor convertido corretamente
+                row[7] = vlrServTotal;
+                
+                // Datas de emissão e vencimento
+                const dataEmissao = dataEmissaoMap.get(numNegocio);
+                const dataEmissaoDate = parseExcelDate(dataEmissao);
+                row[8] = formatDateBR(dataEmissaoDate);
+                
+                const dataVencimento = dataVencimentoMap.get(numNegocio);
+                const dataVencimentoDate = parseExcelDate(dataVencimento);
+                row[9] = formatDateBR(dataVencimentoDate);
+                
+                row[10] = statusEmissaoMap.get(numNegocio) || negData.status || '';
+                
+                // Cálculos
+                const irValue = row[7] * 0.015;
+                const pisCofinsValue = row[7] * 0.0465;
+                const valorLiquidoCalc = row[7] - irValue - pisCofinsValue;
+                const jurosValue = valorLiquidoCalc - row[3];
+                
+                row[11] = irValue;
+                row[12] = pisCofinsValue;
+                row[13] = valorLiquidoCalc;
+                row[14] = jurosValue;
+                
+                // Cálculo da taxa
+                let prazoDias = 0;
+                let taxaValue = 0;
+                
+                if (dataVencimentoDate && dataNegDate) {
+                    prazoDias = Math.max(1, Math.round((dataVencimentoDate - dataNegDate) / (1000 * 60 * 60 * 24)));
+                    if (valorLiquidoCalc > 0 && prazoDias > 0) {
+                        taxaValue = (jurosValue / valorLiquidoCalc) / prazoDias * 30;
+                    }
+                }
+                
+                row[15] = taxaValue;
+                row[16] = taxaValue - cetValue;
+                row[17] = loteMap.get(numNegocio) || '';
+                row[18] = prestadorMap.get(numNegocio) || '';
+                row[19] = negData.status || '';
+                row[20] = negData.importAtrelada || anaData.importAtrelada || '';
+                row[21] = prazoDias;
+                
+                // Colunas 22-27 vazias
+                for (let i = 22; i < 28; i++) {
+                    row[i] = '';
+                }
+                
+                // CORREÇÃO DAS COLUNAS AC, AD, AE:
+                // Coluna 28 (AC) -> Financiador (DEVE FICAR VAZIA)
+                row[28] = '';
+                
+                // Coluna 29 (AD) -> Nome Fantasia
+                row[29] = anaData.nomeFantasia || '';
+                
+                // Coluna 30 (AE) -> Razão Social
+                row[30] = anaData.razaoSocial || '';
+                
+                // CORREÇÃO: Coluna 31 (AF) -> NFSe
+                row[31] = nfseConcatenada;
+                
+                // Log para debug do negócio 103483
+                if (numNegocio === '103483') {
+                    console.log(`DEBUG 103483 - Consolidado:`, {
+                        numNegocio: numNegocio,
+                        valorLiquidoNeg: valorLiquidoNeg,
+                        vlrServTotal: vlrServTotal,
+                        irValue: irValue,
+                        pisCofinsValue: pisCofinsValue,
+                        valorLiquidoCalc: valorLiquidoCalc,
+                        jurosValue: jurosValue,
+                        row: row
+                    });
+                }
+                
+                consolidatedRows.push(row);
+                negociosProcessados++;
+            }
+            
+            addLog(`Dados consolidados: ${negociosProcessados} de ${totalNegocios} negócios processados`, 'success');
+            addLog('Coluna F renomeada para Vlr-Impostos e preenchida com dados da planilha Análise', 'info');
+            addLog('Coluna AF renomeada para NFSe', 'info');
+            addLog('Base Consolidada ordenada por data de vencimento (coluna J) em ordem crescente', 'info');
+            addLog('CORREÇÃO APLICADA: Valores não são mais somados múltiplas vezes para o mesmo negócio', 'success');
+            
+            // Log das primeiras linhas para verificação
+            if (consolidatedRows.length > 1) {
+                console.log('Primeira linha consolidada (103483):', consolidatedRows[1]);
+                console.log('Valores numéricos para 103483:', {
+                    'Vlr Liq. Negoc.': consolidatedRows[1][3],
+                    'Vlr. Serv. Total': consolidatedRows[1][7],
+                    'IR (1,5%)': consolidatedRows[1][11],
+                    'PIS/COFINS': consolidatedRows[1][12],
+                    'Valor Liquido': consolidatedRows[1][13],
+                    'Juros': consolidatedRows[1][14]
+                });
+            }
+            
+            return consolidatedRows;
+        }
+        
+        function aplicarFiltrosNosDados(data) {
+            if (!data || data.length <= 1) return data;
+            
+            addLog('Aplicando filtros nos dados...', 'info');
+            
+            // Manter cabeçalho
+            const filteredRows = [data[0]];
+            let filtrosAplicados = 0;
+            
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                let incluir = true;
+                
+                // Filtro por número de negociação (coluna 0 = A)
+                if (activeFilters.negocios.length > 0) {
+                    const numNegocio = row[0] ? row[0].toString() : '';
+                    if (!activeFilters.negocios.includes(numNegocio)) {
+                        incluir = false;
+                    }
+                }
+                
+                // Filtro por NFSe (coluna 31 = AF)
+                if (incluir && activeFilters.nfse.length > 0) {
+                    const nfseString = row[31] ? row[31].toString() : '';
+                    const nfseList = nfseString.split(',').map(n => n.trim());
+                    
+                    let temNFSeFiltrada = false;
+                    for (const nfse of nfseList) {
+                        if (activeFilters.nfse.includes(nfse)) {
+                            temNFSeFiltrada = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!temNFSeFiltrada) {
+                        incluir = false;
+                    }
+                }
+                
+                // Filtro por data
+                if (incluir && (activeFilters.dataInicio || activeFilters.dataFim)) {
+                    let dataParaFiltro = null;
+                    
+                    switch (activeFilters.tipoData) {
+                        case 'negociacao':
+                            dataParaFiltro = parseExcelDate(row[2]);
+                            break;
+                        case 'emissao':
+                            dataParaFiltro = parseExcelDate(row[8]);
+                            break;
+                        case 'vencimento':
+                            dataParaFiltro = parseExcelDate(row[9]);
+                            break;
+                    }
+                    
+                    if (dataParaFiltro) {
+                        if (activeFilters.dataInicio) {
+                            const dataInicio = new Date(activeFilters.dataInicio);
+                            if (dataParaFiltro < dataInicio) {
+                                incluir = false;
+                            }
+                        }
+                        
+                        if (activeFilters.dataFim) {
+                            const dataFim = new Date(activeFilters.dataFim);
+                            dataFim.setHours(23, 59, 59, 999);
+                            if (dataParaFiltro > dataFim) {
+                                incluir = false;
+                            }
+                        }
+                    }
+                }
+                
+                if (incluir) {
+                    filteredRows.push(row);
+                    filtrosAplicados++;
+                }
+            }
+            
+            addLog(`Filtros aplicados: ${filtrosAplicados} de ${data.length - 1} linhas mantidas`, 'success');
+            return filteredRows;
+        }
+        
+        function updateStats(data) {
+            document.getElementById('statTotalRows').textContent = consolidatedData ? consolidatedData.length - 1 : 0;
+            document.getElementById('statFilteredRows').textContent = data ? data.length - 1 : 0;
+            document.getElementById('statColumns').textContent = data && data[0] ? data[0].length : 0;
+            
+            const filterInfo = document.getElementById('activeFiltersInfo');
+            let filterText = [];
+            
+            if (activeFilters.negocios.length > 0) {
+                filterText.push(`${activeFilters.negocios.length} negócio(s)`);
+            }
+            
+            if (activeFilters.nfse.length > 0) {
+                filterText.push(`${activeFilters.nfse.length} NFSe(s)`);
+            }
+            
+            if (activeFilters.dataInicio || activeFilters.dataFim) {
+                let dataText = 'Data: ';
+                if (activeFilters.dataInicio) dataText += `de ${formatDateDisplay(activeFilters.dataInicio)} `;
+                if (activeFilters.dataFim) dataText += `até ${formatDateDisplay(activeFilters.dataFim)}`;
+                filterText.push(dataText);
+            }
+            
+            if (filterText.length > 0) {
+                filterInfo.textContent = `Filtros: ${filterText.join(' • ')}`;
+            } else {
+                filterInfo.textContent = 'Sem filtros aplicados';
+            }
+        }
+        
+        function formatDateDisplay(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+        
+        function closePreview() {
+            const previewSection = document.getElementById('previewSection');
+            previewSection.style.display = 'none';
+            previewVisible = false;
+        }
+        
+        // NOVA FUNÇÃO: Aplicar destaque amarelo quando coluna H for 33% maior que coluna D
+        function applyYellowHighlight() {
+            const tableBody = document.getElementById('excelPreviewTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            
+            // Remover destaque anterior
+            const highlightedCells = document.querySelectorAll('.highlight-yellow');
+            highlightedCells.forEach(cell => {
+                cell.classList.remove('highlight-yellow');
+            });
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                
+                // Ignorar linha informativa
+                if (cells.length === 1) continue;
+                
+                let valorLiquidoNeg = 0;
+                let valorServicoTotal = 0;
+                let dataEmissao = null;
+                let dataVencimento = null;
+                
+                // Coletar valores das células relevantes
+                for (let j = 0; j < cells.length; j++) {
+                    const cell = cells[j];
+                    const colIndex = cell.dataset.columnIndex;
+                    const rawValue = cell.dataset.rawValue;
+                    
+                    if (colIndex == 3) { // Coluna D - Vlr Liq. Negoc.
+                        valorLiquidoNeg = parseCurrency(rawValue);
+                    } else if (colIndex == 7) { // Coluna H - Vlr. Serv. Total
+                        valorServicoTotal = parseCurrency(rawValue);
+                    } else if (colIndex == 8) { // Coluna I - Dta Emissão
+                        dataEmissao = parseExcelDate(rawValue);
+                    } else if (colIndex == 9) { // Coluna J - Dta Venc.
+                        dataVencimento = parseExcelDate(rawValue);
+                    }
+                }
+                
+                // Aplicar destaque amarelo nas células
+                for (let j = 0; j < cells.length; j++) {
+                    const cell = cells[j];
+                    const colIndex = cell.dataset.columnIndex;
+                    
+                    // Condição 1: Destacar coluna H se valor do serviço total for menor que valor líquido negociado
+                    if (colIndex == 7 && valorServicoTotal < valorLiquidoNeg) {
+                        cell.classList.add('highlight-yellow');
+                    }
+                    
+                    // Condição 2: Destacar coluna J se data de vencimento for menor que data de emissão
+                    if (colIndex == 9 && dataEmissao && dataVencimento) {
+                        // Comparar apenas as datas (ignorando horas)
+                        const emissaoDate = new Date(dataEmissao.getFullYear(), dataEmissao.getMonth(), dataEmissao.getDate());
+                        const vencimentoDate = new Date(dataVencimento.getFullYear(), dataVencimento.getMonth(), dataVencimento.getDate());
+                        
+                        if (vencimentoDate < emissaoDate) {
+                            cell.classList.add('highlight-yellow');
+                        }
+                    }
+                    
+                    // NOVA CONDIÇÃO: Destacar coluna H se for 33% maior que coluna D
+                    if (colIndex == 7 && valorLiquidoNeg > 0 && valorServicoTotal > (valorLiquidoNeg * 1.33)) {
+                        cell.classList.add('highlight-yellow');
+                    }
+                }
+            }
+        }
+        
+        // NOVA FUNÇÃO: Aplicar destaque amarelo no Excel baixado
+        function applyYellowHighlightToExcel(ws, data) {
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            for (let row = range.s.r + 1; row <= range.e.r; row++) {
+                // Obter valores da linha
+                const valorLiquidoNeg = parseCurrency(data[row][3]); // Coluna D
+                const valorServicoTotal = parseCurrency(data[row][7]); // Coluna H
+                const dataEmissao = parseExcelDate(data[row][8]); // Coluna I
+                const dataVencimento = parseExcelDate(data[row][9]); // Coluna J
+                
+                // Condição 1: Destacar coluna H se valor do serviço total for menor que valor líquido negociado
+                if (valorServicoTotal < valorLiquidoNeg) {
+                    const cellH = XLSX.utils.encode_cell({r: row, c: 7});
+                    if (ws[cellH]) {
+                        if (!ws[cellH].s) ws[cellH].s = {};
+                        ws[cellH].s.fill = {
+                            patternType: 'solid',
+                            fgColor: {rgb: 'FFFF00'}
+                        };
+                    }
+                }
+                
+                // Condição 2: Destacar coluna J se data de vencimento for menor que data de emissão
+                if (dataEmissao && dataVencimento) {
+                    // Comparar apenas as datas (ignorando horas)
+                    const emissaoDate = new Date(dataEmissao.getFullYear(), dataEmissao.getMonth(), dataEmissao.getDate());
+                    const vencimentoDate = new Date(dataVencimento.getFullYear(), dataVencimento.getMonth(), dataVencimento.getDate());
+                    
+                    if (vencimentoDate < emissaoDate) {
+                        const cellJ = XLSX.utils.encode_cell({r: row, c: 9});
+                        if (ws[cellJ]) {
+                            if (!ws[cellJ].s) ws[cellJ].s = {};
+                            ws[cellJ].s.fill = {
+                                patternType: 'solid',
+                                fgColor: {rgb: 'FFFF00'}
+                            };
+                        }
+                    }
+                }
+                
+                // NOVA CONDIÇÃO: Destacar coluna H se for 33% maior que coluna D
+                if (valorLiquidoNeg > 0 && valorServicoTotal > (valorLiquidoNeg * 1.33)) {
+                    const cellH = XLSX.utils.encode_cell({r: row, c: 7});
+                    if (ws[cellH]) {
+                        if (!ws[cellH].s) ws[cellH].s = {};
+                        ws[cellH].s.fill = {
+                            patternType: 'solid',
+                            fgColor: {rgb: 'FFFF00'}
+                        };
+                    }
+                }
+            }
+        }
+        
+        // Função para calcular larguras de coluna baseadas no conteúdo
+        function calculateColumnWidths(data) {
+            if (!data || data.length === 0) return [];
+            
+            const numCols = data[0].length;
+            const colWidths = new Array(numCols).fill(10); // Largura mínima padrão
+            
+            // Analisar todas as linhas
+            for (let col = 0; col < numCols; col++) {
+                let maxLength = 0;
+                
+                for (let row = 0; row < data.length; row++) {
+                    let cellValue = data[row][col];
+                    let cellLength = 0;
+                    
+                    if (cellValue === null || cellValue === undefined) {
+                        cellLength = 0;
+                    } else {
+                        // Converter para string
+                        const cellStr = String(cellValue);
+                        
+                        // Considerar formatação para diferentes tipos de dados
+                        if (col === 0) { // Nº Negócio
+                            cellLength = Math.min(cellStr.length, 15);
+                        } else if ([2, 8, 9, 22].includes(col)) { // Datas
+                            cellLength = 12;
+                        } else if ([3, 5, 7, 11, 12, 13, 14, 24, 25].includes(col)) { // Valores monetários
+                            cellLength = 15;
+                        } else if ([6, 15, 16].includes(col)) { // Percentuais
+                            cellLength = 12;
+                        } else if (col === 21) { // Prazo (número inteiro)
+                            cellLength = 8;
+                        } else if ([1, 17, 18, 26, 27, 28, 29, 30, 31].includes(col)) { // Textos longos
+                            cellLength = Math.min(cellStr.length, 30);
+                        } else if ([4, 10, 19, 20, 23].includes(col)) { // Textos médios
+                            cellLength = Math.min(cellStr.length, 20);
+                        } else {
+                            cellLength = Math.min(cellStr.length, 15);
+                        }
+                    }
+                    
+                    // Considerar cabeçalho também
+                    if (row === 0 && data[0][col]) {
+                        const headerLength = String(data[0][col]).length;
+                        cellLength = Math.max(cellLength, Math.min(headerLength, 30));
+                    }
+                    
+                    maxLength = Math.max(maxLength, cellLength);
+                }
+                
+                // Ajustar largura com margem
+                colWidths[col] = Math.max(8, Math.min(maxLength + 2, 50));
+            }
+            
+            return colWidths.map(w => ({wch: w}));
+        }
+        
+        // NOVA FUNÇÃO: Baixar arquivo com operações que têm divergência de valores ou datas
+        function downloadDivergencias() {
+            const dataParaDivergencias = filteredData || consolidatedData;
+            
+            if (!dataParaDivergencias) {
+                addLog('❌ Erro: Nenhum dado disponível para gerar arquivo de divergências', 'error');
+                return;
+            }
+            
+            addLog('Gerando arquivo de divergências...', 'info');
+            
+            // Filtrar linhas que têm divergências
+            const divergenciasRows = [dataParaDivergencias[0]]; // Cabeçalho
+            
+            for (let i = 1; i < dataParaDivergencias.length; i++) {
+                const row = dataParaDivergencias[i];
+                let temDivergencia = false;
+                
+                const valorLiquidoNeg = parseCurrency(row[3]); // Coluna D
+                const valorServicoTotal = parseCurrency(row[7]); // Coluna H
+                const dataEmissao = parseExcelDate(row[8]); // Coluna I
+                const dataVencimento = parseExcelDate(row[9]); // Coluna J
+                
+                // Verificar condições de divergência
+                if (valorServicoTotal < valorLiquidoNeg) {
+                    temDivergencia = true;
+                }
+                
+                if (dataEmissao && dataVencimento) {
+                    const emissaoDate = new Date(dataEmissao.getFullYear(), dataEmissao.getMonth(), dataEmissao.getDate());
+                    const vencimentoDate = new Date(dataVencimento.getFullYear(), dataVencimento.getMonth(), dataVencimento.getDate());
+                    if (vencimentoDate < emissaoDate) {
+                        temDivergencia = true;
+                    }
+                }
+                
+                // ALTERAÇÃO: Mudado de 25% para 33%
+                if (valorLiquidoNeg > 0 && valorServicoTotal > (valorLiquidoNeg * 1.33)) {
+                    temDivergencia = true;
+                }
+                
+                if (temDivergencia) {
+                    divergenciasRows.push(row);
+                }
+            }
+            
+            if (divergenciasRows.length <= 1) {
+                addLog('✅ Nenhuma divergência encontrada nos dados atuais.', 'info');
+                return;
+            }
+            
+            // Criar planilha de divergências
+            const ws = XLSX.utils.aoa_to_sheet(divergenciasRows);
+            
+            // Calcular larguras de coluna baseadas no conteúdo
+            const colWidths = calculateColumnWidths(divergenciasRows);
+            ws['!cols'] = colWidths;
+            
+            // Centralizar colunas específicas: A, C, E, G, I, J, K, P, Q, R, T, U, V, W, X, Y, Z
+            const colunasParaCentralizar = new Set([0, 2, 4, 6, 8, 9, 10, 15, 16, 17, 19, 20, 21, 22, 23, 24, 25]);
+            
+            // Formatar cabeçalhos
+            for (let col = 0; col < colWidths.length; col++) {
+                const cell = XLSX.utils.encode_cell({r: 0, c: col});
+                if (ws[cell]) {
+                    ws[cell].s = {
+                        font: {
+                            bold: true,
+                            color: {rgb: "FFFFFF"},
+                            name: 'Aptos Narrow',
+                            sz: 12
+                        },
+                        fill: {fgColor: {rgb: "2c3e50"}},
+                        alignment: {
+                            vertical: "center",
+                            horizontal: "center",
+                            wrapText: true
+                        }
+                    };
+                }
+            }
+            
+            // Formatação de células
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            for (let row = range.s.r + 1; row <= range.e.r; row++) {
+                // Formatação de moeda para colunas monetárias
+                const colunasMoeda = [3, 5, 7, 11, 12, 13, 14];
+                colunasMoeda.forEach(col => {
+                    const cell = XLSX.utils.encode_cell({r: row, c: col});
+                    if (ws[cell] && ws[cell].v !== '') {
+                        ws[cell].z = '"R$"#,##0.00';
+                        // Aplicar fonte Aptos Narrow
+                        if (!ws[cell].s) ws[cell].s = {};
+                        ws[cell].s.font = ws[cell].s.font || {};
+                        ws[cell].s.font.name = 'Aptos Narrow';
+                        ws[cell].s.font.sz = 12;
+                    }
+                });
+                
+                // Formatação de percentual
+                const colunasPercent = [6, 15, 16];
+                colunasPercent.forEach(col => {
+                    const cell = XLSX.utils.encode_cell({r: row, c: col});
+                    if (ws[cell] && ws[cell].v !== '') {
+                        ws[cell].z = '0.00%';
+                        // Aplicar fonte Aptos Narrow
+                        if (!ws[cell].s) ws[cell].s = {};
+                        ws[cell].s.font = ws[cell].s.font || {};
+                        ws[cell].s.font.name = 'Aptos Narrow';
+                        ws[cell].s.font.sz = 12;
+                    }
+                });
+                
+                // Formatação de número inteiro
+                const cellV = XLSX.utils.encode_cell({r: row, c: 21});
+                if (ws[cellV] && ws[cellV].v !== '') {
+                    ws[cellV].z = '0';
+                    // Aplicar fonte Aptos Narrow
+                    if (!ws[cellV].s) ws[cellV].s = {};
+                    ws[cellV].s.font = ws[cellV].s.font || {};
+                    ws[cellV].s.font.name = 'Aptos Narrow';
+                    ws[cellV].s.font.sz = 12;
+                }
+                
+                // Centralizar colunas específicas
+                for (let col = 0; col < colWidths.length; col++) {
+                    if (colunasParaCentralizar.has(col)) {
+                        const cell = XLSX.utils.encode_cell({r: row, c: col});
+                        if (ws[cell]) {
+                            if (!ws[cell].s) ws[cell].s = {};
+                            ws[cell].s.alignment = ws[cell].s.alignment || {};
+                            ws[cell].s.alignment.horizontal = 'center';
+                            ws[cell].s.alignment.vertical = 'center';
+                            // Aplicar fonte Aptos Narrow
+                            ws[cell].s.font = ws[cell].s.font || {};
+                            ws[cell].s.font.name = 'Aptos Narrow';
+                            ws[cell].s.font.sz = 12;
+                        }
+                    }
+                }
+                
+                // Aplicar fonte Aptos Narrow para todas as células
+                for (let col = 0; col < colWidths.length; col++) {
+                    const cell = XLSX.utils.encode_cell({r: row, c: col});
+                    if (ws[cell]) {
+                        if (!ws[cell].s) ws[cell].s = {};
+                        ws[cell].s.font = ws[cell].s.font || {};
+                        ws[cell].s.font.name = 'Aptos Narrow';
+                        ws[cell].s.font.sz = 12;
+                    }
+                }
+            }
+            
+            // Aplicar destaque amarelo nas divergências
+            applyYellowHighlightToExcel(ws, divergenciasRows);
+            
+            ws['!freeze'] = {xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomRight"};
+            ws['!autofilter'] = {ref: `A1:${XLSX.utils.encode_cell({r: 0, c: colWidths.length - 1})}`};
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Divergências");
+            
+            let nomeArquivo = "Divergencias_";
+            
+            if (activeFilters.negocios.length > 0) {
+                nomeArquivo += `Negocios_${activeFilters.negocios.length}_`;
+            }
+            
+            if (activeFilters.nfse.length > 0) {
+                nomeArquivo += `NFSe_${activeFilters.nfse.length}_`;
+            }
+            
+            const dataAtual = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            nomeArquivo += `${dataAtual}.xlsx`;
+            
+            try {
+                const wbout = XLSX.write(wb, {
+                    bookType: 'xlsx',
+                    type: 'binary',
+                    bookSST: true
+                });
+                
+                const blob = new Blob([s2ab(wbout)], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                saveAs(blob, nomeArquivo);
+                
+                addLog(`✅ Arquivo de divergências "${nomeArquivo}" baixado com sucesso!`, 'success');
+                addLog(`✅ ${divergenciasRows.length - 1} linhas com divergências exportadas`, 'info');
+                addLog('✅ Destaque amarelo aplicado para:', 'info');
+                addLog('   - Coluna H quando valor do serviço total < valor líquido negociado', 'info');
+                addLog('   - Coluna J quando data de vencimento < data de emissão', 'info');
+                addLog('   - Coluna H quando valor for 33% maior que coluna D', 'info');
+            } catch (error) {
+                addLog(`❌ Erro ao gerar arquivo de divergências: ${error.message}`, 'error');
+            }
+        }
+        
+        function downloadExcel() {
+            const dataParaDownload = filteredData || consolidatedData;
+            
+            if (!dataParaDownload) {
+                addLog('❌ Erro: Nenhum dado disponível para download', 'error');
+                return;
+            }
+            
+            addLog('Gerando arquivo Excel para download...', 'info');
+            
+            const ws = XLSX.utils.aoa_to_sheet(dataParaDownload);
+            
+            // Calcular larguras de coluna baseadas no conteúdo
+            const colWidths = calculateColumnWidths(dataParaDownload);
+            ws['!cols'] = colWidths;
+            
+            // Centralizar colunas específicas: A, C, E, G, I, J, K, P, Q, R, T, U, V, W, X, Y, Z
+            const colunasParaCentralizar = new Set([0, 2, 4, 6, 8, 9, 10, 15, 16, 17, 19, 20, 21, 22, 23, 24, 25]);
+            
+            // Formatar cabeçalhos
+            for (let col = 0; col < colWidths.length; col++) {
+                const cell = XLSX.utils.encode_cell({r: 0, c: col});
+                if (ws[cell]) {
+                    ws[cell].s = {
+                        font: {
+                            bold: true,
+                            color: {rgb: "FFFFFF"},
+                            name: 'Aptos Narrow',
+                            sz: 12
+                        },
+                        fill: {fgColor: {rgb: "2c3e50"}},
+                        alignment: {
+                            vertical: "center",
+                            horizontal: "center",
+                            wrapText: true
+                        }
+                    };
+                }
+            }
+            
+            // Formatação de células
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            for (let row = range.s.r + 1; row <= range.e.r; row++) {
+                // Destacar coluna F (índice 5) em amarelo se valor diferente da coluna N (índice 13) com tolerância de 0,99
+                const cellF = XLSX.utils.encode_cell({r: row, c: 5}); // Coluna F
+                const cellN = XLSX.utils.encode_cell({r: row, c: 13}); // Coluna N
+                
+                if (ws[cellF] && ws[cellN]) {
+                    const valorF = parseCurrency(ws[cellF].v);
+                    const valorN = parseCurrency(ws[cellN].v);
+                    
+                    if (Math.abs(valorF - valorN) > 0.99) {
+                        // Destacar em amarelo
+                        if (!ws[cellF].s) ws[cellF].s = {};
+                        ws[cellF].s.fill = {
+                            patternType: 'solid',
+                            fgColor: {rgb: 'FFFF00'}
+                        };
+                    }
+                }
+                
+                // Formatação de moeda para colunas monetárias
+                const colunasMoeda = [3, 5, 7, 11, 12, 13, 14];
+                colunasMoeda.forEach(col => {
+                    const cell = XLSX.utils.encode_cell({r: row, c: col});
+                    if (ws[cell] && ws[cell].v !== '') {
+                        ws[cell].z = '"R$"#,##0.00';
+                        // Aplicar fonte Aptos Narrow
+                        if (!ws[cell].s) ws[cell].s = {};
+                        ws[cell].s.font = ws[cell].s.font || {};
+                        ws[cell].s.font.name = 'Aptos Narrow';
+                        ws[cell].s.font.sz = 12;
+                    }
+                });
+                
+                // Formatação de percentual
+                const colunasPercent = [6, 15, 16];
+                colunasPercent.forEach(col => {
+                    const cell = XLSX.utils.encode_cell({r: row, c: col});
+                    if (ws[cell] && ws[cell].v !== '') {
+                        ws[cell].z = '0.00%';
+                        // Aplicar fonte Aptos Narrow
+                        if (!ws[cell].s) ws[cell].s = {};
+                        ws[cell].s.font = ws[cell].s.font || {};
+                        ws[cell].s.font.name = 'Aptos Narrow';
+                        ws[cell].s.font.sz = 12;
+                    }
+                });
+                
+                // Formatação de número inteiro
+                const cellV = XLSX.utils.encode_cell({r: row, c: 21});
+                if (ws[cellV] && ws[cellV].v !== '') {
+                    ws[cellV].z = '0';
+                    // Aplicar fonte Aptos Narrow
+                    if (!ws[cellV].s) ws[cellV].s = {};
+                    ws[cellV].s.font = ws[cellV].s.font || {};
+                    ws[cellV].s.font.name = 'Aptos Narrow';
+                    ws[cellV].s.font.sz = 12;
+                }
+                
+                // Centralizar colunas específicas
+                for (let col = 0; col < colWidths.length; col++) {
+                    if (colunasParaCentralizar.has(col)) {
+                        const cell = XLSX.utils.encode_cell({r: row, c: col});
+                        if (ws[cell]) {
+                            if (!ws[cell].s) ws[cell].s = {};
+                            ws[cell].s.alignment = ws[cell].s.alignment || {};
+                            ws[cell].s.alignment.horizontal = 'center';
+                            ws[cell].s.alignment.vertical = 'center';
+                            // Aplicar fonte Aptos Narrow
+                            ws[cell].s.font = ws[cell].s.font || {};
+                            ws[cell].s.font.name = 'Aptos Narrow';
+                            ws[cell].s.font.sz = 12;
+                        }
+                    }
+                }
+                
+                // Aplicar fonte Aptos Narrow para todas as células
+                for (let col = 0; col < colWidths.length; col++) {
+                    const cell = XLSX.utils.encode_cell({r: row, c: col});
+                    if (ws[cell]) {
+                        if (!ws[cell].s) ws[cell].s = {};
+                        ws[cell].s.font = ws[cell].s.font || {};
+                        ws[cell].s.font.name = 'Aptos Narrow';
+                        ws[cell].s.font.sz = 12;
+                    }
+                }
+            }
+            
+            // Aplicar destaque amarelo no Excel baixado
+            applyYellowHighlightToExcel(ws, dataParaDownload);
+            
+            ws['!freeze'] = {xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomRight"};
+            ws['!autofilter'] = {ref: `A1:${XLSX.utils.encode_cell({r: 0, c: colWidths.length - 1})}`};
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Base");
+            
+            let nomeArquivo = "Base_Consolidada";
+            
+            if (activeFilters.negocios.length > 0) {
+                nomeArquivo += `_Negocios_${activeFilters.negocios.length}`;
+            }
+            
+            if (activeFilters.nfse.length > 0) {
+                nomeArquivo += `_NFSe_${activeFilters.nfse.length}`;
+            }
+            
+            const dataAtual = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            nomeArquivo += `_${dataAtual}.xlsx`;
+            
+            try {
+                const wbout = XLSX.write(wb, {
+                    bookType: 'xlsx',
+                    type: 'binary',
+                    bookSST: true
+                });
+                
+                const blob = new Blob([s2ab(wbout)], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                saveAs(blob, nomeArquivo);
+                
+                addLog(`✅ Arquivo "${nomeArquivo}" baixado com sucesso!`, 'success');
+                addLog('✅ Coluna F renomeada para Vlr-Impostos com conciliação da planilha Análise', 'info');
+                addLog('✅ Coluna AF renomeada para NFSe', 'info');
+                addLog('✅ Formatação condicional aplicada: coluna F destacada se diferente de N (tolerância 0,99)', 'info');
+                addLog('✅ Destaque amarelo aplicado para:', 'info');
+                addLog('   - Coluna H quando valor do serviço total < valor líquido negociado', 'info');
+                addLog('   - Coluna J quando data de vencimento < data de emissão', 'info');
+                addLog('   - Coluna H quando valor for 33% maior que coluna D', 'info');
+            } catch (error) {
+                addLog(`❌ Erro ao gerar arquivo: ${error.message}`, 'error');
+            }
+        }
+        
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+        
+        // Adicionar estilo para destaque de busca
+        const style = document.createElement('style');
+        style.textContent = `
+            .search-highlight {
+                background-color: #ffeb3b;
+                padding: 1px 2px;
+                border-radius: 1px;
+                font-weight: bold;
+                color: #000;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dataInicio').value = '';
+            document.getElementById('dataFim').value = today;
+            
+            addLog('Sistema inicializado. Faça o upload dos arquivos para começar.', 'info');
+            addLog('✅ Sistema corrigido para processar valores monetários corretamente', 'info');
+            addLog('✅ Função parseCurrency corrigida para valores altos (ex: 1.766.142,53)', 'info');
+            addLog('✅ CORREÇÃO APLICADA: Valores não são mais somados múltiplas vezes para o mesmo negócio', 'info');
+            addLog('✅ Base Consolidada será ordenada por data de vencimento (coluna J) em ordem crescente', 'info');
+            addLog('✅ Destaque amarelo aplicado na prévia e no Excel baixado', 'info');
+            addLog('✅ Condição 1: Coluna H destacada se valor do serviço total for menor que valor líquido negociado', 'info');
+            addLog('✅ Condição 2: Coluna J destacada se data de vencimento for menor que data de emissão', 'info');
+            addLog('✅ CONDIÇÃO ATUALIZADA: Coluna H destacada se for 33% maior que coluna D', 'info');
+            addLog('✅ NOVA FUNCIONALIDADE: Botão "Baixar Divergências" para exportar operações com divergências', 'info');
+        });
+    </script>
+</body>
+</html>

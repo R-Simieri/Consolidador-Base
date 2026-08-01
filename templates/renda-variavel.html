@@ -48,7 +48,7 @@ body.tema-escuro {
   --cinza-texto: #c9d1d9;
   --cinza-claro: #8b949e;
   --azul-escuro: #0a1628;
-  --azul-card: #4a8fd4;
+  --azul-card: #4a8fd4;   /* ajuste de contraste do azul no modo escuro */
   --azul-claro: #6fa8dc;
   background: #0d1117;
   color: #c9d1d9;
@@ -106,7 +106,8 @@ body.tema-escuro .sidebar {
   transition: background 0.3s;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
 .logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
 .logo h1 span { color: var(--azul-card); }
 .logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
@@ -387,6 +388,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
+    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -610,7 +612,7 @@ function detectarTipo(c) { if (c.endsWith('11')) return 'FII'; if (c.endsWith('B
 // ============================================================
 var ativos = [];
 var chartUpside = null, chartDistribuicao = null;
-var CHAVE_ARMAZENAMENTO = 'rendaVariavel';
+var CHAVE_ARMAZENAMENTO = 'rendaVariavel'; // mesma chave usada em todas as leituras/gravações deste módulo
 
 // Preços base para fallback
 var precosBase = { 'VALE3': 58.40, 'PETR4': 33.50, 'ITUB4': 30.30, 'BBAS3': 29.40, 'BBDC4': 21.30, 'WEGE3': 43.80, 'MGLU3': 2.97, 'B3SA3': 12.50 };
@@ -670,6 +672,7 @@ function salvarAtivo(codigo, qtd, preco) {
     atualizarCotacao(novoAtivo);
     ativos.push(novoAtivo);
     
+    // Salvar no localStorage
     try {
         localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(ativos));
     } catch(e) {}
@@ -779,6 +782,7 @@ function atualizarTodasCotacoes() {
 function atualizarGraficos() {
     if (typeof Chart === 'undefined') return;
     
+    // Gráfico Upside/Downside
     var ctxUpside = document.getElementById('chartUpside');
     if (ctxUpside) {
         if (chartUpside) { chartUpside.destroy(); chartUpside = null; }
@@ -799,6 +803,7 @@ function atualizarGraficos() {
         }
     }
     
+    // Gráfico Distribuição por Ativo
     var ctxDist = document.getElementById('chartDistribuicao');
     if (ctxDist) {
         if (chartDistribuicao) { chartDistribuicao.destroy(); chartDistribuicao = null; }
@@ -821,7 +826,7 @@ function atualizarGraficos() {
 }
 
 // ============================================================
-// MODAL - NOVO ATIVO
+// MODAL - NOVO ATIVO (COM LIMPEZA DE CAMPOS)
 // ============================================================
 function abrirModal() {
     document.getElementById('inputAtivo').value = '';
@@ -918,7 +923,7 @@ document.getElementById('formEditarAtivo').addEventListener('submit', function(e
 });
 
 // ============================================================
-// CARREGAR DADOS
+// CARREGAR DADOS DO LOCALSTORAGE
 // ============================================================
 function carregarDados() {
     try {
@@ -935,6 +940,7 @@ function carregarDados() {
         }
     } catch(e) {}
     
+    // Dados de exemplo
     if (ativos.length === 0) {
         var exemplos = [
             { codigo: 'VALE3', qtd: 520, preco: 54.20 },
@@ -952,6 +958,7 @@ function carregarDados() {
 // ============================================================
 function init() {
     carregarDados();
+    // Atualização automática a cada 60 segundos
     setInterval(function() {
         if (ativos.length > 0) {
             for (var i = 0; i < ativos.length; i++) { atualizarCotacao(ativos[i]); }
@@ -965,6 +972,8 @@ function init() {
 
 init();
 
+// Recarrega os dados caso a página volte do cache do navegador
+// (bfcache) ao usar o botão "voltar" entre módulos.
 window.addEventListener('pageshow', function(evento) {
     if (evento.persisted) {
         carregarDados();
@@ -972,6 +981,7 @@ window.addEventListener('pageshow', function(evento) {
 });
 
 console.log('📈 Módulo Renda Variável carregado!');
+console.log('🧹 Campos dos modais são limpos automaticamente ao abrir!');
 console.log('🔄 Atualização automática de cotações a cada 60 segundos!');
 </script>
 </body>

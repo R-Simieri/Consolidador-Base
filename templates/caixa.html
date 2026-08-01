@@ -47,7 +47,7 @@ body.tema-escuro {
   --cinza-texto: #c9d1d9;
   --cinza-claro: #8b949e;
   --azul-escuro: #0a1628;
-  --azul-card: #4a8fd4;
+  --azul-card: #4a8fd4;   /* ajuste de contraste do azul no modo escuro */
   --azul-claro: #6fa8dc;
   background: #0d1117;
   color: #c9d1d9;
@@ -392,7 +392,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
-    <img src="/static/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
+    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -613,7 +613,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
 </main>
 
 <!-- ============================================================
-   JAVASCRIPT — CORRIGIDO: NUNCA SOBRESCREVE DADOS EXISTENTES
+   JAVASCRIPT — mesma lógica de persistência do módulo Renda Fixa
    ============================================================ -->
 <script>
 // ============================================================
@@ -644,8 +644,7 @@ function obterSimboloMoeda(m) { var s = { 'BRL':'R$','USD':'US$','EUR':'€','GB
 // VARIÁVEIS GLOBAIS
 // ============================================================
 var saldos = [];
-var CHAVE_ARMAZENAMENTO = 'saldosCaixa';
-var DADOS_CARREGADOS = false; // FLAG PARA EVITAR SOBRESCRITA
+var CHAVE_ARMAZENAMENTO = 'saldosCaixa'; // mesma chave usada em todas as leituras/gravações deste módulo
 
 // ============================================================
 // COTAÇÕES DE MOEDAS
@@ -656,15 +655,14 @@ function obterCotacaoMoeda(moeda) {
 }
 
 // ============================================================
-// PERSISTÊNCIA
+// PERSISTÊNCIA (padrão idêntico ao usado em Renda Fixa / Renda Variável)
 // ============================================================
 function persistirSaldos() {
     try {
         localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(saldos));
-        console.log('💾 Caixa salvo:', saldos.length, 'registros');
         return true;
     } catch(e) {
-        console.warn('Erro ao salvar Caixa:', e);
+        console.warn('Não foi possível salvar os dados do Caixa:', e);
         return false;
     }
 }
@@ -778,7 +776,7 @@ function atualizarTodasMoedas() {
 }
 
 // ============================================================
-// MODAL - NOVO SALDO
+// MODAL - NOVO SALDO (COM LIMPEZA DE CAMPOS)
 // ============================================================
 function abrirModal() {
     document.getElementById('inputDescricao').value = '';
@@ -854,15 +852,10 @@ document.getElementById('formEditarSaldo').addEventListener('submit', function(e
 });
 
 // ============================================================
-// CARREGAR DADOS - NUNCA SOBRESCREVE DADOS EXISTENTES
+// CARREGAR DADOS (mesma lógica usada em Renda Fixa: lê antes de
+// popular exemplos, para nunca sobrescrever dados já salvos)
 // ============================================================
 function carregarDados() {
-    // SE JÁ CARREGOU, NÃO RECARREGA
-    if (DADOS_CARREGADOS && saldos.length > 0) {
-        console.log('⚠️ Caixa já carregado:', saldos.length, 'registros');
-        return true;
-    }
-
     try {
         var salvos = localStorage.getItem(CHAVE_ARMAZENAMENTO);
         if (salvos) {
@@ -871,18 +864,15 @@ function carregarDados() {
                 saldos = parsed;
                 renderizar();
                 atualizarKPIs();
-                DADOS_CARREGADOS = true;
-                console.log('✅ Caixa carregado:', saldos.length, 'registros');
-                return true;
+                return;
             }
         }
     } catch(e) {
-        console.warn('Erro ao ler dados do Caixa:', e);
+        console.warn('Não foi possível ler os dados salvos do Caixa:', e);
     }
 
-    // SÓ CRIA DADOS DE EXEMPLO SE NÃO HOUVER NENHUM DADO SALVO
+    // Dados de exemplo (só entram se não havia nada salvo)
     if (saldos.length === 0) {
-        console.log('📂 Nenhum dado encontrado. Criando dados de exemplo...');
         var exemplos = [
             { descricao: 'Conta Corrente', moeda: 'BRL', valor: 12899.15, instituicao: 'Nubank' }
         ];
@@ -890,10 +880,7 @@ function carregarDados() {
             var ex = exemplos[i];
             try { salvarSaldo(ex.descricao, ex.moeda, ex.valor, ex.instituicao); } catch(e) {}
         }
-        DADOS_CARREGADOS = true;
-        return false;
     }
-    return false;
 }
 
 // ============================================================
@@ -901,11 +888,14 @@ function carregarDados() {
 // ============================================================
 function init() {
     carregarDados();
+    renderizar();
+    atualizarKPIs();
 }
 
 init();
 
 // Recarrega os dados caso a página volte do cache do navegador
+// (bfcache) ao usar o botão "voltar" entre módulos.
 window.addEventListener('pageshow', function(evento) {
     if (evento.persisted) {
         carregarDados();
@@ -913,7 +903,7 @@ window.addEventListener('pageshow', function(evento) {
 });
 
 console.log('💳 Módulo Caixa carregado!');
-console.log('💾 Persistência via localStorage["' + CHAVE_ARMAZENAMENTO + '"]');
+console.log('💾 Persistência via localStorage["' + CHAVE_ARMAZENAMENTO + '"], mesmo padrão da Renda Fixa/Renda Variável.');
 </script>
 </body>
 </html>

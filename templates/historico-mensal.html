@@ -449,7 +449,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
 <aside class="sidebar" id="sidebar">
   <div class="logo">
     <div class="logo-image">
-      <img src="/static/images/logo.png" alt="Logo" onerror="this.style.display='none'">
+      <img src="/static/images/Newex_-_Logo.ico" alt="Newex" onerror="this.style.display='none'">
     </div>
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
@@ -834,14 +834,14 @@ function getAdminName() {
         if (config && config.nome) {
             return config.nome;
         }
-        return 'Newex Fundo de Investimentos Multimercado Ltda';
+        return 'Rogério Simieri';
     } catch(e) {
-        return 'Newex Fundo de Investimentos Multimercado Ltda';
+        return 'Rogério Simieri';
     }
 }
 
 // ============================================================
-// FUNÇÃO PARA CALCULAR HISTÓRICO INDIVIDUAL (COM TX./MÊS DINÂMICA)
+// FUNÇÃO PARA CALCULAR HISTÓRICO INDIVIDUAL
 // ============================================================
 function calcularHistoricoIndividual(cliente, ano) {
     var dados = cliente.dados;
@@ -862,44 +862,16 @@ function calcularHistoricoIndividual(cliente, ano) {
     for (var i = 0; i < 12 && i < dados.length; i++) {
         var entrada = 0;
         var aporte = dados[i][1] || 0;
+        var txMes = dados[i][2] || 0;
         var txAdmPercentual = dados[i][4] || 50.00;
         var irPercentual = dados[i][5] || 20.00;
         
-        // ============================================================
-        // CÁLCULO DA ENTRADA
-        // ============================================================
         if (i === 0) {
             entrada = cliente.valorInicial || 0;
         } else {
             entrada = entradaAnterior + liquidoAnterior + aporte;
         }
         
-        // ============================================================
-        // CÁLCULO DA TX./MÊS DINÂMICA (SEM CONSIDERAR APORTES)
-        // ============================================================
-        var txMes;
-        if (i === 0) {
-            // Janeiro: usa a taxa salva
-            txMes = dados[i][2] || 0;
-        } else {
-            // Fevereiro em diante: calcula sem considerar aportes
-            var entradaMesAnterior = dados[i-1][0] || 0;
-            var aporteMesAtual = dados[i][1] || 0;
-            
-            // Patrimônio Final (Entrada atual) SEM considerar aporte
-            var patrimonioFinalSemAporte = entrada - aporteMesAtual;
-            
-            if (entradaMesAnterior > 0) {
-                // Tx./Mês = (Patrimônio Final Sem Aporte / Patrimônio Inicial) - 1
-                txMes = ((patrimonioFinalSemAporte / entradaMesAnterior) - 1) * 100;
-            } else {
-                txMes = dados[i][2] || 0;
-            }
-        }
-        
-        // ============================================================
-        // CÁLCULO DO TOTAL, TX. ADM., I.R. E LÍQUIDO
-        // ============================================================
         var total = entrada * (txMes / 100);
         var txAdm = total * (txAdmPercentual / 100);
         var ir = txAdm * (irPercentual / 100);
@@ -1110,10 +1082,7 @@ function renderizarCliente() {
         
         var entradaDisplay = fmtMoeda(r.entrada);
         var aporteDisplay = fmtMoeda(r.aporte);
-        
-        // TX./MÊS CALCULADA DINAMICAMENTE - MAS PODE SER EDITADA
-        var txMesDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')" title="Insira um novo valor para Tx./Mês (sobrescreve o cálculo automático)">' + fmtPctTaxa(r.txMes) + '</span>';
-        
+        var txMesDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')" title="Insira um novo valor">' + fmtPctTaxa(r.txMes) + '</span>';
         var totalDisplay = fmtMoeda(r.total);
         var txAdmDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txAdmPct\')" title="Insira um novo percentual para Tx. Adm.">' + fmtPctPercentual(r.txAdmPercentual) + '</span>';
         var irDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'irPct\')" title="Insira um novo percentual para I.R.">' + fmtPctPercentual(r.irPercentual) + '</span>';
@@ -1275,7 +1244,7 @@ function abrirModalEditar(index, campo) {
     var mes = meses[index];
     var infos = {
         'aporte': 'Digite o novo valor de aporte para ' + mes + '.',
-        'txMes': 'Digite a nova taxa para ' + mes + '. (Deixe em branco para cálculo automático)',
+        'txMes': 'Digite a nova taxa para ' + mes + '.',
         'txAdmPct': 'Digite o novo percentual de Tx. Adm. para ' + mes + '. (Padrão: 50%)',
         'irPct': 'Digite o novo percentual de I.R. para ' + mes + '. (Padrão: 20%)'
     };
@@ -1317,7 +1286,7 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
     for (var i = index; i < cliente.dados.length; i++) {
         var entrada = 0;
         var aporte = cliente.dados[i][1] || 0;
-        var txMesSalva = cliente.dados[i][2] || 0;
+        var txMes = cliente.dados[i][2] || 0;
         var txAdmPct = cliente.dados[i][4] || 50.00;
         var irPct = cliente.dados[i][5] || 20.00;
         
@@ -1329,27 +1298,6 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
             entrada = entradaAnterior + liquidoAnterior + aporte;
         }
         
-        // ============================================================
-        // TX./MÊS: SE TIVER VALOR SALVO, USA O VALOR SALVO
-        // SENÃO, CALCULA AUTOMATICAMENTE
-        // ============================================================
-        var txMes;
-        if (txMesSalva > 0) {
-            txMes = txMesSalva;
-        } else if (i === 0) {
-            txMes = 0;
-        } else {
-            var entradaMesAnterior = cliente.dados[i-1][0] || 0;
-            var aporteMesAtual = cliente.dados[i][1] || 0;
-            var patrimonioFinalSemAporte = entrada - aporteMesAtual;
-            
-            if (entradaMesAnterior > 0) {
-                txMes = ((patrimonioFinalSemAporte / entradaMesAnterior) - 1) * 100;
-            } else {
-                txMes = 0;
-            }
-        }
-        
         var total = entrada * (txMes / 100);
         var txAdm = total * (txAdmPct / 100);
         var ir = txAdm * (irPct / 100);
@@ -1357,7 +1305,6 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
         var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
         
         cliente.dados[i][0] = entrada;
-        cliente.dados[i][2] = txMes;
         cliente.dados[i][3] = total;
         cliente.dados[i][6] = liquido;
         cliente.dados[i][7] = txNominal;
@@ -1427,7 +1374,7 @@ function init() {
     
     console.log('📅 Módulo Histórico Mensal carregado!');
     console.log('📅 Ano vigente:', anoVigente);
-    console.log('📊 Tx./Mês calculada automaticamente (sem considerar aportes)');
+    console.log('👑 ADMIN removido da lista de clientes!');
 }
 
 init();

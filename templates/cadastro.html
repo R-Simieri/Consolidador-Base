@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro · Carteira Pessoal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #0c1b33;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .cadastro-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .cadastro-container h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0c1b33;
+            margin-bottom: 8px;
+        }
+        .cadastro-container h1 span { color: #2d6fb0; }
+        .cadastro-container p { color: #6c757d; font-size: 14px; margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; font-size: 13px; color: #495057; margin-bottom: 4px; }
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #dce1e8;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group input:focus { outline: none; border-color: #2d6fb0; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn:hover { background: #1a6e2d; }
+        .erro { color: #dc3545; font-size: 13px; margin-bottom: 12px; padding: 8px 12px; background: #f8d7da; border-radius: 6px; }
+        .login-link { text-align: center; margin-top: 16px; font-size: 14px; color: #6c757d; }
+        .login-link a { color: #2d6fb0; font-weight: 600; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="cadastro-container">
+        <h1>CARTEIRA<span>PESSOAL</span></h1>
+        <p>Crie sua conta gratuitamente</p>
+        
+        {% if erro %}
+        <div class="erro">{{ erro }}</div>
+        {% endif %}
+        
+        <form method="post">
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="nome" required placeholder="Seu nome">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required placeholder="seu@email.com">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn">Criar Conta</button>
+        </form>
+        
+        <div class="login-link">
+            Já tem uma conta? <a href="/login">Faça login</a>
+        </div>
+    </div>
+</body>
+</html>

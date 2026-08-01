@@ -37,87 +37,6 @@ body {
 }
 
 /* ============================================================
-   TEMA ESCURO
-   ============================================================ */
-body.tema-escuro {
-  --cinza-fundo: #0d1117;
-  --branco: #161b22;
-  --cinza-borda: #30363d;
-  --cinza-texto: #c9d1d9;
-  --cinza-claro: #8b949e;
-  --azul-escuro: #0a1628;
-  --azul-card: #4a8fd4;
-  background: #0d1117;
-  color: #c9d1d9;
-}
-
-body.tema-escuro .panel,
-body.tema-escuro .kpi-card,
-body.tema-escuro .topbar,
-body.tema-escuro .modal {
-  background: #161b22;
-  border-color: #30363d;
-}
-
-body.tema-escuro .panel-head h3,
-body.tema-escuro .modal h2 {
-  color: #f0f6fc;
-}
-
-body.tema-escuro .sidebar {
-  background: #0a1628;
-}
-
-/* ============================================================
-   VALOR NEGATIVO
-   ============================================================ */
-.valor-negativo { 
-    color: var(--vermelho) !important; 
-    font-weight: 700; 
-}
-
-/* ============================================================
-   CAMPOS EDITÁVEIS
-   ============================================================ */
-.editable-cell {
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: #f0f2f5;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-    transition: background 0.2s;
-    color: var(--azul-escuro);
-    font-weight: 600;
-    display: inline-block;
-}
-.editable-cell:hover {
-    background: #e6e9f2;
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.15);
-}
-
-body.tema-escuro .editable-cell {
-    background: #21262d;
-    color: #c9d1d9;
-}
-body.tema-escuro .editable-cell:hover {
-    background: #30363d;
-}
-
-/* ============================================================
-   LOGO
-   ============================================================ */
-.logo-image {
-    text-align: center;
-    margin-bottom: 8px;
-}
-.logo-image img {
-    max-width: 60px;
-    height: auto;
-    display: inline-block;
-    border-radius: 8px;
-}
-
-/* ============================================================
    SIDEBAR
    ============================================================ */
 .sidebar {
@@ -134,7 +53,8 @@ body.tema-escuro .editable-cell:hover {
   z-index: 100;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
 .logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
 .logo h1 span { color: var(--azul-card); }
 .logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
@@ -354,20 +274,6 @@ body.tema-escuro .editable-cell:hover {
   .main { margin-left: 56px; }
   .form-group input, .form-group select { max-width: 100%; }
 }
-
-/* ============================================================
-   ADMIN INDICATOR
-   ============================================================ */
-.admin-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 10px;
-    font-size: 7.5px;
-    font-weight: 700;
-    background: #d4edda;
-    color: #155724;
-    margin-left: 8px;
-}
 </style>
 </head>
 <body>
@@ -377,9 +283,7 @@ body.tema-escuro .editable-cell:hover {
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
-    <div class="logo-image">
-      <img src="/static/images/logo.png" alt="Logo" onerror="this.style.display='none'">
-    </div>
+    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -400,7 +304,7 @@ body.tema-escuro .editable-cell:hover {
     <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
-    <li class="active"><span class="icone">⚙️</span> Configurações</li>
+    <li onclick="window.location.href='/config'"><span class="icone">⚙️</span> Configurações</li>
 </ul>
 
   <div class="sidebar-footer">
@@ -423,10 +327,10 @@ body.tema-escuro .editable-cell:hover {
     </div>
     <div class="spacer"></div>
     <div class="usuario">
-      <div class="avatar">RS</div>
+      <div class="avatar" id="avatarUsuarioTopo">RS</div>
       <div>
-        <div style="font-weight:700;font-size:9.5px;" id="configUserName">Rogério Simieri</div>
-        <div style="font-size:8.5px;color:var(--cinza-claro);" id="configUserRole">Administrador</div>
+        <div style="font-weight:700;font-size:9.5px;" id="nomeUsuarioTopo">Rogério Simieri</div>
+        <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
       </div>
     </div>
   </header>
@@ -440,17 +344,15 @@ body.tema-escuro .editable-cell:hover {
       </div>
       <div class="form-group">
         <label>Nome</label>
-        <input type="text" id="configNome" value="Newex Fundo de Investimentos Multimercado Ltda">
-        <div class="hint">Este é o nome do Administrador (Clube de Investimentos)</div>
+        <input type="text" id="configNome" value="Rogério Simieri">
       </div>
       <div class="form-group">
         <label>Email</label>
-        <input type="email" id="configEmail" value="newex@newex.com.br">
+        <input type="email" id="configEmail" value="rogerio@newex.com.br">
       </div>
       <div class="form-group">
         <label>Função</label>
         <input type="text" id="configFuncao" value="Administrador" disabled style="background:#f0f2f5;">
-        <span class="admin-badge">👑 ADMIN</span>
       </div>
     </div>
 
@@ -531,8 +433,8 @@ body.tema-escuro .editable-cell:hover {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;">
         <div><strong>Versão:</strong> 2.0.0</div>
-        <div><strong>Última atualização:</strong> 31/07/2026</div>
-        <div><strong>Total de clientes:</strong> <span id="totalClientes">0</span></div>
+        <div><strong>Última atualização:</strong> 27/07/2026</div>
+        <div><strong>Total de clientes:</strong> <span id="totalClientes">6</span></div>
         <div><strong>Total de movimentações:</strong> <span id="totalMovimentacoes">0</span></div>
         <div><strong>Total de proventos:</strong> <span id="totalProventos">0</span></div>
         <div><strong>Dados salvos:</strong> <span id="dadosSalvos">LocalStorage</span></div>
@@ -548,11 +450,23 @@ body.tema-escuro .editable-cell:hover {
 
 <script>
 // ============================================================
-// FUNÇÕES DE CONFIGURAÇÃO
+// USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
 // ============================================================
-
-// NOME DO ADMINISTRADOR (usado em todo o sistema)
-var ADMIN_NAME = 'Newex Fundo de Investimentos Multimercado Ltda';
+function aplicarUsuarioAdmin() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        var nome = (config && config.nome) ? config.nome : 'Rogério Simieri';
+        var elNome = document.getElementById('nomeUsuarioTopo');
+        var elAvatar = document.getElementById('avatarUsuarioTopo');
+        if (elNome) elNome.textContent = nome;
+        if (elAvatar) {
+            var partes = nome.trim().split(/\s+/);
+            var iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : 'AD');
+            elAvatar.textContent = iniciais.toUpperCase();
+        }
+    } catch(e) { console.warn('Erro ao aplicar usuário admin:', e); }
+}
+aplicarUsuarioAdmin();
 
 // ============================================================
 // CARREGAR CONFIGURAÇÕES DO LOCALSTORAGE
@@ -560,72 +474,64 @@ var ADMIN_NAME = 'Newex Fundo de Investimentos Multimercado Ltda';
 function carregarConfiguracoes() {
     try {
         var config = JSON.parse(localStorage.getItem('configuracoes'));
-        if (config) {
-            document.getElementById('configNome').value = config.nome || ADMIN_NAME;
-            document.getElementById('configEmail').value = config.email || 'newex@newex.com.br';
-            document.getElementById('configTema').value = config.tema || 'claro';
-            document.getElementById('configIdioma').value = config.idioma || 'pt-BR';
-            document.getElementById('configMoeda').value = config.moeda || 'BRL';
-            
-            // Atualizar nome do usuário no topbar
-            document.getElementById('configUserName').textContent = config.nome || ADMIN_NAME;
-            
-            // APLICAR TEMA
-            aplicarTema(config.tema || 'claro');
-        } else {
-            // Configurações padrão - salvar automaticamente
-            salvarConfiguracoes();
+        if (!config) {
+            // Garante que sempre existe uma configuração salva, para que o
+            // nome do administrador seja identificado de forma consistente
+            // em todos os módulos (Histórico Mensal, Dashboard, etc.)
+            config = { nome: 'Rogério Simieri', email: 'rogerio@newex.com.br', tema: 'claro', idioma: 'pt-BR', moeda: 'BRL' };
+            localStorage.setItem('configuracoes', JSON.stringify(config));
         }
+        document.getElementById('configNome').value = config.nome || 'Rogério Simieri';
+        document.getElementById('configEmail').value = config.email || 'rogerio@newex.com.br';
+        document.getElementById('configTema').value = config.tema || 'claro';
+        document.getElementById('configIdioma').value = config.idioma || 'pt-BR';
+        document.getElementById('configMoeda').value = config.moeda || 'BRL';
+
+        // APLICAR TEMA
+        aplicarTema(config.tema || 'claro');
     } catch(e) {
         console.warn('Erro ao carregar configurações:', e);
-        // Criar configurações padrão
-        salvarConfiguracoes();
     }
 }
 
 function aplicarTema(tema) {
     var root = document.documentElement;
     if (tema === 'escuro') {
+        document.body.classList.add('tema-escuro');
         root.style.setProperty('--cinza-fundo', '#1a1a2e');
         root.style.setProperty('--branco', '#16213e');
         root.style.setProperty('--cinza-borda', '#2a3a5e');
         root.style.setProperty('--cinza-texto', '#b0c4de');
         root.style.setProperty('--cinza-claro', '#8aa3c9');
         root.style.setProperty('--azul-escuro', '#0a1628');
+        root.style.setProperty('--azul-card', '#4a8fd4');
         document.body.style.background = '#0a1628';
         document.body.style.color = '#b0c4de';
-        document.body.classList.add('tema-escuro');
     } else {
+        document.body.classList.remove('tema-escuro');
         root.style.setProperty('--cinza-fundo', '#f0f2f5');
         root.style.setProperty('--branco', '#ffffff');
         root.style.setProperty('--cinza-borda', '#dce1e8');
         root.style.setProperty('--cinza-texto', '#495057');
         root.style.setProperty('--cinza-claro', '#6c757d');
         root.style.setProperty('--azul-escuro', '#0c1b33');
+        root.style.setProperty('--azul-card', '#2d6fb0');
         document.body.style.background = '#f0f2f5';
         document.body.style.color = '#495057';
-        document.body.classList.remove('tema-escuro');
     }
 }
 
 function salvarConfiguracoes() {
     var config = {
-        nome: document.getElementById('configNome').value.trim() || ADMIN_NAME,
-        email: document.getElementById('configEmail').value.trim(),
+        nome: document.getElementById('configNome').value,
+        email: document.getElementById('configEmail').value,
         tema: document.getElementById('configTema').value,
         idioma: document.getElementById('configIdioma').value,
         moeda: document.getElementById('configMoeda').value
     };
     try {
         localStorage.setItem('configuracoes', JSON.stringify(config));
-        // Atualizar nome do administrador
-        ADMIN_NAME = config.nome;
-        document.getElementById('configUserName').textContent = config.nome;
         aplicarTema(config.tema);
-        
-        // Salvar admin name globalmente para outros módulos
-        localStorage.setItem('adminName', config.nome);
-        
         alert('✅ Configurações salvas com sucesso!');
     } catch(e) {
         alert('❌ Erro ao salvar configurações.');
@@ -649,19 +555,6 @@ function resetarDados() {
 }
 
 // ============================================================
-// FUNÇÃO PARA OBTER O NOME DO ADMINISTRADOR
-// ============================================================
-function getAdminName() {
-    try {
-        var config = JSON.parse(localStorage.getItem('configuracoes'));
-        if (config && config.nome) {
-            return config.nome;
-        }
-    } catch(e) {}
-    return ADMIN_NAME;
-}
-
-// ============================================================
 // ATUALIZAR ESTATÍSTICAS
 // ============================================================
 function atualizarEstatisticas() {
@@ -670,7 +563,7 @@ function atualizarEstatisticas() {
         var movimentacoes = JSON.parse(localStorage.getItem('movimentacoes') || '[]');
         var proventos = JSON.parse(localStorage.getItem('proventos') || '[]');
         
-        document.getElementById('totalClientes').textContent = clientes.length || 0;
+        document.getElementById('totalClientes').textContent = clientes.length || 6;
         document.getElementById('totalMovimentacoes').textContent = movimentacoes.length || 0;
         document.getElementById('totalProventos').textContent = proventos.length || 0;
     } catch(e) {
@@ -690,18 +583,13 @@ function atualizarPatrimonioTotal() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-function init() {
-    carregarConfiguracoes();
-    atualizarEstatisticas();
-    atualizarPatrimonioTotal();
-    
-    // Salvar admin name globalmente
-    localStorage.setItem('adminName', getAdminName());
-    
-    console.log('⚙️ Módulo Configurações carregado!');
-    console.log('👑 Administrador:', getAdminName());
-}
-init();
+carregarConfiguracoes();
+atualizarEstatisticas();
+atualizarPatrimonioTotal();
+
+console.log('⚙️ Módulo Configurações carregado!');
+console.log('📌 Todas as configurações são salvas localmente.');
+console.log('🎨 Tema aplicado automaticamente!');
 </script>
 </body>
 </html>

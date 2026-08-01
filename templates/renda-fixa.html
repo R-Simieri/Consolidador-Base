@@ -48,7 +48,7 @@ body.tema-escuro {
   --cinza-texto: #c9d1d9;
   --cinza-claro: #8b949e;
   --azul-escuro: #0a1628;
-  --azul-card: #4a8fd4;
+  --azul-card: #4a8fd4;   /* ajuste de contraste do azul no modo escuro */
   --azul-claro: #6fa8dc;
   background: #0d1117;
   color: #c9d1d9;
@@ -106,7 +106,8 @@ body.tema-escuro .sidebar {
   transition: background 0.3s;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
 .logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
 .logo h1 span { color: var(--azul-card); }
 .logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
@@ -387,6 +388,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
+    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -688,7 +690,7 @@ function fmtPctRF(v) { if (v === undefined || v === null || isNaN(v)) return '0,
 // ============================================================
 var aplicacoes = [];
 var chartTipo = null, chartInstituicao = null;
-var CHAVE_ARMAZENAMENTO = 'rendaFixa';
+var CHAVE_ARMAZENAMENTO = 'rendaFixa'; // mesma chave usada em todas as leituras/gravações deste módulo
 
 // ============================================================
 // CÁLCULO DE RENDIMENTO
@@ -813,6 +815,7 @@ function removerAplicacao(index) {
 function atualizarGraficos() {
     if (typeof Chart === 'undefined') return;
     
+    // Distribuição por Tipo
     var ctxTipo = document.getElementById('chartDistribuicaoTipo');
     if (ctxTipo) {
         if (chartTipo) { chartTipo.destroy(); chartTipo = null; }
@@ -834,6 +837,7 @@ function atualizarGraficos() {
         }
     }
     
+    // Distribuição por Instituição
     var ctxInst = document.getElementById('chartDistribuicaoInstituicao');
     if (ctxInst) {
         if (chartInstituicao) { chartInstituicao.destroy(); chartInstituicao = null; }
@@ -971,6 +975,7 @@ function carregarDados() {
         }
     } catch(e) {}
     
+    // Dados de exemplo
     if (aplicacoes.length === 0) {
         var exemplos = [
             { nome: 'LTF', tipo: 'Tesouro Direto', instituicao: 'Governo', valorAplicado: 61109.88, dataEntrada: '2023-01-15', rentabilidade: 12.5, vencimento: '2027-03-01', valorAtual: 77942.44 }
@@ -987,6 +992,7 @@ function carregarDados() {
 // ============================================================
 function init() {
     carregarDados();
+    // Atualização automática a cada 60 segundos
     setInterval(function() {
         if (aplicacoes.length > 0) {
             var atualizado = false;
@@ -1014,6 +1020,8 @@ function init() {
 
 init();
 
+// Recarrega os dados caso a página volte do cache do navegador
+// (bfcache) ao usar o botão "voltar" entre módulos.
 window.addEventListener('pageshow', function(evento) {
     if (evento.persisted) {
         carregarDados();
@@ -1021,6 +1029,7 @@ window.addEventListener('pageshow', function(evento) {
 });
 
 console.log('🏦 Módulo Renda Fixa carregado!');
+console.log('🧹 Campos dos modais são limpos automaticamente ao abrir!');
 console.log('🔄 Atualização automática de rendimentos a cada 60 segundos!');
 </script>
 </body>

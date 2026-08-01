@@ -40,6 +40,49 @@ body {
 /* ============================================================
    SIDEBAR
    ============================================================ */
+/* ============================================================
+   TEMA ESCURO
+   ============================================================ */
+body.tema-escuro {
+  --cinza-fundo: #0d1117;
+  --branco: #161b22;
+  --cinza-borda: #30363d;
+  --cinza-texto: #c9d1d9;
+  --cinza-claro: #8b949e;
+  --azul-escuro: #0a1628;
+  --azul-card: #4a8fd4;   /* ajuste de contraste do azul no modo escuro */
+  --azul-claro: #6fa8dc;
+  background: #0d1117;
+  color: #c9d1d9;
+}
+body.tema-escuro .panel,
+body.tema-escuro .kpi-card,
+body.tema-escuro .topbar,
+body.tema-escuro .modal {
+  background: #161b22;
+  border-color: #30363d;
+}
+body.tema-escuro .panel-head h3,
+body.tema-escuro .modal h2 {
+  color: #f0f6fc;
+}
+body.tema-escuro .info-box {
+  background: #21262d;
+  color: #8b949e;
+}
+body.tema-escuro .table-wrap table th {
+  color: #8b949e;
+}
+body.tema-escuro .table-wrap table td {
+  border-bottom-color: #30363d;
+}
+body.tema-escuro .table-wrap table .total-row td {
+  background: #21262d;
+}
+body.tema-escuro .sidebar {
+  background: #0a1628;
+}
+
 .sidebar {
   width: 210px;
   min-height: 100vh;
@@ -54,7 +97,8 @@ body {
   z-index: 100;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
 .logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
 .logo h1 span { color: var(--azul-card); }
 .logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
@@ -338,6 +382,9 @@ table tr:last-child td { border-bottom: none; }
 
 .chart-container { position: relative; width: 100%; min-height: 200px; }
 
+.col-positivo { color: var(--verde-card); font-weight: 700; }
+.col-negativo { color: var(--vermelho); font-weight: 700; }
+
 /* ============================================================
    RESPONSIVO
    ============================================================ */
@@ -374,6 +421,7 @@ table tr:last-child td { border-bottom: none; }
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
+    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -572,6 +620,23 @@ table tr:last-child td { border-bottom: none; }
 </main>
 
 <script>
+// ============================================================
+// CONFIGURAÇÕES - CARREGAR TEMA
+// ============================================================
+function carregarTema() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        if (config && config.tema === 'escuro') {
+            document.body.classList.add('tema-escuro');
+        } else {
+            document.body.classList.remove('tema-escuro');
+        }
+    } catch(e) {
+        document.body.classList.remove('tema-escuro');
+    }
+}
+carregarTema();
+
 // ============================================================
 // DADOS INICIAIS
 // ============================================================
