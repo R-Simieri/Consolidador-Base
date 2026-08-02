@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carteira Pessoal · Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="/static/chart.umd.js" onerror="var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js';document.head.appendChild(s);"></script>
 <style>
 /* ============================================================
    FONTE E VARIÁVEIS
@@ -31,7 +31,7 @@
 
 body {
   font-family: var(--fonte);
-  font-size: 11px;
+  font-size: 12px;
   background: var(--cinza-fundo);
   color: var(--cinza-texto);
   line-height: 1.5;
@@ -48,7 +48,7 @@ body.tema-escuro {
   --cinza-texto: #c9d1d9;
   --cinza-claro: #8b949e;
   --azul-escuro: #0a1628;
-  --azul-card: #4a8fd4;   /* ajuste de contraste do azul no modo escuro */
+  --azul-card: #4a8fd4;
   --azul-claro: #6fa8dc;
   background: #0d1117;
   color: #c9d1d9;
@@ -65,6 +65,17 @@ body.tema-escuro .modal {
 body.tema-escuro .panel-titulo,
 body.tema-escuro .panel-head h3,
 body.tema-escuro .modal h2 {
+  color: #f0f6fc;
+}
+body.tema-escuro .topbar h2,
+body.tema-escuro .panel-titulo,
+body.tema-escuro .modal h2,
+body.tema-escuro .modal-rf h2,
+body.tema-escuro .modal-edit-rv h2,
+body.tema-escuro .modal-edit-rf h2,
+body.tema-escuro .modal-caixa h2,
+body.tema-escuro .modal-edit-caixa h2,
+body.tema-escuro #custoPreview {
   color: #f0f6fc;
 }
 
@@ -111,11 +122,11 @@ body.tema-escuro .sidebar-footer {
   transition: background 0.3s;
 }
 
-.logo { padding: 20px 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
-.logo-img-sidebar { width: 58px; height: 58px; object-fit: contain; border-radius: 12px; background: #fff; padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
-.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+.logo { margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; }
+.logo-img-sidebar { width: 85%; height: auto; display: block; object-fit: cover; margin: 0 auto; border-radius: 4px; }
+.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; margin-top: 10px; }
 .logo h1 span { color: var(--azul-card); }
-.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; margin-bottom: 10px; }
 
 .sidebar-nav { list-style: none; padding: 0 10px; }
 .sidebar-nav li {
@@ -186,33 +197,33 @@ body.tema-escuro .sidebar-footer {
    ============================================================ */
 .ticker-wrap {
   flex: 1;
-  max-width: 560px;
+  max-width: 900px;
   overflow: hidden;
   background: var(--cinza-fundo);
   border: 1px solid var(--cinza-borda);
   border-radius: 20px;
-  padding: 6px 0;
+  padding: 8px 0;
   margin: 0 14px;
   position: relative;
 }
 .ticker-track {
   display: flex;
-  gap: 22px;
+  gap: 24px;
   white-space: nowrap;
   width: max-content;
-  animation: ticker-scroll 30s linear infinite;
+  animation: ticker-scroll 38s linear infinite;
 }
 .ticker-wrap:hover .ticker-track { animation-play-state: paused; }
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-.ticker-item { display: inline-flex; align-items: center; gap: 5px; font-size: 9.5px; font-weight: 700; padding: 0 6px; color: var(--cinza-texto); }
+.ticker-item { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; padding: 0 8px; color: var(--cinza-texto); }
 .ticker-item .tk-nome { color: var(--cinza-claro); font-weight: 700; }
 .ticker-item .tk-valor { font-weight: 800; }
 .ticker-item .tk-var.up { color: var(--verde-card); }
 .ticker-item .tk-var.down { color: var(--vermelho); }
-@media (max-width: 1024px) { .ticker-wrap { display: none; } }
+@media (max-width: 1200px) { .ticker-wrap { display: none; } }
 
 /* ============================================================
    CONTEÚDO PRINCIPAL
@@ -300,15 +311,15 @@ table tr:last-child td { border-bottom: none; }
 table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px solid var(--cinza-borda); }
 
 /* CORES DO HISTÓRICO MENSAL */
-.col-mes { color: var(--azul-escuro); font-weight: 700; }
+.col-mes { color: var(--vermelho); font-weight: 700; }
 .col-entrada { color: var(--verde-card); font-weight: 700; }
-.col-aporte { color: #0000B8; font-weight: 700; }
+.col-aporte { color: var(--azul-card); font-weight: 700; }
 .col-aporte-negativo { color: var(--vermelho); font-weight: 700; }
 .col-tx-mes { color: var(--verde-card); font-weight: 600; }
-.col-total { color: var(--azul-escuro); font-weight: 600; }
+.col-total { color: var(--verde-card); font-weight: 700; }
 .col-tx-adm { color: #b8790f; font-weight: 600; }
 .col-ir { color: var(--vermelho); font-weight: 600; }
-.col-liquido-positivo { color: #0000B8; font-weight: 700; }
+.col-liquido-positivo { color: var(--azul-card); font-weight: 700; }
 .col-liquido-negativo { color: var(--vermelho); font-weight: 700; }
 .col-tx-nominal { color: var(--verde-card); font-weight: 600; }
 
@@ -364,24 +375,57 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
 }
 
 /* ============================================================
-   DONUT CHART SVG
-   ============================================================ */
-.donut-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: center;
-}
-.chart-svg-donut { width: 130px; height: 130px; }
-.donut-legend { font-size: 9px; display: flex; flex-direction: column; gap: 3px; }
-.donut-legend .item { display: flex; align-items: center; gap: 5px; }
-.donut-legend .dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
-.donut-legend .pct { font-weight: 700; margin-left: auto; }
-
-/* ============================================================
    CHART CONTAINER
    ============================================================ */
-.chart-container { position: relative; width: 100%; min-height: 180px; }
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.chart-container canvas {
+  max-width: 100%;
+  max-height: 150px;
+  width: auto !important;
+  height: auto !important;
+}
+.panel .chart-container canvas {
+  max-height: 140px;
+}
+#chartDistribuicaoCarteira {
+  max-width: 160px !important;
+  max-height: 140px !important;
+}
+@media (max-width: 640px) {
+  #chartDistribuicaoCarteira {
+    max-width: 120px !important;
+    max-height: 120px !important;
+  }
+}
+.dash-grid-3 .chart-container {
+  min-height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dash-grid-3 .chart-container canvas {
+  max-width: 100%;
+  max-height: 150px;
+  width: auto !important;
+  height: auto !important;
+}
+#chartDistribuicaoCarteira {
+  max-width: 160px !important;
+  max-height: 140px !important;
+}
+@media (max-width: 640px) {
+  #chartDistribuicaoCarteira {
+    max-width: 120px !important;
+    max-height: 120px !important;
+  }
+}
 
 /* ============================================================
    INFO BOX
@@ -410,6 +454,8 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
   font-weight: 600;
 }
 .editable-cell:hover { background: #eef2f7; }
+.editable-cell.col-negativo { color: var(--vermelho) !important; }
+.editable-cell.col-positivo { color: var(--verde-card) !important; }
 
 /* ============================================================
    MODAIS
@@ -546,7 +592,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
-    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
+    <img src="/static/Logo%20Newex.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
     <h1>CARTEIRA<span>PESSOAL</span></h1>
     <small>GESTÃO PATRIMONIAL</small>
   </div>
@@ -900,8 +946,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
         <span class="ticker-item">Carregando cotações...</span>
       </div>
     </div>
-    <div class="spacer"></div>
-    <div class="usuario">
+    <div class="usuario" style="margin-left:14px;">
       <div class="avatar" id="avatarUsuarioTopo">RS</div>
       <div>
         <div style="font-weight:700;font-size:9.5px;" id="nomeUsuarioTopo">Rogério Simieri</div>
@@ -921,21 +966,24 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
       <div class="kpi-grid">
         <div class="kpi-card card-azul">
           <div class="label">Patrimônio Total</div>
-          <div class="valor" id="dashPatrimonioTotal">R$ 178.605,56</div>
-          <div class="delta">↑ 1,33% <small>em relação ao mês anterior</small></div>
+          <div class="valor" id="dashPatrimonioTotal">R$ 0,00</div>
+          <div class="delta" id="dashPatrimonioDelta">↑ 0,00% <small>em relação ao mês anterior</small></div>
         </div>
         <div class="kpi-card card-verde">
           <div class="label">Resultado do Mês</div>
-          <div class="valor" id="dashResultadoMes">R$ 2.351,95</div>
-          <div class="delta">↑ 1,33% <small>sobre o patrimônio inicial</small></div>
+          <div class="valor" id="dashResultadoMes">R$ 0,00</div>
+          <div class="delta" id="dashResultadoDelta">↑ 0,00% <small>sobre o patrimônio inicial</small></div>
         </div>
         <div class="kpi-card card-lilas">
           <div class="label">Lucro Acumulado</div>
-          <div class="valor" id="dashLucroAcumulado">R$ 33.220,35</div>
-          <div class="delta">↑ 9,49% bruto <small>/ 7,58% líquido no semestre</small></div>
+          <div class="valor" id="dashLucroAcumulado">R$ 0,00</div>
+          <div class="delta" id="dashLucroDelta">↑ 0,00% <small>acumulado desde o início</small></div>
         </div>
         <div class="kpi-card card-amarelo">
-          <div class="label">Caixa Disponível</div>
+          <div class="label" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Caixa Disponível</span>
+            <button class="btn btn-primary btn-sm" onclick="switchView('caixa')" style="font-size:7.5px;">+ Gerenciar</button>
+          </div>
           <div class="valor" id="dashCaixaTotal">R$ 0,00</div>
           <div class="delta" style="color:var(--amarelo-card);" id="dashCaixaDetalhe">0,00% <small>do patrimônio total</small></div>
         </div>
@@ -947,19 +995,8 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
         <!-- DISTRIBUIÇÃO DA CARTEIRA -->
         <div class="panel">
           <div class="panel-titulo">Distribuição da Carteira</div>
-          <div class="donut-row">
-            <svg class="chart-svg-donut" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#e6e9f2" stroke-width="20"/>
-              <circle id="donutRV" cx="50" cy="50" r="40" fill="none" stroke="#2d6fb0" stroke-width="20" stroke-dasharray="0 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
-              <circle id="donutRF" cx="50" cy="50" r="40" fill="none" stroke="#28a745" stroke-width="20" stroke-dasharray="0 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
-              <circle id="donutCaixa" cx="50" cy="50" r="40" fill="none" stroke="#fd7e14" stroke-width="20" stroke-dasharray="0 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
-              <circle cx="50" cy="50" r="28" fill="white"/>
-            </svg>
-            <div class="donut-legend">
-              <div class="item"><span class="dot" style="background:#2d6fb0;"></span> Renda Variável <span class="pct" id="legPctRV">0,00%</span></div>
-              <div class="item"><span class="dot" style="background:#28a745;"></span> Renda Fixa <span class="pct" id="legPctRF">0,00%</span></div>
-              <div class="item"><span class="dot" style="background:#fd7e14;"></span> Caixa <span class="pct" id="legPctCaixa">0,00%</span></div>
-            </div>
+          <div class="chart-container">
+            <canvas id="chartDistribuicaoCarteira" height="150"></canvas>
           </div>
         </div>
 
@@ -982,20 +1019,6 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           </div>
           <div class="chart-container">
             <canvas id="chartRentabilidade" height="120"></canvas>
-          </div>
-          <div style="display:flex;gap:20px;margin-top:6px;flex-wrap:wrap;justify-content:center;">
-            <div>
-              <span style="font-size:8px;color:var(--cinza-claro);">Rentabilidade no período</span><br>
-              <span id="rentabilidadePeriodo" style="font-size:14px;font-weight:800;color:var(--verde-card);">15,46%</span>
-            </div>
-            <div>
-              <span style="font-size:8px;color:var(--cinza-claro);">CDI no período</span><br>
-              <span id="cdiPeriodo" style="font-size:12px;font-weight:700;color:var(--azul-card);">10,80%</span>
-            </div>
-            <div>
-              <span style="font-size:8px;color:var(--cinza-claro);">IPCA no período</span><br>
-              <span id="ipcaPeriodo" style="font-size:12px;font-weight:700;color:#b8790f;">3,80%</span>
-            </div>
           </div>
         </div>
       </div>
@@ -1062,10 +1085,11 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
             <small>Newex Fundo de Investimentos Multimercado Ltda.</small>
             <div style="display:flex;gap:4px;align-items:center;">
               <label style="font-size:8px;color:var(--cinza-claro);">Ano:</label>
-              <select id="selectAnoHistorico" class="select-ano" onchange="carregarHistoricoMensal()">
+              <select id="selectAnoHistorico" class="select-ano" onchange="carregarHistoricoMensal(); atualizarEvolucaoPatrimonio(); atualizarGraficoRentabilidade();">
                 <option value="2025">2025</option>
                 <option value="2026" selected>2026</option>
               </select>
+              <button class="btn btn-ghost" onclick="limparEdicoesManuaisAno()" title="Remove edições manuais de Entrada/Aporte/Tx./Tx.Adm/I.R. deste ano, voltando tudo ao cálculo automático">🧹 Limpar edições</button>
               <button class="btn btn-ghost" onclick="exportarHistorico()">⬇ Exportar</button>
               <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimir</button>
             </div>
@@ -1393,47 +1417,83 @@ const API_BASE = 'https://brapi.dev/api';
 const ATIVOS_MONITORADOS = ['VALE3', 'PETR4', 'ITUB4', 'BBAS3', 'BBDC4', 'WEGE3', 'MGLU3', 'B3SA3'];
 
 // ============================================================
-// TICKER DE COTAÇÕES (IBOV, Dólar, Euro, Blue Chips) - dados reais via Brapi
-// Obs: a Brapi cobre o mercado brasileiro (B3, câmbio, índices como o IBOV).
-// Índices americanos (Dow Jones, Nasdaq) não fazem parte da cobertura da
-// Brapi, então esses dois ficam fora do ticker até haver outra fonte de dados.
+// TICKER DE COTAÇÕES - dados reais via Brapi
 // ============================================================
+const TICKER_ACOES = ['VALE3', 'PETR4', 'ITUB4', 'BBAS3', 'WEGE3', 'BPAC11', 'PETR3', 'BBDC4', 'ABEV3', 'SANB11', 'ITSA4'];
+const TICKER_INDICES = ['^BVSP'];
+const TICKER_NOMES = { '^BVSP': 'IBOV' };
+
+async function buscarQuoteBrapi(tickers) {
+    var resp = await fetch(API_BASE + '/quote/' + tickers.join(',') + '?token=' + API_KEY);
+    if (!resp.ok) {
+        var corpo = '';
+        try { corpo = await resp.text(); } catch(e) {}
+        throw new Error('Brapi ' + resp.status + ' para [' + tickers.join(',') + ']: ' + corpo);
+    }
+    return resp.json();
+}
+
 async function buscarTickerCotacoes() {
     var resultado = [];
-    try {
-        var respIbov = await fetch(API_BASE + '/quote/^BVSP?token=' + API_KEY);
-        var dadosIbov = await respIbov.json();
-        if (dadosIbov.results && dadosIbov.results[0]) {
-            var r = dadosIbov.results[0];
-            resultado.push({ nome: 'IBOV', valor: r.regularMarketPrice, variacao: r.regularMarketChangePercent, formato: 'numero' });
-        }
-    } catch(e) { console.warn('Erro ao buscar IBOV:', e); }
+
+    // O plano gratuito da Brapi permite só 1 ativo por requisição — por
+    // isso cada ticker vai numa chamada individual, todas em paralelo.
+    var tarefasAcoes = TICKER_ACOES.map(function(tk) {
+        return buscarQuoteBrapi([tk]).then(function(dados) {
+            if (dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
+                var r = dados.results[0];
+                return { nome: r.symbol, valor: r.regularMarketPrice, variacao: r.regularMarketChangePercent, formato: 'numero' };
+            }
+            return null;
+        }).catch(function(e) { console.warn('Erro ao buscar ' + tk + ':', e.message); return null; });
+    });
+
+    var tarefasIndices = TICKER_INDICES.map(function(tk) {
+        return buscarQuoteBrapi([tk]).then(function(dados) {
+            if (dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
+                var r = dados.results[0];
+                return { nome: TICKER_NOMES[tk] || tk, valor: r.regularMarketPrice, variacao: r.regularMarketChangePercent, formato: 'numero' };
+            }
+            return null;
+        }).catch(function(e) { console.warn('Erro ao buscar índice ' + tk + ':', e.message); return null; });
+    });
+
+    var respostasAcoesIndices = await Promise.all(tarefasAcoes.concat(tarefasIndices));
+    for (var i = 0; i < respostasAcoesIndices.length; i++) {
+        if (respostasAcoesIndices[i]) resultado.push(respostasAcoesIndices[i]);
+    }
 
     try {
         var respMoedas = await fetch(API_BASE + '/v2/currency?currency=USD-BRL,EUR-BRL&token=' + API_KEY);
+        if (!respMoedas.ok) throw new Error('Brapi v2/currency ' + respMoedas.status);
         var dadosMoedas = await respMoedas.json();
         if (dadosMoedas.currency) {
             for (var i = 0; i < dadosMoedas.currency.length; i++) {
                 var m = dadosMoedas.currency[i];
                 resultado.push({
-                    nome: m.fromCurrency === 'USD' ? 'Dólar' : (m.fromCurrency === 'EUR' ? 'Euro' : m.fromCurrency),
+                    nome: m.fromCurrency === 'USD' ? 'DOLAR' : (m.fromCurrency === 'EUR' ? 'EURO' : m.fromCurrency),
                     valor: parseFloat(m.bidPrice),
                     variacao: parseFloat(m.percentageChange),
                     formato: 'moeda'
                 });
             }
         }
-    } catch(e) { console.warn('Erro ao buscar câmbio:', e); }
-
-    try {
-        var respBC = await fetch(API_BASE + '/quote/PETR4,VALE3,ITUB4,BBDC4?token=' + API_KEY);
-        var dadosBC = await respBC.json();
-        if (dadosBC.results && dadosBC.results.length > 0) {
-            var somaVar = 0;
-            for (var i = 0; i < dadosBC.results.length; i++) somaVar += (dadosBC.results[i].regularMarketChangePercent || 0);
-            resultado.push({ nome: 'Blue Chips', valor: null, variacao: somaVar / dadosBC.results.length, formato: 'percentual' });
+    } catch(e) {
+        console.warn('Erro ao buscar câmbio (v2/currency):', e.message, '— tentando endpoint alternativo...');
+        var tarefasMoedas = ['USDBRL=X', 'EURBRL=X'].map(function(tk) {
+            return buscarQuoteBrapi([tk]).then(function(dados) {
+                if (dados.results && dados.results[0]) {
+                    var r = dados.results[0];
+                    return { nome: r.symbol.indexOf('USD') === 0 ? 'DOLAR' : 'EURO', valor: r.regularMarketPrice, variacao: r.regularMarketChangePercent, formato: 'moeda' };
+                }
+                return null;
+            }).catch(function(e2) { console.warn('Erro no fallback de câmbio ' + tk + ':', e2.message); return null; });
+        });
+        var respostasMoedas = await Promise.all(tarefasMoedas);
+        for (var i = 0; i < respostasMoedas.length; i++) {
+            if (respostasMoedas[i]) resultado.push(respostasMoedas[i]);
         }
-    } catch(e) { console.warn('Erro ao buscar blue chips:', e); }
+    }
 
     return resultado;
 }
@@ -1454,10 +1514,9 @@ async function atualizarTickerCotacoes() {
         var valorTexto = '';
         if (it.formato === 'moeda') valorTexto = 'R$ ' + it.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         else if (it.formato === 'numero') valorTexto = it.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        var varTexto = (it.variacao >= 0 ? '+' : '') + it.variacao.toFixed(2) + '%';
+        var varTexto = (it.variacao >= 0 ? '+' : '') + (it.variacao || 0).toFixed(2) + '%';
         html += '<span class="ticker-item"><span class="tk-nome">' + it.nome + ':</span>' + (valorTexto ? '<span class="tk-valor">' + valorTexto + '</span>' : '') + '<span class="tk-var ' + cls + '">' + seta + ' ' + varTexto + '</span></span>';
     }
-    // duplica os itens para o efeito de rolagem contínua
     track.innerHTML = html + html;
 }
 
@@ -1524,6 +1583,101 @@ var months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov",
 // ============================================================
 // 4. HISTÓRICO MENSAL - NEWEX (CORRIGIDO)
 // ============================================================
+// Garante que os dados de um ano existam em cache (historicoDados_<ano>),
+// calculando-os do zero se necessário — assim a Entrada de Janeiro sempre
+// encontra o ano anterior, mesmo que o usuário nunca tenha aberto aquele
+// ano no seletor. Evita duplicar 100% a lógica de carregarHistoricoMensal,
+// mas replica os mesmos passos de cálculo, sem tocar no DOM.
+function garantirDadosAno(ano) {
+    var cache = localStorage.getItem('historicoDados_' + ano);
+    if (cache) {
+        try { return JSON.parse(cache); } catch(e) {}
+    }
+
+    var clientesData = [];
+    try {
+        var salvos = localStorage.getItem('clientes');
+        if (salvos) clientesData = JSON.parse(salvos);
+    } catch(e) { clientesData = []; }
+    if (clientesData.length === 0) {
+        clientesData = [
+            { nome: 'Rogério Simieri', valorInicial: 50958.37 },
+            { nome: 'Vitória Simieri', valorInicial: 85814.40 },
+            { nome: 'Manuella Cardoso', valorInicial: 6230.46 },
+            { nome: 'João Paulo Simieri', valorInicial: 27.09 },
+            { nome: 'Pedro Henrique Simieri', valorInicial: 1396.04 },
+            { nome: 'Josepha Simieri', valorInicial: 10698.91 }
+        ];
+    }
+    var somaInicial = 0;
+    for (var i = 0; i < clientesData.length; i++) somaInicial += clientesData[i].valorInicial || 0;
+
+    var movimentacoes = [];
+    try { movimentacoes = JSON.parse(localStorage.getItem('movimentacoes') || '[]'); } catch(e) {}
+    var aportesPorMes = {};
+    for (var i = 0; i < 12; i++) aportesPorMes[i] = 0;
+    for (var i = 0; i < movimentacoes.length; i++) {
+        var m = movimentacoes[i];
+        if (m.data) {
+            var data = parseDataLocal(m.data);
+            var mes = data.getMonth();
+            if (mes >= 0 && mes < 12 && data.getFullYear() === ano) {
+                if (m.tipo === 'credito') aportesPorMes[mes] += m.valor || 0;
+                else if (m.tipo === 'debito') aportesPorMes[mes] -= m.valor || 0;
+            }
+        }
+    }
+    try {
+        var aporteSalvas = JSON.parse(localStorage.getItem('aportePorMes_' + ano) || '{}');
+        for (var key in aporteSalvas) aportesPorMes[parseInt(key)] = aporteSalvas[key];
+    } catch(e) {}
+
+    var txPorMes = {}, txAdmPorMes = {}, irPorMes = {}, entradaPorMes = {};
+    try { var t1 = JSON.parse(localStorage.getItem('txPorMes_' + ano) || '{}'); for (var k in t1) txPorMes[parseInt(k)] = t1[k]; } catch(e) {}
+    try { var t2 = JSON.parse(localStorage.getItem('txAdmPorMes_' + ano) || '{}'); for (var k in t2) txAdmPorMes[parseInt(k)] = t2[k]; } catch(e) {}
+    try { var t3 = JSON.parse(localStorage.getItem('irPorMes_' + ano) || '{}'); for (var k in t3) irPorMes[parseInt(k)] = t3[k]; } catch(e) {}
+    try { var t4 = JSON.parse(localStorage.getItem('entradaPorMes_' + ano) || '{}'); for (var k in t4) entradaPorMes[parseInt(k)] = t4[k]; } catch(e) {}
+
+    // Resolve o ano anterior (só 1 nível — evita recursão sem fim quando não
+    // há histórico nenhum salvo). Se o ano anterior também não tiver cache,
+    // usa a soma dos valores iniciais como base dele.
+    var anterior = null;
+    try {
+        var cacheAnterior = localStorage.getItem('historicoDados_' + (ano - 1));
+        if (cacheAnterior) anterior = JSON.parse(cacheAnterior);
+    } catch(e) {}
+    var entradaDezAnt = somaInicial, liquidoDezAnt = 0, aporteDezAnt = 0;
+    if (anterior && anterior[11] !== undefined && anterior[11].entrada !== undefined) {
+        entradaDezAnt = anterior[11].entrada;
+        liquidoDezAnt = anterior[11].liquido || 0;
+        aporteDezAnt = anterior[11].aporte || 0;
+    }
+
+    var dadosAno = {};
+    dadosAno[-1] = { entrada: entradaDezAnt, liquido: liquidoDezAnt, aporte: aporteDezAnt };
+    for (var i = 0; i < 12; i++) {
+        var entrada;
+        if (entradaPorMes[i] !== undefined) {
+            entrada = entradaPorMes[i];
+        } else {
+            var ant = dadosAno[i-1];
+            entrada = (ant ? (ant.entrada || 0) : 0) + (ant ? (ant.liquido || 0) : 0) + (ant ? (ant.aporte || 0) : 0);
+        }
+        var aporte = aportesPorMes[i] || 0;
+        var txMes = txPorMes[i] !== undefined ? txPorMes[i] : 0;
+        var total = entrada * (txMes / 100);
+        var txAdmPct = txAdmPorMes[i] !== undefined ? txAdmPorMes[i] : 0;
+        var txAdmValor = total * (txAdmPct / 100);
+        var irPct = irPorMes[i] !== undefined ? irPorMes[i] : (txAdmPct * 0.20);
+        var irValor = total * (irPct / 100);
+        var liquido = total - txAdmValor - irValor;
+        dadosAno[i] = { liquido: liquido, entrada: entrada, total: total, txMes: txMes, aporte: aporte };
+    }
+
+    try { localStorage.setItem('historicoDados_' + ano, JSON.stringify(dadosAno)); } catch(e) {}
+    return dadosAno;
+}
+
 function carregarHistoricoMensal() {
     var tbody = document.getElementById('dashHistTableBody');
     var tfoot = document.getElementById('dashHistTfoot');
@@ -1531,7 +1685,6 @@ function carregarHistoricoMensal() {
 
     var ano = parseInt(document.getElementById('selectAnoHistorico').value);
 
-    // Buscar clientes do localStorage
     var clientesData = [];
     try {
         var salvos = localStorage.getItem('clientes');
@@ -1549,20 +1702,17 @@ function carregarHistoricoMensal() {
         ];
     }
 
-    // Entrada = SOMA dos Valores Iniciais (JANEIRO)
     var somaInicial = 0;
     for (var i = 0; i < clientesData.length; i++) {
         somaInicial += clientesData[i].valorInicial || 0;
     }
 
-    // Buscar movimentações do localStorage
     var movimentacoes = [];
     try {
         var movSalvos = localStorage.getItem('movimentacoes');
         if (movSalvos) movimentacoes = JSON.parse(movSalvos);
     } catch(e) { movimentacoes = []; }
 
-    // Aportes por mês (consolidado)
     var aportesPorMes = {};
     for (var i = 0; i < 12; i++) aportesPorMes[i] = 0;
 
@@ -1571,118 +1721,136 @@ function carregarHistoricoMensal() {
         if (m.data) {
             var data = parseDataLocal(m.data);
             var mes = data.getMonth();
-            if (mes >= 0 && mes < 12) {
+            if (mes >= 0 && mes < 12 && data.getFullYear() === ano) {
                 if (m.tipo === 'credito') aportesPorMes[mes] += m.valor || 0;
                 else if (m.tipo === 'debito') aportesPorMes[mes] -= m.valor || 0;
             }
         }
     }
 
-    // Buscar TX./Mês salvas
     var txPorMes = {};
     try {
-        var txSalvas = JSON.parse(localStorage.getItem('txPorMes') || '{}');
+        var txSalvas = JSON.parse(localStorage.getItem('txPorMes_' + ano) || '{}');
         for (var key in txSalvas) txPorMes[parseInt(key)] = txSalvas[key];
     } catch(e) {}
 
-    // Buscar TX. Adm. salvas
     var txAdmPorMes = {};
     try {
-        var txAdmSalvas = JSON.parse(localStorage.getItem('txAdmPorMes') || '{}');
+        var txAdmSalvas = JSON.parse(localStorage.getItem('txAdmPorMes_' + ano) || '{}');
         for (var key in txAdmSalvas) txAdmPorMes[parseInt(key)] = txAdmSalvas[key];
     } catch(e) {}
 
-    // Buscar I.R. salvas
     var irPorMes = {};
     try {
-        var irSalvas = JSON.parse(localStorage.getItem('irPorMes') || '{}');
+        var irSalvas = JSON.parse(localStorage.getItem('irPorMes_' + ano) || '{}');
         for (var key in irSalvas) irPorMes[parseInt(key)] = irSalvas[key];
     } catch(e) {}
 
-    // Buscar entradas salvas (para edição)
     var entradaPorMes = {};
     try {
-        var entradaSalvas = JSON.parse(localStorage.getItem('entradaPorMes') || '{}');
+        var entradaSalvas = JSON.parse(localStorage.getItem('entradaPorMes_' + ano) || '{}');
         for (var key in entradaSalvas) entradaPorMes[parseInt(key)] = entradaSalvas[key];
     } catch(e) {}
 
-    // Gerar tabela com cálculo correto da ENTRADA
+    // Aporte editado manualmente tem prioridade sobre a soma vinda das
+    // Movimentações — evita conflito de tentar "editar" um lançamento de
+    // Movimentações que pode não existir, ter sinal diferente, ou haver
+    // mais de um no mesmo mês.
+    var aportePorMesManual = {};
+    try {
+        var aporteSalvas = JSON.parse(localStorage.getItem('aportePorMes_' + ano) || '{}');
+        for (var key in aporteSalvas) aportePorMesManual[parseInt(key)] = aporteSalvas[key];
+    } catch(e) {}
+    for (var key in aportePorMesManual) aportesPorMes[key] = aportePorMesManual[key];
+
     var html = '';
     var totalAporteGeral = 0, totalTxAdmGeral = 0, totalIRGeral = 0;
     var totalLiquidoGeral = 0, totalResultadoGeral = 0;
-    
-    // Janeiro (i === 0): Entrada = soma dos valores iniciais de todos os clientes
-    var entradaAnterior = somaInicial;
+
+    // O TOTAL (rodapé) da coluna Entrada = a Entrada de Dezembro + o Líquido
+    // de Dezembro + o Aporte de Dezembro (mesma fórmula dos demais meses).
+    // Esse mesmo valor é o que alimenta a Entrada de Janeiro do ano seguinte.
+    // Usamos garantirDadosAno() em vez de ler o cache direto, para que o ano
+    // anterior seja calculado na hora se o usuário nunca tiver aberto ele.
+    var entradaDezAnoAnterior = somaInicial;
+    var liquidoDezAnoAnterior = 0;
+    var aporteDezAnoAnterior = 0;
+    try {
+        var dadosAnoAnterior = garantirDadosAno(ano - 1);
+        if (dadosAnoAnterior && dadosAnoAnterior[11] !== undefined && dadosAnoAnterior[11].entrada !== undefined) {
+            entradaDezAnoAnterior = dadosAnoAnterior[11].entrada;
+            liquidoDezAnoAnterior = dadosAnoAnterior[11].liquido || 0;
+            aporteDezAnoAnterior = dadosAnoAnterior[11].aporte || 0;
+        }
+    } catch(e) {}
+
+    var dadosAnoAtual = {};
+    dadosAnoAtual[-1] = { entrada: entradaDezAnoAnterior, liquido: liquidoDezAnoAnterior, aporte: aporteDezAnoAnterior };
 
     for (var i = 0; i < 12; i++) {
-        // ENTRADA: 
         var entrada;
-        if (i === 0) {
-            // Janeiro: Entrada = soma dos valores iniciais
-            entrada = somaInicial;
+        if (entradaPorMes[i] !== undefined) {
+            entrada = entradaPorMes[i];
         } else {
-            // Para os demais meses: Entrada = Entrada do mês anterior + Líquido do mês anterior + Aporte do mês atual
-            var liquidoAnterior = 0;
-            try {
-                var dadosSalvos = JSON.parse(localStorage.getItem('historicoDados') || '{}');
-                if (dadosSalvos[i-1] !== undefined) {
-                    liquidoAnterior = dadosSalvos[i-1].liquido || 0;
-                }
-            } catch(e) {}
-            var aporteDoMes = aportesPorMes[i] || 0;
-            entrada = entradaAnterior + liquidoAnterior + aporteDoMes;
+            // Todo aporte só entra na Entrada do MÊS SEGUINTE ao que foi
+            // lançado — por isso usamos o aporte do mês ANTERIOR (i-1),
+            // nunca o aporte do próprio mês que está sendo calculado.
+            var anterior = dadosAnoAtual[i-1];
+            var entradaAnteriorCalc = anterior !== undefined ? (anterior.entrada || 0) : 0;
+            var liquidoAnterior = anterior !== undefined ? (anterior.liquido || 0) : 0;
+            var aporteAnterior = anterior !== undefined ? (anterior.aporte || 0) : 0;
+            entrada = entradaAnteriorCalc + liquidoAnterior + aporteAnterior;
         }
-        entradaAnterior = entrada;
 
         var aporte = aportesPorMes[i] || 0;
         var txMes = txPorMes[i] !== undefined ? txPorMes[i] : 0;
         var total = entrada * (txMes / 100);
-        var txAdm = txAdmPorMes[i] !== undefined ? txAdmPorMes[i] : 0;
-        // I.R. = 20% da Tx. Adm.
-        var ir = txAdm * 0.20;
-        // Se houver IR salvo manualmente, sobrescreve
-        if (irPorMes[i] !== undefined) {
-            ir = irPorMes[i];
-        }
-        var liquido = total - txAdm - ir;
+
+        var txAdmPct = txAdmPorMes[i] !== undefined ? txAdmPorMes[i] : 0;
+        var txAdmValor = total * (txAdmPct / 100);
+        var irPct = irPorMes[i] !== undefined ? irPorMes[i] : (txAdmPct * 0.20);
+        var irValor = total * (irPct / 100);
+
+        var liquido = total - txAdmValor - irValor;
         var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
 
         totalAporteGeral += aporte;
-        totalTxAdmGeral += txAdm;
-        totalIRGeral += ir;
+        totalTxAdmGeral += txAdmValor;
+        totalIRGeral += irValor;
         totalLiquidoGeral += liquido;
         totalResultadoGeral += total;
 
-        var clsLiquido = liquido >= 0 ? 'col-liquido-positivo' : 'col-liquido-negativo';
-        var clsAporte = aporte >= 0 ? 'col-aporte' : 'col-aporte-negativo';
-        
+        var clsLiquido = liquido >= 0 ? 'col-positivo' : 'col-negativo';
+        var clsAporte = aporte >= 0 ? '' : 'col-negativo';
+        var clsEntrada = entrada >= 0 ? '' : 'col-negativo';
+
         html += '<tr>' +
             '<td class="col-mes">' + months[i] + '</td>' +
-            '<td class="col-entrada"><span class="editable-cell" onclick="editarEntrada(' + i + ')">' + fmtMoeda(entrada) + '</span></td>' +
-            '<td class="' + clsAporte + '"><span class="editable-cell" onclick="editarAporte(' + i + ')">' + fmtMoeda(aporte) + '</span></td>' +
+            '<td class="col-entrada ' + clsEntrada + '"><span class="editable-cell ' + clsEntrada + '" onclick="editarEntrada(' + i + ')">' + fmtMoeda(entrada) + '</span></td>' +
+            '<td class="' + clsAporte + '"><span class="editable-cell ' + clsAporte + '" onclick="editarAporte(' + i + ')">' + fmtMoeda(aporte) + '</span></td>' +
             '<td class="col-tx-mes"><span class="editable-cell" onclick="editarTxMes(' + i + ')">' + txMes.toFixed(4) + '%</span></td>' +
             '<td class="col-total">' + fmtMoeda(total) + '</td>' +
-            '<td class="col-tx-adm"><span class="editable-cell" onclick="editarTxAdm(' + i + ')">' + fmtMoeda(txAdm) + '</span></td>' +
-            '<td class="col-ir"><span class="editable-cell" onclick="editarIR(' + i + ')">' + fmtMoeda(ir) + '</span></td>' +
+            '<td class="col-tx-adm"><span class="editable-cell" onclick="editarTxAdm(' + i + ')">' + txAdmPct.toFixed(4) + '%</span></td>' +
+            '<td class="col-ir"><span class="editable-cell" onclick="editarIR(' + i + ')">' + irPct.toFixed(4) + '%</span></td>' +
             '<td id="liquido_' + i + '" class="' + clsLiquido + '">' + fmtMoeda(liquido) + '</td>' +
             '<td class="col-tx-nominal">' + fmtPct4(txNominal) + '</td>' +
         '</tr>';
 
-        // Salvar líquido para uso no próximo mês
-        try {
-            var dadosSalvos = JSON.parse(localStorage.getItem('historicoDados') || '{}');
-            dadosSalvos[i] = { liquido: liquido, entrada: entrada };
-            localStorage.setItem('historicoDados', JSON.stringify(dadosSalvos));
-        } catch(e) {}
+        dadosAnoAtual[i] = { liquido: liquido, entrada: entrada, total: total, txMes: txMes, aporte: aporte };
     }
 
     tbody.innerHTML = html;
 
-    // Rodapé
-    var clsTotalLiquido = totalLiquidoGeral >= 0 ? 'col-liquido-positivo' : 'col-liquido-negativo';
+    try { localStorage.setItem('historicoDados_' + ano, JSON.stringify(dadosAnoAtual)); } catch(e) {}
+    try { localStorage.setItem('historicoDados', JSON.stringify(dadosAnoAtual)); } catch(e) {}
+
+    var entradaDezembro = dadosAnoAtual[11] !== undefined
+        ? (dadosAnoAtual[11].entrada + (dadosAnoAtual[11].liquido || 0) + (dadosAnoAtual[11].aporte || 0))
+        : somaInicial;
+    var clsTotalLiquido = totalLiquidoGeral >= 0 ? 'col-positivo' : 'col-negativo';
     tfoot.innerHTML = '<tr class="total-row">' +
         '<td class="col-mes"><strong>TOTAL</strong></td>' +
-        '<td class="col-entrada"><strong>' + fmtMoeda(somaInicial) + '</strong></td>' +
+        '<td class="col-entrada"><strong>' + fmtMoeda(entradaDezembro) + '</strong></td>' +
         '<td class="col-aporte"><strong>' + fmtMoeda(totalAporteGeral) + '</strong></td>' +
         '<td class="col-tx-mes"><strong>—</strong></td>' +
         '<td class="col-total"><strong>' + fmtMoeda(totalResultadoGeral) + '</strong></td>' +
@@ -1692,116 +1860,139 @@ function carregarHistoricoMensal() {
         '<td class="col-tx-nominal"><strong>' + fmtPct4(totalLiquidoGeral / somaInicial * 100) + '</strong></td>' +
     '</tr>';
 
-    // Resumo do Período
+    var clsAporteGeral = totalAporteGeral < 0 ? 'col-negativo' : 'col-aporte';
     document.getElementById("resumoPeriodo").innerHTML =
-        '<div class="item"><span class="label">Entrada Total</span><span class="valor col-entrada">' + fmtMoeda(somaInicial) + '</span></div>' +
-        '<div class="item"><span class="label">Aportes Líquidos</span><span class="valor col-aporte">' + fmtMoeda(totalAporteGeral) + '</span></div>' +
-        '<div class="item"><span class="label">Resultado Total</span><span class="valor col-positivo">' + fmtMoeda(totalResultadoGeral) + '</span></div>' +
-        '<div class="item"><span class="label">Taxa de Administração</span><span class="valor col-tx-adm">' + fmtMoeda(totalTxAdmGeral) + '</span></div>' +
-        '<div class="item"><span class="label">Imposto de Renda (20%)</span><span class="valor col-ir">' + fmtMoeda(totalIRGeral) + '</span></div>' +
-        '<div class="item"><span class="label">Líquido Total</span><span class="valor ' + clsTotalLiquido + '">' + fmtMoeda(totalLiquidoGeral) + '</span></div>';
+        '<div class="item"><span class="label">Entrada Total:&nbsp;&nbsp;</span><span class="valor col-entrada">' + fmtMoeda(entradaDezembro) + '</span></div>' +
+        '<div class="item"><span class="label">Aportes Líquidos:&nbsp;&nbsp;</span><span class="valor ' + clsAporteGeral + '">' + fmtMoeda(totalAporteGeral) + '</span></div>' +
+        '<div class="item"><span class="label">Resultado Total:&nbsp;&nbsp;</span><span class="valor col-positivo">' + fmtMoeda(totalResultadoGeral) + '</span></div>' +
+        '<div class="item"><span class="label">Taxa de Administração:&nbsp;&nbsp;</span><span class="valor col-tx-adm">' + fmtMoeda(totalTxAdmGeral) + '</span></div>' +
+        '<div class="item"><span class="label">Imposto de Renda (20%):&nbsp;&nbsp;</span><span class="valor col-ir">' + fmtMoeda(totalIRGeral) + '</span></div>' +
+        '<div class="item"><span class="label">Líquido Total:&nbsp;&nbsp;</span><span class="valor ' + clsTotalLiquido + '">' + fmtMoeda(totalLiquidoGeral) + '</span></div>';
 }
 
 // ============================================================
 // FUNÇÕES DE EDIÇÃO DO HISTÓRICO (ATUALIZADAS)
 // ============================================================
+function limparEdicoesManuaisAno() {
+    var ano = parseInt(document.getElementById('selectAnoHistorico').value);
+    if (!confirm('Isso remove todas as edições manuais de Entrada, Aporte, Tx./Mês, Tx. Adm. e I.R. de ' + ano + ', voltando tudo ao cálculo automático (Aporte volta a somar das Movimentações). Continuar?')) return;
+    localStorage.removeItem('entradaPorMes_' + ano);
+    localStorage.removeItem('aportePorMes_' + ano);
+    localStorage.removeItem('txPorMes_' + ano);
+    localStorage.removeItem('txAdmPorMes_' + ano);
+    localStorage.removeItem('irPorMes_' + ano);
+    carregarHistoricoMensal();
+    atualizarEvolucaoPatrimonio();
+    atualizarGraficoRentabilidade();
+    alert('✅ Edições manuais de ' + ano + ' removidas.');
+}
+
 function editarEntrada(mesIndex) {
-    var novoValor = prompt('✏️ Editar Entrada - ' + months[mesIndex] + '\n\nDigite o novo valor (R$):');
+    var ano = parseInt(document.getElementById('selectAnoHistorico').value);
+    var novoValor = prompt('✏️ Editar Entrada - ' + months[mesIndex] + '/' + ano + '\n\nDigite o novo valor (R$):\n(Deixe em branco para voltar ao cálculo automático)');
     if (novoValor === null) return;
+
+    var entradaData = JSON.parse(localStorage.getItem('entradaPorMes_' + ano) || '{}');
+
+    if (novoValor.trim() === '') {
+        delete entradaData[mesIndex];
+        localStorage.setItem('entradaPorMes_' + ano, JSON.stringify(entradaData));
+        carregarHistoricoMensal();
+        atualizarEvolucaoPatrimonio();
+        atualizarGraficoRentabilidade();
+        alert('✅ Entrada de ' + months[mesIndex] + '/' + ano + ' volta a ser calculada automaticamente.');
+        return;
+    }
+
     var valor = parseFloat(novoValor.replace(',', '.'));
     if (isNaN(valor) || valor < 0) { alert('❌ Digite um valor válido.'); return; }
-    
-    var entradaData = JSON.parse(localStorage.getItem('entradaPorMes') || '{}');
+
     entradaData[mesIndex] = valor;
-    localStorage.setItem('entradaPorMes', JSON.stringify(entradaData));
+    localStorage.setItem('entradaPorMes_' + ano, JSON.stringify(entradaData));
     carregarHistoricoMensal();
-    alert('✅ Entrada de ' + months[mesIndex] + ' atualizada para ' + fmtMoeda(valor));
+    atualizarEvolucaoPatrimonio();
+    atualizarGraficoRentabilidade();
+    alert('✅ Entrada de ' + months[mesIndex] + '/' + ano + ' atualizada para ' + fmtMoeda(valor));
 }
 
 function editarAporte(mesIndex) {
-    var novoValor = prompt('✏️ Editar Aporte - ' + months[mesIndex] + '\n\nDigite o novo valor (R$):\n(Negativo para saque)');
+    var ano = parseInt(document.getElementById('selectAnoHistorico').value);
+    var novoValor = prompt('✏️ Editar Aporte - ' + months[mesIndex] + '/' + ano + '\n\nDigite o novo valor (R$):\n(Negativo para saque · Deixe em branco para voltar a somar das Movimentações)');
     if (novoValor === null) return;
+
+    var aporteData = JSON.parse(localStorage.getItem('aportePorMes_' + ano) || '{}');
+
+    if (novoValor.trim() === '') {
+        delete aporteData[mesIndex];
+        localStorage.setItem('aportePorMes_' + ano, JSON.stringify(aporteData));
+        carregarHistoricoMensal();
+        atualizarEvolucaoPatrimonio();
+        atualizarGraficoRentabilidade();
+        alert('✅ Aporte de ' + months[mesIndex] + '/' + ano + ' volta a somar automaticamente das Movimentações.');
+        return;
+    }
+
     var valor = parseFloat(novoValor.replace(',', '.'));
     if (isNaN(valor)) { alert('❌ Digite um valor válido.'); return; }
-    
-    var movimentacoes = JSON.parse(localStorage.getItem('movimentacoes') || '[]');
-    var encontrou = false;
-    for (var i = 0; i < movimentacoes.length; i++) {
-        if (movimentacoes[i].data) {
-            var data = parseDataLocal(movimentacoes[i].data);
-            if (data.getMonth() === mesIndex) {
-                if (movimentacoes[i].tipo === 'credito' && valor >= 0) {
-                    movimentacoes[i].valor = Math.abs(valor);
-                    encontrou = true;
-                } else if (movimentacoes[i].tipo === 'debito' && valor < 0) {
-                    movimentacoes[i].valor = Math.abs(valor);
-                    encontrou = true;
-                }
-            }
-        }
-    }
-    if (!encontrou) {
-        var hoje = new Date();
-        var data = new Date(hoje.getFullYear(), mesIndex, 15);
-        var tipo = valor >= 0 ? 'credito' : 'debito';
-        movimentacoes.push({
-            id: Date.now() + mesIndex,
-            data: data.toISOString().split('T')[0],
-            cliente: 'clube',
-            tipo: tipo,
-            valor: Math.abs(valor),
-            descricao: (tipo === 'credito' ? 'Aporte ' : 'Saque ') + months[mesIndex],
-            mesIndex: mesIndex,
-            clienteNome: 'Clube'
-        });
-    }
-    localStorage.setItem('movimentacoes', JSON.stringify(movimentacoes));
+
+    aporteData[mesIndex] = valor;
+    localStorage.setItem('aportePorMes_' + ano, JSON.stringify(aporteData));
     carregarHistoricoMensal();
-    alert('✅ Aporte de ' + months[mesIndex] + ' atualizado para ' + fmtMoeda(valor));
+    atualizarEvolucaoPatrimonio();
+    atualizarGraficoRentabilidade();
+    alert('✅ Aporte de ' + months[mesIndex] + '/' + ano + ' atualizado para ' + fmtMoeda(valor) + '\n\nEsse valor passa a valer na Entrada do mês seguinte.');
 }
 
 function editarTxMes(mesIndex) {
-    var novoValor = prompt('✏️ Editar Tx./Mês - ' + months[mesIndex] + '\n\nDigite a nova taxa (%):');
+    var ano = parseInt(document.getElementById('selectAnoHistorico').value);
+    var novoValor = prompt('✏️ Editar Tx./Mês - ' + months[mesIndex] + '/' + ano + '\n\nDigite a nova taxa (%):');
     if (novoValor === null) return;
     var valor = parseFloat(novoValor.replace(',', '.'));
     if (isNaN(valor) || valor < 0) { alert('❌ Digite uma taxa válida.'); return; }
     
-    var txData = JSON.parse(localStorage.getItem('txPorMes') || '{}');
+    var txData = JSON.parse(localStorage.getItem('txPorMes_' + ano) || '{}');
     txData[mesIndex] = valor;
-    localStorage.setItem('txPorMes', JSON.stringify(txData));
+    localStorage.setItem('txPorMes_' + ano, JSON.stringify(txData));
     carregarHistoricoMensal();
-    alert('✅ Tx./Mês de ' + months[mesIndex] + ' atualizada para ' + valor.toFixed(4) + '%');
+    atualizarEvolucaoPatrimonio();
+    atualizarGraficoRentabilidade();
+    alert('✅ Tx./Mês de ' + months[mesIndex] + '/' + ano + ' atualizada para ' + valor.toFixed(4) + '%');
 }
 
 function editarTxAdm(mesIndex) {
-    var novoValor = prompt('✏️ Editar Tx. Adm. - ' + months[mesIndex] + '\n\nDigite o novo valor (R$):');
+    var ano = parseInt(document.getElementById('selectAnoHistorico').value);
+    var novoValor = prompt('✏️ Editar Tx. Adm. - ' + months[mesIndex] + '/' + ano + '\n\nDigite a nova taxa (%):');
     if (novoValor === null) return;
     var valor = parseFloat(novoValor.replace(',', '.'));
     if (isNaN(valor) || valor < 0) { alert('❌ Digite um valor válido.'); return; }
     
-    var txAdmData = JSON.parse(localStorage.getItem('txAdmPorMes') || '{}');
+    var txAdmData = JSON.parse(localStorage.getItem('txAdmPorMes_' + ano) || '{}');
     txAdmData[mesIndex] = valor;
-    localStorage.setItem('txAdmPorMes', JSON.stringify(txAdmData));
+    localStorage.setItem('txAdmPorMes_' + ano, JSON.stringify(txAdmData));
     carregarHistoricoMensal();
-    alert('✅ Tx. Adm. de ' + months[mesIndex] + ' atualizada para ' + fmtMoeda(valor));
+    atualizarEvolucaoPatrimonio();
+    atualizarGraficoRentabilidade();
+    alert('✅ Tx. Adm. de ' + months[mesIndex] + '/' + ano + ' atualizada para ' + valor.toFixed(4) + '%');
 }
 
 function editarIR(mesIndex) {
-    var novoValor = prompt('✏️ Editar I.R. (20%) - ' + months[mesIndex] + '\n\nDigite o novo valor (R$):\n(Deixe em branco para calcular automaticamente como 20% da Tx. Adm.)');
+    var ano = parseInt(document.getElementById('selectAnoHistorico').value);
+    var novoValor = prompt('✏️ Editar I.R. (20%) - ' + months[mesIndex] + '/' + ano + '\n\nDigite a nova taxa (%):\n(Deixe em branco para calcular automaticamente como 20% da Tx. Adm.)');
     if (novoValor === null) return;
     var valor = parseFloat(novoValor.replace(',', '.'));
     
-    var irData = JSON.parse(localStorage.getItem('irPorMes') || '{}');
+    var irData = JSON.parse(localStorage.getItem('irPorMes_' + ano) || '{}');
     if (isNaN(valor) || valor < 0) {
-        // Remove o valor salvo para usar cálculo automático
         delete irData[mesIndex];
-        alert('✅ I.R. de ' + months[mesIndex] + ' será calculado automaticamente como 20% da Tx. Adm.');
+        alert('✅ I.R. de ' + months[mesIndex] + '/' + ano + ' será calculado automaticamente como 20% da Tx. Adm.');
     } else {
         irData[mesIndex] = valor;
-        alert('✅ I.R. de ' + months[mesIndex] + ' atualizada para ' + fmtMoeda(valor));
+        alert('✅ I.R. de ' + months[mesIndex] + '/' + ano + ' atualizada para ' + valor.toFixed(4) + '%');
     }
-    localStorage.setItem('irPorMes', JSON.stringify(irData));
+    localStorage.setItem('irPorMes_' + ano, JSON.stringify(irData));
     carregarHistoricoMensal();
+    atualizarEvolucaoPatrimonio();
+    atualizarGraficoRentabilidade();
 }
 
 // ============================================================
@@ -1835,7 +2026,7 @@ function exportarHistorico() {
 // 5. RENDA VARIÁVEL - SISTEMA COMPLETO
 // ============================================================
 var ativosRV = [];
-var CHAVE_RV = 'rendaVariavel'; // mesma chave usada em renda-variavel.html
+var CHAVE_RV = 'rendaVariavel';
 var intervaloRV = null;
 var chartUpside = null, chartDistribuicaoRV = null;
 
@@ -1853,13 +2044,11 @@ function persistirAtivosRV() {
     try { localStorage.setItem(CHAVE_RV, JSON.stringify(ativosRV)); } catch(e) { console.warn('Erro ao salvar Renda Variável:', e); }
 }
 
-// Preços reais para ativos da B3
 var precosReais = {
     'VALE3': 58.40, 'PETR4': 33.50, 'ITUB4': 30.30, 'BBAS3': 29.40,
     'BBDC4': 21.30, 'WEGE3': 43.80, 'MGLU3': 2.97, 'B3SA3': 12.50
 };
 
-// Buscar cotações reais
 async function buscarCotacoesReais() {
     try {
         var response = await fetch(API_BASE + '/quote/' + ATIVOS_MONITORADOS.join(',') + '?token=' + API_KEY);
@@ -2001,7 +2190,7 @@ function atualizarDashboardRV() {
     }
     tbody.innerHTML = html;
     var pctTotal = totalCusto > 0 ? (totalResultado / totalCusto * 100) : 0;
-    document.getElementById('dashRvTableFoot').innerHTML = '<tr class="total-row"><td colspan="3"><strong>TOTAL</strong></td><td></td><td><strong style="color:#28a745;">' + fmtMoedaRV(totalCusto) + '</strong></td><td></td><td><strong style="color:#0000B8;">' + fmtMoedaRV(totalSaldo) + '</strong></td><td class="' + (totalResultado > 0 ? 'col-positivo' : 'col-negativo') + '"><strong>' + fmtMoedaRV(totalResultado) + '</strong></td><td class="' + (pctTotal > 0 ? 'col-porcentagem-positiva' : 'col-porcentagem-negativa') + '"><strong>' + fmtPctRV(pctTotal) + '</strong></td></tr>';
+    document.getElementById('dashRvTableFoot').innerHTML = '<tr class="total-row"><td colspan="3"><strong>TOTAL</strong></td><td></td><td><strong style="color:#28a745;">' + fmtMoedaRV(totalCusto) + '</strong></td><td></td><td><strong style="color:var(--azul-card);">' + fmtMoedaRV(totalSaldo) + '</strong></td><td class="' + (totalResultado > 0 ? 'col-positivo' : 'col-negativo') + '"><strong>' + fmtMoedaRV(totalResultado) + '</strong></td><td class="' + (pctTotal > 0 ? 'col-porcentagem-positiva' : 'col-porcentagem-negativa') + '"><strong>' + fmtPctRV(pctTotal) + '</strong></td></tr>';
     atualizarPatrimonioTotal();
 }
 
@@ -2156,7 +2345,7 @@ document.getElementById('formEditarAtivoRV').addEventListener('submit', function
 // 9. RENDA FIXA - SISTEMA COMPLETO
 // ============================================================
 var ativosRF = [];
-var CHAVE_RF = 'rendaFixa'; // mesma chave usada em renda-fixa.html
+var CHAVE_RF = 'rendaFixa';
 var intervaloRF = null;
 var chartDistribuicaoRF = null, chartInstituicaoRF = null;
 
@@ -2332,7 +2521,8 @@ function atualizarDashboardRF() {
     var mostrar = Math.min(ativosRF.length, 4);
     for (var i = 0; i < mostrar; i++) {
         var a = ativosRF[i];
-        html += '<tr><td class="tk">' + a.nome + '</td><td><span class="badge badge-cdb">' + a.tipo + '</span></td><td>' + fmtMoedaRF(a.valorAtual) + '</td><td>' + a.rentabilidadeDisplay + '</td><td>' + (a.vencimento !== '-' ? new Date(a.vencimento).toLocaleDateString('pt-BR') : '-') + '</td></tr>';
+        var clsRent = a.rendimentoPct > 0 ? 'col-positivo' : (a.rendimentoPct < 0 ? 'col-negativo' : '');
+        html += '<tr><td class="tk">' + a.nome + '</td><td><span class="badge badge-cdb">' + a.tipo + '</span></td><td>' + fmtMoedaRF(a.valorAtual) + '</td><td class="' + clsRent + '">' + fmtPctRF(a.rendimentoPct) + '</td><td>' + (a.vencimento !== '-' ? new Date(a.vencimento).toLocaleDateString('pt-BR') : '-') + '</td></tr>';
     }
     if (ativosRF.length > mostrar) {
         html += '<tr><td colspan="5" style="text-align:center;color:var(--cinza-claro);font-size:8.5px;">+' + (ativosRF.length - mostrar) + ' outra(s) aplicação(ões) — <a href="#" onclick="switchView(\'renda-fixa\');return false;" style="color:var(--azul-card);font-weight:700;">ver todas</a></td></tr>';
@@ -2594,7 +2784,9 @@ function atualizarKPIsCaixa() {
 function atualizarDashboardCaixa() {
     var totalBRL = 0;
     for (var i = 0; i < saldosCaixa.length; i++) { totalBRL += saldosCaixa[i].valorBRL; }
-    document.getElementById('dashCaixaTotal').textContent = fmtMoeda(totalBRL);
+    var elCaixaTotal = document.getElementById('dashCaixaTotal');
+    elCaixaTotal.textContent = fmtMoeda(totalBRL);
+    elCaixaTotal.style.color = totalBRL < 0 ? 'var(--vermelho)' : (totalBRL > 0 ? 'var(--verde-card)' : '');
     atualizarPatrimonioTotal();
 }
 
@@ -2784,190 +2976,363 @@ function atualizarPatrimonioTotal() {
         elCaixaDetalhe.innerHTML = pctCaixaPatrimonio.toFixed(2).replace('.', ',') + '% <small>do patrimônio total</small>';
     }
 
+    atualizarKPIsPrincipais(total);
     atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa);
 }
 
-function atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa) {
-    var total = totalRV + totalRF + totalCaixa;
-    var circunferencia = 2 * Math.PI * 40;
-    var pctRV = total > 0 ? totalRV / total : 0;
-    var pctRF = total > 0 ? totalRF / total : 0;
-    var pctCaixa = total > 0 ? totalCaixa / total : 0;
-    var segRV = circunferencia * pctRV;
-    var segRF = circunferencia * pctRF;
-    var segCaixa = circunferencia * pctCaixa;
-
-    var donutRV = document.getElementById('donutRV');
-    var donutRF = document.getElementById('donutRF');
-    var donutCaixa = document.getElementById('donutCaixa');
-
-    if (donutRV) {
-        donutRV.setAttribute('stroke-dasharray', segRV.toFixed(2) + ' ' + (circunferencia - segRV).toFixed(2));
-        donutRV.setAttribute('stroke-dashoffset', '0');
-    }
-    if (donutRF) {
-        donutRF.setAttribute('stroke-dasharray', segRF.toFixed(2) + ' ' + (circunferencia - segRF).toFixed(2));
-        donutRF.setAttribute('stroke-dashoffset', (-segRV).toFixed(2));
-    }
-    if (donutCaixa) {
-        donutCaixa.setAttribute('stroke-dasharray', segCaixa.toFixed(2) + ' ' + (circunferencia - segCaixa).toFixed(2));
-        donutCaixa.setAttribute('stroke-dashoffset', (-(segRV + segRF)).toFixed(2));
-    }
-
-    var legPctRV = document.getElementById('legPctRV');
-    if (legPctRV) legPctRV.textContent = (pctRV * 100).toFixed(2).replace('.', ',') + '%';
-    var legPctRF = document.getElementById('legPctRF');
-    if (legPctRF) legPctRF.textContent = (pctRF * 100).toFixed(2).replace('.', ',') + '%';
-    var legPctCaixa = document.getElementById('legPctCaixa');
-    if (legPctCaixa) legPctCaixa.textContent = (pctCaixa * 100).toFixed(2).replace('.', ',') + '%';
-}
-
 // ============================================================
-// 16. EVOLUÇÃO PATRIMÔNIO
+// KPIs DO TOPO: Patrimônio Total, Resultado do Mês e Lucro Acumulado
+// calculados de verdade (antes eram valores fixos no HTML).
 // ============================================================
-var chartEvolucaoPatrimonio = null;
-function atualizarEvolucaoPatrimonio() {
-    var ctx = document.getElementById('chartEvolucaoPatrimonio');
-    if (!ctx) return;
-    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    var dados = [];
-    var valor = 100;
-    for (var i = 0; i < 12; i++) {
-        var variacao = (Math.random() - 0.3) * 2;
-        valor = valor * (1 + variacao / 100);
-        dados.push(valor);
-    }
-    if (chartEvolucaoPatrimonio) { chartEvolucaoPatrimonio.destroy(); chartEvolucaoPatrimonio = null; }
+function obterSomaInicialClientes() {
+    var clientesData = [];
     try {
-        chartEvolucaoPatrimonio = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: meses,
-                datasets: [{
-                    label: 'Patrimônio',
-                    data: dados,
-                    borderColor: '#2d6fb0',
-                    backgroundColor: 'rgba(45,111,176,0.1)',
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { ticks: { font: { size: 7 } }, grid: { color: '#e6e9f2' } },
-                    x: { grid: { display: false }, ticks: { font: { size: 7 } } }
-                }
-            }
-        });
-    } catch(e) { console.warn('Erro gráfico evolução:', e); }
-}
-
-// ============================================================
-// 17. RENTABILIDADE
-// ============================================================
-var chartRentabilidade = null;
-function gerarDadosSimulados() {
-    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    var base = 100, valores = [], acumulado = base;
-    for (var i = 0; i < 12; i++) {
-        var variacao = (Math.random() - 0.4) * 3;
-        acumulado = acumulado * (1 + variacao / 100);
-        valores.push(acumulado);
+        var salvos = localStorage.getItem('clientes');
+        if (salvos) clientesData = JSON.parse(salvos);
+    } catch(e) { clientesData = []; }
+    if (clientesData.length === 0) {
+        clientesData = [
+            { nome: 'Rogério Simieri', valorInicial: 50958.37 },
+            { nome: 'Vitória Simieri', valorInicial: 85814.40 },
+            { nome: 'Manuella Cardoso', valorInicial: 6230.46 },
+            { nome: 'João Paulo Simieri', valorInicial: 27.09 },
+            { nome: 'Pedro Henrique Simieri', valorInicial: 1396.04 },
+            { nome: 'Josepha Simieri', valorInicial: 10698.91 }
+        ];
     }
-    return { meses: meses, valores: valores };
+    var soma = 0;
+    for (var i = 0; i < clientesData.length; i++) soma += clientesData[i].valorInicial || 0;
+    return soma;
 }
 
-async function buscarDadosRentabilidade() {
+function atualizarKPIsPrincipais(totalPatrimonioAtual) {
+    var hoje = new Date();
+    var anoAtual = hoje.getFullYear();
+    var mesAtual = hoje.getMonth();
+    var somaInicial = obterSomaInicialClientes();
+
+    // "Fechamento do mês anterior" = patrimônio real (Caixa+RF+RV+Proventos)
+    // no primeiro momento em que o Dashboard é aberto neste mês. Se ainda
+    // não existe um snapshot para o mês corrente, grava o valor atual como
+    // esse fechamento — por isso, ao abrir o mês pela primeira vez (nada
+    // mudou ainda), o Resultado do Mês começa em R$ 0,00.
+    var chaveSnapshot = 'patrimonioInicioMes_' + anoAtual + '_' + mesAtual;
+    var patrimonioInicioMes;
+    var snapshotSalvo = localStorage.getItem(chaveSnapshot);
+    if (snapshotSalvo !== null) {
+        patrimonioInicioMes = parseFloat(snapshotSalvo);
+    } else {
+        patrimonioInicioMes = totalPatrimonioAtual;
+        try { localStorage.setItem(chaveSnapshot, totalPatrimonioAtual); } catch(e) {}
+    }
+
+    var resultadoMes = totalPatrimonioAtual - patrimonioInicioMes;
+    var pctPatrimonioVsMesAnterior = patrimonioInicioMes > 0 ? (resultadoMes / patrimonioInicioMes * 100) : 0;
+    var pctResultadoSobreInicial = somaInicial > 0 ? (resultadoMes / somaInicial * 100) : 0;
+
+    var elPatrimonioDelta = document.getElementById('dashPatrimonioDelta');
+    if (elPatrimonioDelta) {
+        var setaP = pctPatrimonioVsMesAnterior >= 0 ? '↑' : '↓';
+        elPatrimonioDelta.style.color = pctPatrimonioVsMesAnterior >= 0 ? 'var(--verde-card)' : 'var(--vermelho)';
+        elPatrimonioDelta.innerHTML = setaP + ' ' + Math.abs(pctPatrimonioVsMesAnterior).toFixed(2).replace('.', ',') + '% <small>em relação ao mês anterior</small>';
+    }
+
+    var elResultadoMes = document.getElementById('dashResultadoMes');
+    if (elResultadoMes) elResultadoMes.textContent = fmtMoeda(resultadoMes);
+
+    var elResultadoDelta = document.getElementById('dashResultadoDelta');
+    if (elResultadoDelta) {
+        var setaR = pctResultadoSobreInicial >= 0 ? '↑' : '↓';
+        elResultadoDelta.style.color = pctResultadoSobreInicial >= 0 ? 'var(--verde-card)' : 'var(--vermelho)';
+        elResultadoDelta.innerHTML = setaR + ' ' + Math.abs(pctResultadoSobreInicial).toFixed(2).replace('.', ',') + '% <small>sobre o patrimônio inicial</small>';
+    }
+
+    // Lucro Acumulado = soma do Líquido do Histórico Mensal, de Janeiro até o
+    // mês corrente do ano atual.
+    var lucroAcumulado = 0;
     try {
-        var response = await fetch(API_BASE + '/quote/IBOV?token=' + API_KEY + '&range=12m');
-        if (!response.ok) throw new Error('Erro na API: ' + response.status);
-        var data = await response.json();
-        if (data.results && data.results.length > 0) {
-            var dados = data.results.sort((a,b) => new Date(a.date) - new Date(b.date));
-            var meses = [], valores = [];
-            var ultimos12 = dados.slice(-12);
-            for (var i = 0; i < ultimos12.length; i++) {
-                var data = new Date(ultimos12[i].date);
-                meses.push(data.toLocaleString('pt-BR', { month: 'short' }));
-                valores.push(ultimos12[i].close || ultimos12[i].price || 0);
+        var dadosAno = garantirDadosAno(anoAtual);
+        if (dadosAno) {
+            for (var i = 0; i <= mesAtual; i++) {
+                if (dadosAno[i] !== undefined) lucroAcumulado += dadosAno[i].liquido || 0;
             }
-            var base = valores[0] || 100;
-            var valoresNormalizados = valores.map(function(v) { return (v / base) * 100; });
-            return { meses: meses, valores: valoresNormalizados };
         }
-        return gerarDadosSimulados();
-    } catch (error) {
-        console.warn('Erro ao buscar dados de rentabilidade:', error);
-        return gerarDadosSimulados();
+    } catch(e) {}
+    var pctLucroBruto = somaInicial > 0 ? (lucroAcumulado / somaInicial * 100) : 0;
+    var elLucro = document.getElementById('dashLucroAcumulado');
+    if (elLucro) elLucro.textContent = fmtMoeda(lucroAcumulado);
+    var elLucroDelta = document.getElementById('dashLucroDelta');
+    if (elLucroDelta) {
+        var setaL = pctLucroBruto >= 0 ? '↑' : '↓';
+        elLucroDelta.style.color = pctLucroBruto >= 0 ? 'var(--verde-card)' : 'var(--vermelho)';
+        elLucroDelta.innerHTML = setaL + ' ' + Math.abs(pctLucroBruto).toFixed(2).replace('.', ',') + '% <small>acumulado no ano</small>';
     }
 }
 
-async function atualizarGraficoRentabilidade() {
-    var ctx = document.getElementById('chartRentabilidade');
+var chartDistribuicaoCarteira = null;
+function atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa) {
+    var ctx = document.getElementById('chartDistribuicaoCarteira');
     if (!ctx) return;
-    var dados = await buscarDadosRentabilidade();
-    if (chartRentabilidade) { chartRentabilidade.destroy(); chartRentabilidade = null; }
+    if (typeof Chart === 'undefined') return;
+
+    var labels = [], valores = [], cores = [];
+    if (totalRV > 0) { labels.push('Renda Variável'); valores.push(totalRV); cores.push('#2d6fb0'); }
+    if (totalRF > 0) { labels.push('Renda Fixa'); valores.push(totalRF); cores.push('#28a745'); }
+    if (totalCaixa > 0) { labels.push('Caixa'); valores.push(totalCaixa); cores.push('#fd7e14'); }
+
+    if (chartDistribuicaoCarteira) { chartDistribuicaoCarteira.destroy(); chartDistribuicaoCarteira = null; }
+    if (valores.length === 0) return;
+
     try {
-        chartRentabilidade = new Chart(ctx, {
-            type: 'line',
+        chartDistribuicaoCarteira = new Chart(ctx, {
+            type: 'pie',
             data: {
-                labels: dados.meses,
-                datasets: [
-                    {
-                        label: 'IBOV',
-                        data: dados.valores,
-                        borderColor: '#2d6fb0',
-                        backgroundColor: 'rgba(45,111,176,0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2
-                    },
-                    {
-                        label: 'CDI',
-                        data: dados.valores.map(function(v) { return v * 0.85; }),
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40,167,69,0.05)',
-                        fill: false,
-                        tension: 0.3,
-                        borderDash: [5,5],
-                        pointRadius: 2
-                    }
-                ]
+                labels: labels,
+                datasets: [{ data: valores, backgroundColor: cores, borderWidth: 2, borderColor: '#fff' }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: { position: 'bottom', labels: { font: { size: 8 }, padding: 6, boxWidth: 10 } },
-                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + (context.parsed.y - 100).toFixed(2) + '%'; } } }
-                },
-                scales: {
-                    y: { ticks: { callback: function(value) { return (value - 100).toFixed(2) + '%'; }, font: { size: 7 } }, grid: { color: '#e6e9f2' } },
-                    x: { grid: { display: false }, ticks: { font: { size: 7 } } }
+                    legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 10 } },
+                    tooltip: { callbacks: { label: function(context) {
+                        var total = context.dataset.data.reduce(function(a,b) { return a + b; }, 0);
+                        var pct = total > 0 ? (context.parsed / total * 100) : 0;
+                        return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct.toFixed(2) + '%)';
+                    } } }
                 }
             }
         });
-        var ultimoValor = dados.valores[dados.valores.length - 1] || 100;
-        var primeiroValor = dados.valores[0] || 100;
-        var rentabilidadePeriodo = ((ultimoValor - primeiroValor) / primeiroValor * 100);
-        document.getElementById('rentabilidadePeriodo').textContent = fmtPct(rentabilidadePeriodo);
-        document.getElementById('ultimaAtualizacao').textContent = new Date().toLocaleTimeString();
-    } catch(e) { console.warn('Erro gráfico rentabilidade:', e); }
+    } catch(e) { console.warn('Erro gráfico Distribuição da Carteira:', e); }
+}
+
+// ============================================================
+// 16. EVOLUÇÃO PATRIMÔNIO (GRÁFICO DE ÁREA)
+// ============================================================
+var chartEvolucaoPatrimonio = null;
+
+function atualizarEvolucaoPatrimonio() {
+    var ctx = document.getElementById('chartEvolucaoPatrimonio');
+    if (!ctx) return;
+
+    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    var ano = document.getElementById('selectAnoHistorico') ? document.getElementById('selectAnoHistorico').value : new Date().getFullYear();
+    var dados = [];
+    var labels = [];
+
+    try {
+        var salvos = JSON.parse(localStorage.getItem('historicoDados_' + ano) || '{}');
+        for (var i = 0; i < 12; i++) {
+            if (salvos[i] !== undefined && salvos[i].total !== undefined) {
+                dados.push(salvos[i].total);
+            } else {
+                dados.push(0);
+            }
+            labels.push(meses[i]);
+        }
+    } catch(e) {
+        dados = new Array(12).fill(0);
+        labels = meses;
+    }
+
+    if (chartEvolucaoPatrimonio) {
+        chartEvolucaoPatrimonio.destroy();
+        chartEvolucaoPatrimonio = null;
+    }
+
+    try {
+        chartEvolucaoPatrimonio = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Evolução do Patrimônio (R$)',
+                    data: dados,
+                    borderColor: '#2d6fb0',
+                    backgroundColor: 'rgba(45,111,176,0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#2d6fb0',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: { size: 9 },
+                            color: '#495057',
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return fmtMoeda(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 8 },
+                            callback: function(value) {
+                                return fmtMoeda(value);
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.06)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 8 }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    } catch(e) {
+        console.warn('Erro ao criar gráfico Evolução do Patrimônio:', e);
+    }
+}
+
+// ============================================================
+// 17. RENTABILIDADE (GRÁFICO DE COLUNAS - TX. MÊS)
+// ============================================================
+var chartRentabilidade = null;
+
+function buscarDadosTxMes() {
+    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    var ano = document.getElementById('selectAnoHistorico') ? document.getElementById('selectAnoHistorico').value : new Date().getFullYear();
+    var valores = [];
+
+    try {
+        var salvos = JSON.parse(localStorage.getItem('historicoDados_' + ano) || '{}');
+        for (var i = 0; i < 12; i++) {
+            if (salvos[i] !== undefined && salvos[i].txMes !== undefined) {
+                valores.push(salvos[i].txMes);
+            } else {
+                valores.push(0);
+            }
+        }
+    } catch(e) {
+        valores = new Array(12).fill(0);
+    }
+
+    return { meses: meses, valores: valores };
+}
+
+function atualizarGraficoRentabilidade() {
+    var ctx = document.getElementById('chartRentabilidade');
+    if (!ctx) return;
+
+    var dados = buscarDadosTxMes();
+    var labels = dados.meses;
+    var valores = dados.valores;
+
+    if (chartRentabilidade) {
+        chartRentabilidade.destroy();
+        chartRentabilidade = null;
+    }
+
+    try {
+        chartRentabilidade = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tx./Mês (%)',
+                    data: valores,
+                    backgroundColor: valores.map(function(v) {
+                        if (v > 0) return 'rgba(40,167,69,0.8)';
+                        if (v < 0) return 'rgba(220,53,69,0.8)';
+                        return 'rgba(108,117,125,0.5)';
+                    }),
+                    borderColor: valores.map(function(v) {
+                        if (v > 0) return '#28a745';
+                        if (v < 0) return '#dc3545';
+                        return '#6c757d';
+                    }),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    maxBarThickness: 28
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            font: { size: 9 },
+                            color: '#495057',
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toFixed(4) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(2) + '%';
+                            },
+                            font: { size: 8 }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.06)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 8 }
+                        }
+                    }
+                }
+            }
+        });
+
+        var elAtualizacao = document.getElementById('ultimaAtualizacao');
+        if (elAtualizacao) {
+            elAtualizacao.textContent = new Date().toLocaleTimeString();
+        }
+
+    } catch(e) {
+        console.warn('Erro ao criar gráfico Rentabilidade:', e);
+    }
 }
 
 // ============================================================
 // 18. INICIALIZAÇÃO
 // ============================================================
 function init() {
-    // Sincroniza as três carteiras (Caixa, Renda Fixa, Renda Variável) com os
-    // mesmos dados usados pelos módulos standalone (caixa.html, renda-fixa.html,
-    // renda-variavel.html) — sem isso, o Dashboard sempre reiniciava essas
-    // seções vazias/zeradas a cada carregamento, dando a impressão de que os
-    // dados cadastrados haviam sumido.
     carregarSaldosCaixaDoLocalStorage();
     carregarAtivosRFDoLocalStorage();
     carregarAtivosRVDoLocalStorage();
