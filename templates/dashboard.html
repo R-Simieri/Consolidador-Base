@@ -593,9 +593,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
 <aside class="sidebar" id="sidebar">
   <div class="logo">
     <img src="/static/Logo%20Newex.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
-  </div>
+</div>
 
   <ul class="sidebar-nav">
     <li class="grupo">GERAL</li>
@@ -982,7 +980,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
         <div class="kpi-card card-amarelo">
           <div class="label" style="display:flex;justify-content:space-between;align-items:center;">
             <span>Caixa Disponível</span>
-            <button class="btn btn-primary btn-sm" onclick="switchView('caixa')" style="font-size:7.5px;">+ Gerenciar</button>
+            <button class="btn btn-primary" onclick="switchView('caixa')">+ Gerenciar</button>
           </div>
           <div class="valor" id="dashCaixaTotal">R$ 0,00</div>
           <div class="delta" style="color:var(--amarelo-card);" id="dashCaixaDetalhe">0,00% <small>do patrimônio total</small></div>
@@ -1120,6 +1118,16 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           <div class="panel">
             <div class="panel-titulo">Resumo do Período</div>
             <div class="resumo-periodo" id="resumoPeriodo"></div>
+          </div>
+          <div class="panel" style="margin-top:10px;">
+            <div class="panel-titulo">Cotas dos Clientes</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Clientes</th><th>Cotas</th><th>Total</th></tr></thead>
+                <tbody id="cotasTableBody"></tbody>
+                <tfoot id="cotasTableFoot"></tfoot>
+              </table>
+            </div>
           </div>
           <div class="info-box">
             <span>ℹ️</span>
@@ -1646,22 +1654,21 @@ function garantirDadosAno(ano) {
         var cacheAnterior = localStorage.getItem('historicoDados_' + (ano - 1));
         if (cacheAnterior) anterior = JSON.parse(cacheAnterior);
     } catch(e) {}
-    var entradaDezAnt = somaInicial, liquidoDezAnt = 0, aporteDezAnt = 0;
+    var entradaDezAnt = somaInicial, liquidoDezAnt = 0;
     if (anterior && anterior[11] !== undefined && anterior[11].entrada !== undefined) {
         entradaDezAnt = anterior[11].entrada;
         liquidoDezAnt = anterior[11].liquido || 0;
-        aporteDezAnt = anterior[11].aporte || 0;
     }
 
     var dadosAno = {};
-    dadosAno[-1] = { entrada: entradaDezAnt, liquido: liquidoDezAnt, aporte: aporteDezAnt };
+    dadosAno[-1] = { entrada: entradaDezAnt, liquido: liquidoDezAnt, aporte: 0 };
     for (var i = 0; i < 12; i++) {
         var entrada;
         if (entradaPorMes[i] !== undefined) {
             entrada = entradaPorMes[i];
         } else {
             var ant = dadosAno[i-1];
-            entrada = (ant ? (ant.entrada || 0) : 0) + (ant ? (ant.liquido || 0) : 0) + (ant ? (ant.aporte || 0) : 0);
+            entrada = (ant ? (ant.entrada || 0) : 0) + (ant ? (ant.liquido || 0) : 0);
         }
         var aporte = aportesPorMes[i] || 0;
         var txMes = txPorMes[i] !== undefined ? txPorMes[i] : 0;
@@ -1676,6 +1683,23 @@ function garantirDadosAno(ano) {
 
     try { localStorage.setItem('historicoDados_' + ano, JSON.stringify(dadosAno)); } catch(e) {}
     return dadosAno;
+}
+
+// Snapshot do Patrimônio Total no início de um mês. Se for o mês/ano
+// corrente de verdade e ainda não existir snapshot, grava o patrimônio
+// atual como o valor "fixado" do primeiro dia do mês.
+function obterSnapshotInicioMes(ano, mes) {
+    var hoje = new Date();
+    var ehMesAtualReal = (ano === hoje.getFullYear() && mes === hoje.getMonth());
+    var chave = 'patrimonioInicioMes_' + ano + '_' + mes;
+    var salvo = localStorage.getItem(chave);
+    if (salvo !== null) return parseFloat(salvo);
+    if (ehMesAtualReal) {
+        var atual = obterPatrimonioTotalAtual();
+        try { localStorage.setItem(chave, atual); } catch(e) {}
+        return atual;
+    }
+    return null;
 }
 
 function carregarHistoricoMensal() {
@@ -1768,42 +1792,54 @@ function carregarHistoricoMensal() {
     var totalLiquidoGeral = 0, totalResultadoGeral = 0;
 
     // O TOTAL (rodapé) da coluna Entrada = a Entrada de Dezembro + o Líquido
-    // de Dezembro + o Aporte de Dezembro (mesma fórmula dos demais meses).
-    // Esse mesmo valor é o que alimenta a Entrada de Janeiro do ano seguinte.
+    // de Dezembro (mesma fórmula dos demais meses — sem o Aporte). Esse
+    // mesmo valor é o que alimenta a Entrada de Janeiro do ano seguinte.
     // Usamos garantirDadosAno() em vez de ler o cache direto, para que o ano
     // anterior seja calculado na hora se o usuário nunca tiver aberto ele.
     var entradaDezAnoAnterior = somaInicial;
     var liquidoDezAnoAnterior = 0;
-    var aporteDezAnoAnterior = 0;
     try {
         var dadosAnoAnterior = garantirDadosAno(ano - 1);
         if (dadosAnoAnterior && dadosAnoAnterior[11] !== undefined && dadosAnoAnterior[11].entrada !== undefined) {
             entradaDezAnoAnterior = dadosAnoAnterior[11].entrada;
             liquidoDezAnoAnterior = dadosAnoAnterior[11].liquido || 0;
-            aporteDezAnoAnterior = dadosAnoAnterior[11].aporte || 0;
         }
     } catch(e) {}
 
     var dadosAnoAtual = {};
-    dadosAnoAtual[-1] = { entrada: entradaDezAnoAnterior, liquido: liquidoDezAnoAnterior, aporte: aporteDezAnoAnterior };
+    dadosAnoAtual[-1] = { entrada: entradaDezAnoAnterior, liquido: liquidoDezAnoAnterior, aporte: 0 };
+
+    var hojeReal = new Date();
 
     for (var i = 0; i < 12; i++) {
+        var ehMesAtualReal = (ano === hojeReal.getFullYear() && i === hojeReal.getMonth());
         var entrada;
         if (entradaPorMes[i] !== undefined) {
             entrada = entradaPorMes[i];
+        } else if (ehMesAtualReal) {
+            // No primeiro dia do mês corrente, o Patrimônio Total é
+            // fixado como Entrada — e fica assim o mês inteiro.
+            entrada = obterSnapshotInicioMes(ano, i);
         } else {
-            // Todo aporte só entra na Entrada do MÊS SEGUINTE ao que foi
-            // lançado — por isso usamos o aporte do mês ANTERIOR (i-1),
-            // nunca o aporte do próprio mês que está sendo calculado.
+            // Meses fechados (passados): Entrada do mês anterior + Líquido
+            // do mês anterior. O Aporte não entra nessa conta.
             var anterior = dadosAnoAtual[i-1];
             var entradaAnteriorCalc = anterior !== undefined ? (anterior.entrada || 0) : 0;
             var liquidoAnterior = anterior !== undefined ? (anterior.liquido || 0) : 0;
-            var aporteAnterior = anterior !== undefined ? (anterior.aporte || 0) : 0;
-            entrada = entradaAnteriorCalc + liquidoAnterior + aporteAnterior;
+            entrada = entradaAnteriorCalc + liquidoAnterior;
         }
 
         var aporte = aportesPorMes[i] || 0;
-        var txMes = txPorMes[i] !== undefined ? txPorMes[i] : 0;
+        var txMes;
+        if (ehMesAtualReal && txPorMes[i] === undefined) {
+            // Tx./Mês do mês corrente é recalculada todo dia: a diferença
+            // entre o Patrimônio Total de agora e o que foi fixado no
+            // início do mês.
+            var patrimonioAgora = obterPatrimonioTotalAtual();
+            txMes = entrada > 0 ? ((patrimonioAgora - entrada) / entrada * 100) : 0;
+        } else {
+            txMes = txPorMes[i] !== undefined ? txPorMes[i] : 0;
+        }
         var total = entrada * (txMes / 100);
 
         var txAdmPct = txAdmPorMes[i] !== undefined ? txAdmPorMes[i] : 0;
@@ -1845,7 +1881,7 @@ function carregarHistoricoMensal() {
     try { localStorage.setItem('historicoDados', JSON.stringify(dadosAnoAtual)); } catch(e) {}
 
     var entradaDezembro = dadosAnoAtual[11] !== undefined
-        ? (dadosAnoAtual[11].entrada + (dadosAnoAtual[11].liquido || 0) + (dadosAnoAtual[11].aporte || 0))
+        ? (dadosAnoAtual[11].entrada + (dadosAnoAtual[11].liquido || 0))
         : somaInicial;
     var clsTotalLiquido = totalLiquidoGeral >= 0 ? 'col-positivo' : 'col-negativo';
     tfoot.innerHTML = '<tr class="total-row">' +
@@ -1868,6 +1904,33 @@ function carregarHistoricoMensal() {
         '<div class="item"><span class="label">Taxa de Administração:&nbsp;&nbsp;</span><span class="valor col-tx-adm">' + fmtMoeda(totalTxAdmGeral) + '</span></div>' +
         '<div class="item"><span class="label">Imposto de Renda (20%):&nbsp;&nbsp;</span><span class="valor col-ir">' + fmtMoeda(totalIRGeral) + '</span></div>' +
         '<div class="item"><span class="label">Líquido Total:&nbsp;&nbsp;</span><span class="valor ' + clsTotalLiquido + '">' + fmtMoeda(totalLiquidoGeral) + '</span></div>';
+
+    atualizarCotasClientes(clientesData, somaInicial);
+}
+
+// ============================================================
+// COTAS DOS CLIENTES — cada cliente tem uma fração (cota) proporcional ao
+// valor inicial dele sobre a soma de todos os clientes. O TOTAL (R$) de
+// cada cliente = essa fração × o Patrimônio Total Atual (real, agora).
+// ============================================================
+function atualizarCotasClientes(clientesData, somaInicial) {
+    var tbody = document.getElementById('cotasTableBody');
+    var tfoot = document.getElementById('cotasTableFoot');
+    if (!tbody || !tfoot) return;
+
+    var patrimonioAtual = obterPatrimonioTotalAtual();
+    var html = '';
+    var somaCotas = 0, somaTotal = 0;
+    for (var i = 0; i < clientesData.length; i++) {
+        var c = clientesData[i];
+        var cota = somaInicial > 0 ? ((c.valorInicial || 0) / somaInicial) : 0;
+        var totalCliente = cota * patrimonioAtual;
+        somaCotas += cota;
+        somaTotal += totalCliente;
+        html += '<tr><td>' + c.nome + '</td><td>' + cota.toFixed(4) + '</td><td>' + fmtMoeda(totalCliente) + '</td></tr>';
+    }
+    tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;color:var(--cinza-claro);">Nenhum cliente cadastrado.</td></tr>';
+    tfoot.innerHTML = '<tr class="total-row"><td><strong>TOTAL GERAL</strong></td><td><strong>' + somaCotas.toFixed(4) + '</strong></td><td><strong>' + fmtMoeda(somaTotal) + '</strong></td></tr>';
 }
 
 // ============================================================
@@ -1945,12 +2008,24 @@ function editarAporte(mesIndex) {
 
 function editarTxMes(mesIndex) {
     var ano = parseInt(document.getElementById('selectAnoHistorico').value);
-    var novoValor = prompt('✏️ Editar Tx./Mês - ' + months[mesIndex] + '/' + ano + '\n\nDigite a nova taxa (%):');
+    var novoValor = prompt('✏️ Editar Tx./Mês - ' + months[mesIndex] + '/' + ano + '\n\nDigite a nova taxa (%):\n(Deixe em branco para o mês corrente voltar a ser calculado automaticamente)');
     if (novoValor === null) return;
+
+    var txData = JSON.parse(localStorage.getItem('txPorMes_' + ano) || '{}');
+
+    if (novoValor.trim() === '') {
+        delete txData[mesIndex];
+        localStorage.setItem('txPorMes_' + ano, JSON.stringify(txData));
+        carregarHistoricoMensal();
+        atualizarEvolucaoPatrimonio();
+        atualizarGraficoRentabilidade();
+        alert('✅ Tx./Mês de ' + months[mesIndex] + '/' + ano + ' volta a ser calculada automaticamente (se for o mês corrente, diariamente).');
+        return;
+    }
+
     var valor = parseFloat(novoValor.replace(',', '.'));
     if (isNaN(valor) || valor < 0) { alert('❌ Digite uma taxa válida.'); return; }
-    
-    var txData = JSON.parse(localStorage.getItem('txPorMes_' + ano) || '{}');
+
     txData[mesIndex] = valor;
     localStorage.setItem('txPorMes_' + ano, JSON.stringify(txData));
     carregarHistoricoMensal();
@@ -2946,6 +3021,21 @@ document.getElementById('formEditarSaldoCaixa').addEventListener('submit', funct
 // ============================================================
 // 15. PATRIMÔNIO TOTAL (soma de Renda Variável + Renda Fixa + Caixa + Proventos)
 // ============================================================
+function obterPatrimonioTotalAtual() {
+    var totalRV = 0;
+    for (var i = 0; i < ativosRV.length; i++) totalRV += ativosRV[i].saldo;
+    var totalRF = 0;
+    for (var j = 0; j < ativosRF.length; j++) totalRF += ativosRF[j].valorAtual;
+    var totalCaixa = 0;
+    for (var k = 0; k < saldosCaixa.length; k++) totalCaixa += saldosCaixa[k].valorBRL;
+    var totalProventos = 0;
+    try {
+        var proventosData = JSON.parse(localStorage.getItem('proventos') || '[]');
+        for (var p = 0; p < proventosData.length; p++) totalProventos += proventosData[p].valor || 0;
+    } catch(e) {}
+    return totalRV + totalRF + totalCaixa + totalProventos;
+}
+
 function atualizarPatrimonioTotal() {
     var totalRV = 0;
     for (var i = 0; i < ativosRV.length; i++) totalRV += ativosRV[i].saldo;
@@ -2978,6 +3068,13 @@ function atualizarPatrimonioTotal() {
 
     atualizarKPIsPrincipais(total);
     atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa);
+
+    // Mantém o Histórico Mensal (Entrada/Tx.Mês do mês corrente) sempre em
+    // sincronia com o Patrimônio Total — antes ele só recalculava ao trocar
+    // de ano ou editar uma célula, ficando "atrasado" em relação ao KPI.
+    if (document.getElementById('dashHistTableBody') && typeof carregarHistoricoMensal === 'function') {
+        carregarHistoricoMensal();
+    }
 }
 
 // ============================================================
@@ -3012,19 +3109,11 @@ function atualizarKPIsPrincipais(totalPatrimonioAtual) {
     var somaInicial = obterSomaInicialClientes();
 
     // "Fechamento do mês anterior" = patrimônio real (Caixa+RF+RV+Proventos)
-    // no primeiro momento em que o Dashboard é aberto neste mês. Se ainda
-    // não existe um snapshot para o mês corrente, grava o valor atual como
-    // esse fechamento — por isso, ao abrir o mês pela primeira vez (nada
-    // mudou ainda), o Resultado do Mês começa em R$ 0,00.
-    var chaveSnapshot = 'patrimonioInicioMes_' + anoAtual + '_' + mesAtual;
-    var patrimonioInicioMes;
-    var snapshotSalvo = localStorage.getItem(chaveSnapshot);
-    if (snapshotSalvo !== null) {
-        patrimonioInicioMes = parseFloat(snapshotSalvo);
-    } else {
-        patrimonioInicioMes = totalPatrimonioAtual;
-        try { localStorage.setItem(chaveSnapshot, totalPatrimonioAtual); } catch(e) {}
-    }
+    // no primeiro momento em que o Dashboard é aberto neste mês. Mesma
+    // função usada pelo Histórico Mensal, para as duas telas ficarem
+    // sempre consistentes entre si.
+    var patrimonioInicioMes = obterSnapshotInicioMes(anoAtual, mesAtual);
+    if (patrimonioInicioMes === null) patrimonioInicioMes = totalPatrimonioAtual;
 
     var resultadoMes = totalPatrimonioAtual - patrimonioInicioMes;
     var pctPatrimonioVsMesAnterior = patrimonioInicioMes > 0 ? (resultadoMes / patrimonioInicioMes * 100) : 0;

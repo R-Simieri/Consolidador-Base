@@ -517,9 +517,9 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
     </div>
     <div class="spacer"></div>
     <div class="usuario">
-      <div class="avatar">RS</div>
+      <div class="avatar" id="avatarUsuarioTopo">RS</div>
       <div>
-        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-weight:700;font-size:9.5px;" id="nomeUsuarioTopo">Rogério Simieri</div>
         <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
       </div>
     </div>
@@ -626,24 +626,29 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
       </div>
     </div>
 
-    <!-- GRÁFICOS -->
-    <div class="grid-2">
-      <div class="panel">
-        <div class="panel-head"><h3>Evolução do Patrimônio</h3></div>
-        <div class="chart-container"><canvas id="chartEvolucao" height="220"></canvas></div>
-        <div class="info-box"><span>ℹ️</span><div>Evolução mensal do patrimônio líquido do cliente.</div></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Composição do Rendimento</h3></div>
-        <div class="chart-container"><canvas id="chartComposicao" height="220"></canvas></div>
-        <div class="info-box"><span>ℹ️</span><div>Distribuição do rendimento total entre Líquido, Tx. Adm. e I.R.</div></div>
-      </div>
-    </div>
-
   </div>
 </main>
 
 <script>
+// ============================================================
+// USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
+// ============================================================
+function aplicarUsuarioAdmin() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        var nome = (config && config.nome) ? config.nome : 'Rogério Simieri';
+        var elNome = document.getElementById('nomeUsuarioTopo');
+        var elAvatar = document.getElementById('avatarUsuarioTopo');
+        if (elNome) elNome.textContent = nome;
+        if (elAvatar) {
+            var partes = nome.trim().split(/\s+/);
+            var iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : 'AD');
+            elAvatar.textContent = iniciais.toUpperCase();
+        }
+    } catch(e) { console.warn('Erro ao aplicar usuário admin:', e); }
+}
+aplicarUsuarioAdmin();
+
 // ============================================================
 // DADOS DOS CLIENTES - CARREGAR DO LOCALSTORAGE
 // ============================================================
@@ -841,6 +846,50 @@ function getAdminName() {
 }
 
 // ============================================================
+// FUNÇÕES COMPARTILHADAS COM O DASHBOARD (mesmas chaves de localStorage)
+// Patrimônio Total Atual = Caixa + Renda Fixa + Renda Variável + Proventos,
+// e o snapshot do início do mês — usados para a Tx./Mês do mês corrente
+// ser calculada ao vivo, igual ao Dashboard.
+// ============================================================
+function obterPatrimonioTotalAtual() {
+    var totalRV = 0;
+    try {
+        var rv = JSON.parse(localStorage.getItem('rendaVariavel') || '[]');
+        for (var i = 0; i < rv.length; i++) totalRV += rv[i].saldo || 0;
+    } catch(e) {}
+    var totalRF = 0;
+    try {
+        var rf = JSON.parse(localStorage.getItem('rendaFixa') || '[]');
+        for (var j = 0; j < rf.length; j++) totalRF += rf[j].valorAtual || 0;
+    } catch(e) {}
+    var totalCaixa = 0;
+    try {
+        var caixa = JSON.parse(localStorage.getItem('saldosCaixa') || '[]');
+        for (var k = 0; k < caixa.length; k++) totalCaixa += caixa[k].valorBRL || 0;
+    } catch(e) {}
+    var totalProventos = 0;
+    try {
+        var proventosData = JSON.parse(localStorage.getItem('proventos') || '[]');
+        for (var p = 0; p < proventosData.length; p++) totalProventos += proventosData[p].valor || 0;
+    } catch(e) {}
+    return totalRV + totalRF + totalCaixa + totalProventos;
+}
+
+function obterSnapshotInicioMes(ano, mes) {
+    var hoje = new Date();
+    var ehMesAtualReal = (ano === hoje.getFullYear() && mes === hoje.getMonth());
+    var chave = 'patrimonioInicioMes_' + ano + '_' + mes;
+    var salvo = localStorage.getItem(chave);
+    if (salvo !== null) return parseFloat(salvo);
+    if (ehMesAtualReal) {
+        var atual = obterPatrimonioTotalAtual();
+        try { localStorage.setItem(chave, atual); } catch(e) {}
+        return atual;
+    }
+    return null;
+}
+
+// ============================================================
 // FUNÇÃO PARA CALCULAR HISTÓRICO INDIVIDUAL
 // ============================================================
 function calcularHistoricoIndividual(cliente, ano) {
@@ -858,18 +907,37 @@ function calcularHistoricoIndividual(cliente, ano) {
     
     var entradaAnterior = 0;
     var liquidoAnterior = 0;
-    
+    var hojeReal = new Date();
+
     for (var i = 0; i < 12 && i < dados.length; i++) {
+        var ehMesAtualReal = (ano === hojeReal.getFullYear() && i === hojeReal.getMonth());
         var entrada = 0;
         var aporte = dados[i][1] || 0;
-        var txMes = dados[i][2] || 0;
+        var txMesManual = dados[i][2] || 0;
         var txAdmPercentual = dados[i][4] || 50.00;
         var irPercentual = dados[i][5] || 20.00;
         
         if (i === 0) {
             entrada = cliente.valorInicial || 0;
+        } else if (ehMesAtualReal) {
+            // No primeiro dia do mês corrente, o Patrimônio Total é fixado
+            // como Entrada — mesma lógica usada no Dashboard.
+            var snapshot = obterSnapshotInicioMes(ano, i);
+            entrada = (snapshot !== null ? snapshot : (entradaAnterior + liquidoAnterior)) + aporte;
         } else {
             entrada = entradaAnterior + liquidoAnterior + aporte;
+        }
+
+        // Tx./Mês do mês corrente é recalculada diariamente (Patrimônio
+        // atual vs. o fixado no início do mês) — a menos que o
+        // administrador tenha sobrescrito manualmente esse cliente.
+        var txMes;
+        if (ehMesAtualReal && txMesManual === 0) {
+            var patrimonioAgora = obterPatrimonioTotalAtual();
+            var entradaBase = entrada - aporte;
+            txMes = entradaBase > 0 ? ((patrimonioAgora - entradaBase) / entradaBase * 100) : 0;
+        } else {
+            txMes = txMesManual;
         }
         
         var total = entrada * (txMes / 100);
@@ -1126,77 +1194,10 @@ function renderizarCliente() {
 }
 
 // ============================================================
-// GRÁFICOS
+// GRÁFICOS (removidos a pedido do usuário)
 // ============================================================
 function atualizarGraficos(cliente, calc) {
-    if (typeof Chart === 'undefined') return;
-    
-    var ctxEvolucao = document.getElementById('chartEvolucao');
-    if (ctxEvolucao) {
-        if (chartEvolucao) { chartEvolucao.destroy(); chartEvolucao = null; }
-        var labels = [], data = [];
-        for (var i = 0; i < calc.resultado.length; i++) {
-            labels.push(meses[i].substring(0, 3));
-            data.push(calc.resultado[i].entrada);
-        }
-        try {
-            chartEvolucao = new Chart(ctxEvolucao, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Patrimônio',
-                        data: data,
-                        borderColor: '#2d6fb0',
-                        backgroundColor: 'rgba(45, 111, 176, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#2d6fb0'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return fmtMoeda(context.parsed.y); } } } },
-                    scales: {
-                        y: { ticks: { callback: function(value) { return fmtMoeda(value); }, font: { size: 8 } }, grid: { color: '#e6e9f2' } },
-                        x: { grid: { display: false }, ticks: { font: { size: 8 } } }
-                    }
-                }
-            });
-        } catch(e) { console.warn('Erro gráfico evolução:', e); }
-    }
-    
-    var ctxComposicao = document.getElementById('chartComposicao');
-    if (ctxComposicao) {
-        if (chartComposicao) { chartComposicao.destroy(); chartComposicao = null; }
-        var totalGeral = calc.totalLiquido + calc.totalTxAdm + calc.totalIR;
-        if (totalGeral > 0) {
-            try {
-                chartComposicao = new Chart(ctxComposicao, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Líquido', 'Tx. Administração', 'I.R. (20%)'],
-                        datasets: [{ data: [calc.totalLiquido, calc.totalTxAdm, calc.totalIR], backgroundColor: ['#28a745', '#b8790f', '#dc3545'], borderWidth: 0 }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        cutout: '60%',
-                        plugins: {
-                            legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 12 } },
-                            tooltip: { callbacks: { label: function(context) {
-                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                                var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0;
-                                return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct + '%)';
-                            } } }
-                        }
-                    }
-                });
-            } catch(e) { console.warn('Erro gráfico composição:', e); }
-        }
-    }
+    // Os gráficos "Evolução do Patrimônio" e "Composição do Rendimento" foram removidos.
 }
 
 // ============================================================
