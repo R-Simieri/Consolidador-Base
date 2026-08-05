@@ -96,11 +96,26 @@ body.tema-escuro .sidebar {
   z-index: 100;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
-.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
-.logo h1 span { color: var(--azul-card); }
-.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+.logo {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    width: 100%;
+    background: var(--azul-escuro);
+    overflow: hidden;
+}
+.logo-img-sidebar {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
+}
+.logo-fallback { display: none; text-align: center; padding: 14px 8px; color: #fff; }
 
 .sidebar-nav { list-style: none; padding: 0 10px; }
 .sidebar-nav li {
@@ -290,10 +305,12 @@ body.tema-escuro .sidebar {
    SIDEBAR
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
-  <div class="logo">
-    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
+    <div class="logo">
+    <img src="/static/Logo%20Newex.png" alt="Newex" class="logo-img-sidebar" data-tentativa="1" onerror="if(this.dataset.tentativa==='1'){this.dataset.tentativa='2';this.src='/static/Logo%20Newex.ico';}else{this.style.display='none';document.getElementById('logoFallback').style.display='block';}">
+    <div class="logo-fallback" id="logoFallback">
+      <div style="font-size:13px;font-weight:800;">CARTEIRA<span style="color:var(--azul-card);">PESSOAL</span></div>
+      <strong style="display:block;font-size:8px;color:#ff8080;margin-top:4px;">⚠ Logo não encontrada</strong>
+    </div>
   </div>
 
   <ul class="sidebar-nav">
@@ -304,11 +321,11 @@ body.tema-escuro .sidebar {
     <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
     <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
     <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
 
     <li class="grupo">GESTÃO</li>
     <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
-    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
     <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
@@ -335,9 +352,9 @@ body.tema-escuro .sidebar {
     </div>
     <div class="spacer"></div>
     <div class="usuario">
-      <div class="avatar">RS</div>
+      <div class="avatar" id="avatarUsuarioTopo">RS</div>
       <div>
-        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-weight:700;font-size:9.5px;" id="nomeUsuarioTopo">Rogério Simieri</div>
         <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
       </div>
     </div>
@@ -448,6 +465,25 @@ body.tema-escuro .sidebar {
 </main>
 
 <script>
+// ============================================================
+// USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
+// ============================================================
+function aplicarUsuarioAdmin() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        var nome = (config && config.nome) ? config.nome : 'Rogério Simieri';
+        var elNome = document.getElementById('nomeUsuarioTopo');
+        var elAvatar = document.getElementById('avatarUsuarioTopo');
+        if (elNome) elNome.textContent = nome;
+        if (elAvatar) {
+            var partes = nome.trim().split(/\s+/);
+            var iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : 'AD');
+            elAvatar.textContent = iniciais.toUpperCase();
+        }
+    } catch(e) { console.warn('Erro ao aplicar usuário admin:', e); }
+}
+aplicarUsuarioAdmin();
+
 // ============================================================
 // CONFIGURAÇÕES - CARREGAR TEMA
 // ============================================================

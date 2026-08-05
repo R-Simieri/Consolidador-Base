@@ -61,8 +61,12 @@ body.tema-escuro .modal {
 }
 
 body.tema-escuro .panel-head h3,
-body.tema-escuro .modal h2 {
+body.tema-escuro .modal h2,
+body.tema-escuro .topbar h2 {
   color: #f0f6fc;
+}
+body.tema-escuro .col-aporte {
+  color: #4a8fd4;
 }
 
 body.tema-escuro .info-box {
@@ -107,10 +111,12 @@ body.tema-escuro .btn-primary { background: #4a8fd4; }
     background: #f0f2f5;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     transition: background 0.2s;
-    color: var(--azul-escuro);
+    color: var(--azul-card);
     font-weight: 600;
     display: inline-block;
 }
+.editable-cell.valor-negativo { color: var(--vermelho) !important; }
+.editable-cell.col-entrada { color: var(--verde-card) !important; }
 .editable-cell:hover {
     background: #e6e9f2;
     box-shadow: inset 0 1px 4px rgba(0,0,0,0.15);
@@ -155,7 +161,25 @@ body.tema-escuro .editable-cell:hover {
   z-index: 100;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; }
+.logo {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    width: 100%;
+    background: var(--azul-escuro);
+    overflow: hidden;
+}
+.logo-img-sidebar {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
+}
 .logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
 .logo h1 span { color: var(--azul-card); }
 .logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
@@ -298,7 +322,8 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ */
 .col-positivo { color: var(--verde-card); font-weight: 700; }
 .col-negativo { color: var(--vermelho); font-weight: 700; }
-.col-total { color: var(--azul-escuro); font-weight: 700; }
+.col-total { color: var(--verde-card); font-weight: 700; }
+.col-mes { color: var(--vermelho); font-weight: 700; }
 .col-entrada { color: var(--azul-card); font-weight: 600; }
 .col-aporte { color: var(--azul-escuro); font-weight: 600; }
 .col-tx-adm { color: #b8790f; font-weight: 600; }
@@ -448,11 +473,11 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="logo">
-    <div class="logo-image">
-      <img src="/static/images/Newex_-_Logo.ico" alt="Newex" onerror="this.style.display='none'">
+    <img src="/static/Logo%20Newex.png" alt="Newex" class="logo-img-sidebar" data-tentativa="1" onerror="if(this.dataset.tentativa==='1'){this.dataset.tentativa='2';this.src='/static/Logo%20Newex.ico';}else{this.style.display='none';document.getElementById('logoFallback').style.display='block';}">
+    <div class="logo-fallback" id="logoFallback" style="display:none;text-align:center;padding:8px;color:#fff;">
+      <div style="font-size:13px;font-weight:800;">CARTEIRA<span style="color:var(--azul-card);">PESSOAL</span></div>
+      <strong style="display:block;font-size:8px;color:#ff8080;margin-top:4px;">⚠ Logo não encontrada em /static/Logo Newex.png</strong>
     </div>
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
   </div>
 
   <ul class="sidebar-nav">
@@ -463,11 +488,11 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
     <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
     <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
     <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
 
     <li class="grupo">GESTÃO</li>
     <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
-    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
     <li class="active"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
@@ -541,7 +566,10 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           </select>
         </h3>
         <div>
-          <button class="btn btn-ghost" onclick="exportarHistorico()">📤 Exportar</button>
+          <button class="btn btn-success" onclick="receberTaxasAdm()" title="Soma a Tx. Adm. de todos os outros clientes ao Total do cliente selecionado, em todos os meses do ano">💰 Receber Taxas ADM</button>
+          <button class="btn btn-ghost" onclick="limparTaxasAdmRecebidas()" title="Remove qualquer Tx. Adm. recebida do cliente selecionado, em todos os meses (caso tenha sido aplicada no cliente errado)">🧹 Limpar Taxas Recebidas</button>
+          <button class="btn btn-ghost" onclick="exportarHistorico()">📤 Exportar CSV</button>
+          <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimir / PDF</button>
           <button class="btn btn-ghost" onclick="recarregarDados()">🔄 Recarregar</button>
         </div>
       </div>
@@ -889,14 +917,96 @@ function obterSnapshotInicioMes(ano, mes) {
     return null;
 }
 
+// Tx./Mês do mês corrente: usa a MESMA taxa do fundo como um todo, que já
+// é calculada ao vivo no Dashboard (Patrimônio Total real vs. o fixado no
+// início do mês) e salva em 'historicoDados_<ano>'. Cada cliente aplica
+// essa mesma taxa sobre a Entrada individual dele — o patrimônio do fundo
+// nunca é usado diretamente como Entrada de um cliente.
+function obterTxMesFundoMesAtual(ano, mes) {
+    try {
+        var dadosFundo = JSON.parse(localStorage.getItem('historicoDados_' + ano) || '{}');
+        if (dadosFundo[mes] !== undefined && dadosFundo[mes].txMes !== undefined) {
+            return dadosFundo[mes].txMes;
+        }
+    } catch(e) {}
+    // Se o Dashboard ainda não calculou esse mês, calcula aqui do zero
+    // usando o mesmo patrimônio/snapshot do fundo (só para a TAXA, nunca
+    // para a Entrada do cliente).
+    var snapshot = obterSnapshotInicioMes(ano, mes);
+    if (snapshot === null || snapshot <= 0) return 0;
+    var patrimonioAgora = obterPatrimonioTotalAtual();
+    return (patrimonioAgora - snapshot) / snapshot * 100;
+}
+
 // ============================================================
 // FUNÇÃO PARA CALCULAR HISTÓRICO INDIVIDUAL
 // ============================================================
-function calcularHistoricoIndividual(cliente, ano) {
-    var dados = cliente.dados;
+// Corrige bug clássico do JS: new Date('2026-08-04') é interpretado como
+// meia-noite em UTC, e em fusos negativos (Brasil, UTC-3) isso "volta" um
+// dia ao converter para hora local. Este parser lê a data como hora local.
+function parseDataLocal(data) {
+    if (!data) return null;
+    var partes = String(data).split('-');
+    if (partes.length !== 3) return new Date(data);
+    return new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
+}
+
+// Soma os créditos/débitos do módulo Movimentações para UM cliente
+// específico, mês a mês, filtrando pelo ano. Retorna um array de 12
+// posições (Jan-Dez).
+function obterAportesClientePorMes(nomeCliente, ano) {
+    var aportes = new Array(12).fill(0);
+    var movimentacoes = [];
+    try { movimentacoes = JSON.parse(localStorage.getItem('movimentacoes') || '[]'); } catch(e) {}
+    for (var i = 0; i < movimentacoes.length; i++) {
+        var m = movimentacoes[i];
+        if (!m.data || m.clienteNome !== nomeCliente) continue;
+        var data = parseDataLocal(m.data);
+        if (!data || data.getFullYear() !== ano) continue;
+        var mes = data.getMonth();
+        if (mes < 0 || mes > 11) continue;
+        if (m.tipo === 'credito') aportes[mes] += m.valor || 0;
+        else if (m.tipo === 'debito') aportes[mes] -= m.valor || 0;
+    }
+    return aportes;
+}
+
+// ============================================================
+// DADOS POR ANO — cada cliente agora guarda os 12 meses separados por
+// ano (cliente.porAno[ano]), em vez de um único array compartilhado
+// entre todos os anos (bug que fazia uma edição em 2025 "aparecer"
+// em 2026, já que era literalmente o mesmo dado).
+// ============================================================
+function criarDadosMesPadrao() {
+    var arr = [];
+    for (var m = 0; m < 12; m++) arr.push([0, 0, 0, 0, 50, 20, 0, 0]);
+    return arr;
+}
+
+function obterDadosAno(cliente, ano) {
+    if (!cliente.porAno) cliente.porAno = {};
+    if (!cliente.porAno[ano]) {
+        // Migração única: dados antigos (formato sem separação por ano) são
+        // migrados pro PRIMEIRO ano que for pedido depois da atualização —
+        // não necessariamente o ano real do calendário, já que o usuário
+        // pode estar editando um ano diferente (ex: 2025 mesmo estando em
+        // 2026). Uma flag garante que a migração só acontece uma vez.
+        if (cliente.dados && !cliente._dadosLegadoMigrado && Object.keys(cliente.porAno).length === 0) {
+            cliente.porAno[ano] = cliente.dados;
+            cliente._dadosLegadoMigrado = true;
+        } else {
+            cliente.porAno[ano] = criarDadosMesPadrao();
+        }
+    }
+    return cliente.porAno[ano];
+}
+
+function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnterior) {
+    var dados = obterDadosAno(cliente, ano);
     var b5 = cliente.b5 || 175253.61;
     var b17 = cliente.b17 || 178605.56;
     var resultado = [];
+    var aportesReaisDoCliente = obterAportesClientePorMes(cliente.nome, ano);
     
     var totalEntrada = 0;
     var totalAporte = 0;
@@ -912,37 +1022,67 @@ function calcularHistoricoIndividual(cliente, ano) {
     for (var i = 0; i < 12 && i < dados.length; i++) {
         var ehMesAtualReal = (ano === hojeReal.getFullYear() && i === hojeReal.getMonth());
         var entrada = 0;
-        var aporte = dados[i][1] || 0;
+        var aporteManual = dados[i][1];
+        var aporte = aporteManual ? aporteManual : (aportesReaisDoCliente[i] || 0);
         var txMesManual = dados[i][2] || 0;
-        var txAdmPercentual = dados[i][4] || 50.00;
-        var irPercentual = dados[i][5] || 20.00;
-        
-        if (i === 0) {
-            entrada = cliente.valorInicial || 0;
-        } else if (ehMesAtualReal) {
-            // No primeiro dia do mês corrente, o Patrimônio Total é fixado
-            // como Entrada — mesma lógica usada no Dashboard.
-            var snapshot = obterSnapshotInicioMes(ano, i);
-            entrada = (snapshot !== null ? snapshot : (entradaAnterior + liquidoAnterior)) + aporte;
+        var txAdmPercentual = (dados[i][4] !== undefined && dados[i][4] !== null) ? dados[i][4] : 50.00;
+        var irPercentual = (dados[i][5] !== undefined && dados[i][5] !== null) ? dados[i][5] : 20.00;
+        var entradaManual = dados[i][7];
+
+        if (entradaManual) {
+            // Entrada editada manualmente tem prioridade sobre qualquer cálculo automático
+            entrada = entradaManual;
+        } else if (i === 0) {
+            // Janeiro = fechamento de Dezembro do ano anterior DESTE
+            // cliente (Entrada + carga) + o aporte do próprio Janeiro —
+            // é uma fórmula viva, igual à planilha do usuário
+            // (=FechamentoDezAnoAnterior + AporteJan). Se não houver
+            // histórico do ano anterior salvo pelo sistema, usa o valor
+            // inicial do cliente como base (ele deve refletir o fechamento
+            // real de Dezembro do ano anterior, ANTES do aporte de Janeiro).
+            entrada = (cliente.valorInicial || 0) + aporte;
+            if (clienteKey) {
+                try {
+                    // Lê o fechamento salvo do ano anterior diretamente —
+                    // pode vir de um cálculo do próprio sistema OU de um
+                    // valor real configurado manualmente (ex.: fechamento
+                    // de um ano anterior à existência do sistema). NÃO
+                    // recalcula por cima, pra não sobrescrever um valor
+                    // real com um recálculo vazio quando não há dados
+                    // mês a mês daquele ano no sistema.
+                    var fechamentoAnterior = JSON.parse(localStorage.getItem('histClienteFechamento_' + clienteKey + '_' + (ano - 1)));
+                    if (fechamentoAnterior && fechamentoAnterior.entrada !== undefined) {
+                        entrada = fechamentoAnterior.entrada + (fechamentoAnterior.liquido || 0) + aporte;
+                    }
+                } catch(e) {}
+            }
         } else {
+            // A Entrada de cada cliente é SEMPRE a Entrada anterior dele +
+            // o Líquido anterior dele + o Aporte dele — nunca o patrimônio
+            // total do fundo. Cada cliente tem sua própria conta.
             entrada = entradaAnterior + liquidoAnterior + aporte;
         }
 
-        // Tx./Mês do mês corrente é recalculada diariamente (Patrimônio
-        // atual vs. o fixado no início do mês) — a menos que o
-        // administrador tenha sobrescrito manualmente esse cliente.
+        // Tx./Mês do mês corrente: usa a MESMA taxa do fundo (já calculada
+        // ao vivo no Dashboard, com base no patrimônio total real),
+        // aplicada sobre a Entrada individual deste cliente — a menos que
+        // o administrador tenha sobrescrito manualmente esse cliente.
         var txMes;
         if (ehMesAtualReal && txMesManual === 0) {
-            var patrimonioAgora = obterPatrimonioTotalAtual();
-            var entradaBase = entrada - aporte;
-            txMes = entradaBase > 0 ? ((patrimonioAgora - entradaBase) / entradaBase * 100) : 0;
+            txMes = obterTxMesFundoMesAtual(ano, i);
         } else {
             txMes = txMesManual;
         }
         
         var total = entrada * (txMes / 100);
+        var taxasAdmRecebidas = dados[i][6] || 0;
+        total += taxasAdmRecebidas;
         var txAdm = total * (txAdmPercentual / 100);
-        var ir = txAdm * (irPercentual / 100);
+        // I.R. normalmente é % da Tx.Adm. — mas quem RECEBE as taxas (Tx.Adm.
+        // = 0%) não tem base pra isso, e paga DARF sobre o próprio Total.
+        // Nesse caso o I.R. passa a ser % do Total em vez de % da Tx.Adm.
+        var baseIR = txAdm > 0 ? txAdm : total;
+        var ir = baseIR * (irPercentual / 100);
         var liquido = total - txAdm - ir;
         var txNominal = entrada > 0 ? (liquido / entrada * 100) : 0;
         
@@ -959,6 +1099,7 @@ function calcularHistoricoIndividual(cliente, ano) {
             aporte: aporte,
             txMes: txMes,
             total: total,
+            taxasAdmRecebidas: taxasAdmRecebidas,
             txAdm: txAdm,
             txAdmPercentual: txAdmPercentual,
             ir: ir,
@@ -968,20 +1109,47 @@ function calcularHistoricoIndividual(cliente, ano) {
         });
         
         entradaAnterior = entrada;
-        liquidoAnterior = liquido;
+        // O que carrega pro mês seguinte: pra clientes normais (que pagam
+        // Tx.Adm.), é o Líquido de verdade (Total − Tx.Adm. − I.R.) — o
+        // imposto reduz o saldo investido igual a taxa. MAS pra quem
+        // recebe as taxas (Tx.Adm. = 0%), o I.R. é sobre renda pessoal
+        // (DARF pago à parte) e NÃO deve reduzir o saldo que compõe —
+        // nesse caso carrega só Total − Tx.Adm. (sem tirar o I.R.).
+        // Confirmado com os dados reais de 2025 (Vitória usa líquido
+        // completo; Rogério, que recebe as taxas, não desconta o I.R.).
+        liquidoAnterior = (txAdm > 0) ? liquido : (total - txAdm);
+    }
+
+    // Salva o fechamento de Dezembro deste cliente/ano, para o Janeiro do
+    // ano seguinte herdar automaticamente (mesma lógica do Dashboard).
+    if (clienteKey && resultado.length === 12) {
+        try {
+            localStorage.setItem('histClienteFechamento_' + clienteKey + '_' + ano, JSON.stringify({
+                entrada: resultado[11].entrada,
+                liquido: (resultado[11].txAdm > 0) ? resultado[11].liquido : (resultado[11].total - resultado[11].txAdm)
+            }));
+        } catch(e) {}
     }
     
-    var b78 = resultado.length > 0 ? resultado[resultado.length - 1].entrada : 0;
-    var cotas = b78 / b5;
-    var patrimonioLiquido = cotas * b17;
-    
-    var resultadoMensalPct = 0;
-    var resultadoMensalValor = 0;
-    if (b78 > 0) {
-        resultadoMensalPct = (patrimonioLiquido / b78) - 1;
-        resultadoMensalValor = patrimonioLiquido - b78;
-    }
-    
+    // Cota do cliente = valor inicial dele ÷ soma dos valores iniciais de
+    // TODOS os clientes (mesma lógica usada no quadro "Cotas dos Clientes"
+    // do Dashboard) — usada só como % de participação no fundo.
+    var somaInicialTodos = 0;
+    for (var ck in dadosClientes) somaInicialTodos += dadosClientes[ck].valorInicial || 0;
+    var cotas = somaInicialTodos > 0 ? ((cliente.valorInicial || 0) / somaInicialTodos) : 0;
+
+    // Patrimônio Líquido e Resultado Mensal = valores do MÊS VIGENTE deste
+    // cliente, já com Tx.Adm. e I.R. descontados (Entrada do mês + Líquido
+    // do mês) — não mais uma fatia bruta do patrimônio total do fundo.
+    var hojeParaKPI = new Date();
+    var mesAtualIdx = (ano === hojeParaKPI.getFullYear()) ? hojeParaKPI.getMonth() : (resultado.length - 1);
+    var resultadoMesVigente = resultado[mesAtualIdx] || { entrada: 0, liquido: 0, txNominal: 0 };
+    var patrimonioLiquido = resultadoMesVigente.entrada + resultadoMesVigente.liquido;
+    var resultadoMensalValor = resultadoMesVigente.liquido;
+    var resultadoMensalPct = resultadoMesVigente.txNominal / 100;
+
+    var b78 = resultado.length > 0 ? (resultado[resultado.length - 1].entrada + resultado[resultado.length - 1].liquido) : 0;
+
     var totalTxAdmIR = totalTxAdm + totalIR;
     var txNominalTotal = (resultado.length > 0 && resultado[0].entrada > 0) ? 
         ((patrimonioLiquido - resultado[0].entrada) / resultado[0].entrada * 100) : 0;
@@ -1024,6 +1192,9 @@ function carregarDadosDoLocalStorage() {
                         dadosClientes[key].valorInicial = parsed[key].valorInicial;
                     }
                 }
+                if (parsed[key] && parsed[key].porAno) {
+                    dadosClientes[key].porAno = parsed[key].porAno;
+                }
             }
             console.log('📂 Dados carregados do localStorage');
         } catch(e) {
@@ -1041,6 +1212,16 @@ function carregarDadosDoLocalStorage() {
                 var c = listaClientes[i];
                 // PULAR O ADMIN - NÃO ADICIONAR COMO CLIENTE
                 if (c.nome === adminName) continue;
+
+                // Verifica se esse NOME já existe em QUALQUER chave (não só
+                // na chave gerada agora) — evita duplicar o mesmo cliente
+                // com uma chave diferente da usada nos dados padrão.
+                var jaExiste = false;
+                for (var existente in dadosClientes) {
+                    if (dadosClientes[existente].nome === c.nome) { jaExiste = true; break; }
+                }
+                if (jaExiste) continue;
+
                 var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
                 if (!dadosClientes[key]) {
                     dadosClientes[key] = {
@@ -1112,6 +1293,65 @@ function salvarDadosClientes() {
 // ============================================================
 // CARREGAR E RENDERIZAR CLIENTE
 // ============================================================
+// ============================================================
+// RECEBER TAXAS ADM — soma a Tx. Adm. (em R$) de todos os OUTROS
+// clientes ao Total do cliente atualmente selecionado, em TODOS OS
+// MESES do ano (não só o mês corrente). Ex: se um cliente tem Total
+// R$2.000,00 num mês e Tx.Adm de 50%, R$1.000,00 dessa taxa são
+// somados ao Total do cliente clicado NAQUELE MESMO MÊS.
+// Cada clique recalcula e FIXA o valor por mês (não soma em cima do
+// que já foi recebido antes), para poder clicar de novo com segurança
+// se algum cliente mudar de valor depois.
+// ============================================================
+function receberTaxasAdm() {
+    var clienteRecebedorKey = clienteAtual;
+    var clienteRecebedor = dadosClientes[clienteRecebedorKey];
+    if (!clienteRecebedor) { alert('Selecione um cliente primeiro.'); return; }
+
+    var somaPorMes = new Array(12).fill(0);
+    var somaGeral = 0;
+    var detalhesPorMes = [];
+
+    for (var mesIndex = 0; mesIndex < 12; mesIndex++) {
+        var somaMes = 0;
+        for (var key in dadosClientes) {
+            if (key === clienteRecebedorKey) continue;
+            var outroCliente = dadosClientes[key];
+            var calcOutro = calcularHistoricoIndividual(outroCliente, anoAtual, key);
+            var rMes = calcOutro.resultado[mesIndex];
+            if (rMes && rMes.txAdm > 0) somaMes += rMes.txAdm + (rMes.ir || 0);
+        }
+        somaPorMes[mesIndex] = somaMes;
+        somaGeral += somaMes;
+        if (somaMes > 0) detalhesPorMes.push(meses[mesIndex] + ': ' + fmtMoeda(somaMes));
+    }
+
+    if (somaGeral === 0) { alert('Nenhuma Tx. Adm. a receber de outros clientes em ' + anoAtual + '.'); return; }
+
+    if (!confirm('Somar Tx. Adm. de todos os outros clientes ao Total de ' + clienteRecebedor.nome + ', mês a mês, em ' + anoAtual + '?\n\nTotal geral: ' + fmtMoeda(somaGeral) + '\n\n' + detalhesPorMes.join('\n'))) return;
+
+    var dadosRecebedorAno = obterDadosAno(clienteRecebedor, anoAtual);
+    for (var m = 0; m < 12; m++) {
+        dadosRecebedorAno[m][6] = somaPorMes[m];
+    }
+    salvarDadosClientes();
+    renderizarCliente();
+    alert('✅ ' + fmtMoeda(somaGeral) + ' de Tx. Adm. somados ao Total de ' + clienteRecebedor.nome + ', distribuídos mês a mês em ' + anoAtual + '.');
+}
+
+function limparTaxasAdmRecebidas() {
+    var cliente = dadosClientes[clienteAtual];
+    if (!cliente) { alert('Selecione um cliente primeiro.'); return; }
+    if (!confirm('Remover qualquer Tx. Adm. recebida de ' + cliente.nome + ', em todos os meses de ' + anoAtual + '?')) return;
+    var dadosClienteAno = obterDadosAno(cliente, anoAtual);
+    for (var m = 0; m < 12; m++) {
+        dadosClienteAno[m][6] = 0;
+    }
+    salvarDadosClientes();
+    renderizarCliente();
+    alert('✅ Taxas recebidas de ' + cliente.nome + ' foram zeradas.');
+}
+
 function carregarCliente() {
     var select = document.getElementById('selectCliente');
     var selectAno = document.getElementById('selectAno');
@@ -1130,15 +1370,15 @@ function renderizarCliente() {
     document.getElementById('clienteNome').textContent = cliente.nome;
     
     // USAR LÓGICA INDIVIDUAL PARA TODOS OS CLIENTES
-    var calc = calcularHistoricoIndividual(cliente, anoAtual);
+    var calc = calcularHistoricoIndividual(cliente, anoAtual, clienteAtual);
     
     // ATUALIZAR KPIs
     document.getElementById('resultadoMensalPct').innerHTML = fmtPct(calc.resultadoMensalPct);
     document.getElementById('resultadoMensalValor').innerHTML = fmtMoeda(calc.resultadoMensalValor);
     document.getElementById('totalCotas').textContent = fmtNum(calc.cotas);
-    document.getElementById('valorCotas').textContent = fmtMoeda(calc.cotas * (cliente.b17 || 0));
+    document.getElementById('valorCotas').textContent = fmtMoeda(calc.patrimonio);
     document.getElementById('patrimonioLiquido').innerHTML = fmtMoeda(calc.patrimonio);
-    document.getElementById('patrimonioBruto').textContent = 'B17: ' + fmtMoeda(cliente.b17 || 0);
+    document.getElementById('patrimonioBruto').textContent = 'Cota: ' + (calc.cotas * 100).toFixed(2).replace('.', ',') + '% do patrimônio total';
     document.getElementById('totalTxAdmIR').innerHTML = fmtMoeda(calc.totalTxAdmIR);
     document.getElementById('totalTxAdm').textContent = 'Tx. Adm: ' + fmtMoeda(calc.totalTxAdm);
     
@@ -1147,17 +1387,17 @@ function renderizarCliente() {
     var html = '';
     for (var i = 0; i < calc.resultado.length; i++) {
         var r = calc.resultado[i];
-        
-        var entradaDisplay = fmtMoeda(r.entrada);
+        var clsEntrada = r.entrada >= 0 ? 'col-entrada' : 'valor-negativo';
+
+        var entradaDisplay = '<span class="editable-cell ' + clsEntrada + '" onclick="abrirModalEditar(' + i + ', \'entrada\')" title="Insira um novo valor">' + fmtMoeda(r.entrada) + '</span>';
         var aporteDisplay = fmtMoeda(r.aporte);
         var txMesDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txMes\')" title="Insira um novo valor">' + fmtPctTaxa(r.txMes) + '</span>';
         var totalDisplay = fmtMoeda(r.total);
-        var txAdmDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txAdmPct\')" title="Insira um novo percentual para Tx. Adm.">' + fmtPctPercentual(r.txAdmPercentual) + '</span>';
-        var irDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'irPct\')" title="Insira um novo percentual para I.R.">' + fmtPctPercentual(r.irPercentual) + '</span>';
+        var txAdmDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'txAdmPct\')" title="Tx. Adm.: ' + fmtPctPercentual(r.txAdmPercentual) + ' — clique para alterar o percentual">' + fmtMoeda(r.txAdm) + '</span>';
+        var irDisplay = '<span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'irPct\')" title="I.R.: ' + fmtPctPercentual(r.irPercentual) + ' — clique para alterar o percentual">' + fmtMoeda(r.ir) + '</span>';
         var liquidoDisplay = fmtMoeda(r.liquido);
         var txNominalDisplay = fmtPct(r.txNominal);
         
-        var clsEntrada = r.entrada >= 0 ? 'col-entrada' : 'valor-negativo';
         var clsAporte = r.aporte >= 0 ? 'col-aporte' : 'valor-negativo';
         var clsTotal = r.total >= 0 ? 'col-total' : 'valor-negativo';
         var clsTxAdm = r.txAdm >= 0 ? 'col-tx-adm' : 'valor-negativo';
@@ -1166,10 +1406,10 @@ function renderizarCliente() {
         var clsNominal = r.txNominal >= 0 ? 'col-positivo' : 'valor-negativo';
         
         html += '<tr>' +
-            '<td class="col-total">' + r.mes + '</td>' +
+            '<td class="col-mes">' + r.mes + '</td>' +
             '<td class="' + clsEntrada + '">' + entradaDisplay + '</td>' +
             '<td class="' + clsAporte + '"><span class="editable-cell" onclick="abrirModalEditar(' + i + ', \'aporte\')" title="Insira um novo valor">' + aporteDisplay + '</span></td>' +
-            '<td class="col-total">' + txMesDisplay + '</td>' +
+            '<td>' + txMesDisplay + '</td>' +
             '<td class="' + clsTotal + '">' + totalDisplay + '</td>' +
             '<td class="' + clsTxAdm + '">' + txAdmDisplay + '</td>' +
             '<td class="' + clsIr + '">' + irDisplay + '</td>' +
@@ -1207,52 +1447,71 @@ var editIndex = -1;
 var editCampo = '';
 
 function abrirModalEditar(index, campo) {
-    editIndex = index;
-    editCampo = campo;
     var cliente = dadosClientes[clienteAtual];
-    var dados = cliente.dados[index];
-    
-    document.getElementById('editClienteId').value = clienteAtual;
-    document.getElementById('editMesIndex').value = index;
-    document.getElementById('editCampo').value = campo;
-    
-    var titulos = {
-        'aporte': '✏️ Editar Aporte',
-        'txMes': '✏️ Editar Tx./Mês',
-        'txAdmPct': '✏️ Editar Tx. Adm. (%)',
-        'irPct': '✏️ Editar I.R. (%)'
-    };
-    document.getElementById('modalEditarTitle').textContent = titulos[campo] || '✏️ Editar';
-    
-    var labels = {
-        'aporte': 'Valor do Aporte (R$)',
-        'txMes': 'Taxa do Mês (%)',
-        'txAdmPct': 'Tx. Adm. (%)',
-        'irPct': 'I.R. (%)'
-    };
-    document.getElementById('editLabel').textContent = labels[campo] || 'Valor';
-    
-    var valoresPorCampo = {
-        'aporte': dados[1],
-        'txMes': dados[2],
-        'txAdmPct': dados[4],
-        'irPct': dados[5]
-    };
-    var valorAtual = valoresPorCampo[campo];
-    document.getElementById('editValor').value = valorAtual;
-    document.getElementById('editValor').step = campo === 'aporte' ? '0.01' : '0.0001';
-    
+    var dadosAno = obterDadosAno(cliente, anoAtual);
+    var dados = dadosAno[index];
     var mes = meses[index];
-    var infos = {
-        'aporte': 'Digite o novo valor de aporte para ' + mes + '.',
-        'txMes': 'Digite a nova taxa para ' + mes + '.',
-        'txAdmPct': 'Digite o novo percentual de Tx. Adm. para ' + mes + '. (Padrão: 50%)',
-        'irPct': 'Digite o novo percentual de I.R. para ' + mes + '. (Padrão: 20%)'
+
+    var titulos = {
+        'entrada': 'Entrada (R$)',
+        'aporte': 'Aporte',
+        'txMes': 'Tx./Mês (%)',
+        'txAdmPct': 'Tx. Adm. (%)',
+        'irPct': 'I.R.'
     };
-    document.getElementById('editInfo').textContent = infos[campo] || 'Digite o novo valor para ' + mes + '.';
-    
-    document.getElementById('modalEditar').classList.add('active');
-    document.getElementById('editValor').focus();
+    var indicesPorCampo = { 'entrada': 7, 'aporte': 1, 'txMes': 2, 'txAdmPct': 4, 'irPct': 5 };
+    var idx = indicesPorCampo[campo];
+    var valorAtual = campo === 'entrada' ? (dados[idx] || dados[0]) : dados[idx];
+    var label = titulos[campo] || 'Valor';
+
+    if (campo === 'irPct' || campo === 'txAdmPct') {
+        // Tx.Adm. e I.R. costumam só ser confirmados de verdade depois (no
+        // extrato do cliente ou no pagamento do DARF) — por isso aceitam
+        // tanto % quanto R$ diretamente.
+        var calcAtual = calcularHistoricoIndividual(cliente, anoAtual, clienteAtual);
+        var rMesAtual = calcAtual.resultado[index] || { total: 0, txAdm: 0 };
+        // I.R. é sempre um percentual do valor da Tx.Adm. (não do Total);
+        // Tx.Adm. é um percentual do Total.
+        var baseCalculo = (campo === 'irPct') ? (rMesAtual.txAdm > 0 ? rMesAtual.txAdm : rMesAtual.total) : rMesAtual.total;
+        var nomeCampo = (campo === 'irPct') ? 'I.R.' : 'Tx. Adm.';
+        var padrao = (campo === 'irPct') ? 20.00 : 50.00;
+        var novoValorCampo = prompt('✏️ Editar ' + nomeCampo + ' - ' + mes + '\n\nDigite o percentual terminando com % (ex: ' + valorAtual + '%)\nOU digite o valor direto em R$ (ex: 45,20)\n\n(Deixe em branco para voltar ao padrão de ' + padrao + '%)', valorAtual + '%');
+        if (novoValorCampo === null) return;
+        var textoCampo = novoValorCampo.trim();
+        if (textoCampo === '') {
+            dados[idx] = padrao;
+        } else if (textoCampo.indexOf('%') !== -1) {
+            var pct = parseFloat(textoCampo.replace('%', '').replace(',', '.'));
+            if (isNaN(pct)) { alert('❌ Digite um percentual válido.'); return; }
+            dados[idx] = pct;
+        } else {
+            var valorRS = parseFloat(textoCampo.replace(',', '.'));
+            if (isNaN(valorRS)) { alert('❌ Digite um valor válido.'); return; }
+            if (baseCalculo <= 0) {
+                var baseNome = (campo === 'irPct') ? 'a Tx. Adm.' : 'o Total';
+                alert('❌ Não é possível calcular o percentual em R$ porque ' + baseNome + ' de ' + mes + ' ainda é R$ 0,00.\n\nDigite terminando com % (ex: ' + padrao + '%) para definir um percentual direto, ou primeiro defina a Tx./Mês desse mês.');
+                return;
+            }
+            dados[idx] = valorRS / baseCalculo * 100;
+        }
+        salvarDadosClientes();
+        renderizarCliente();
+        return;
+    }
+
+    var novoValor = prompt('✏️ Editar ' + label + ' - ' + mes + '\n\nDigite o novo valor:\n(Deixe em branco para voltar ao cálculo automático)', valorAtual);
+    if (novoValor === null) return;
+
+    if (novoValor.trim() === '') {
+        dados[idx] = (campo === 'txAdmPct') ? 50.00 : (campo === 'irPct') ? 20.00 : 0;
+    } else {
+        var valor = parseFloat(novoValor.replace(',', '.'));
+        if (isNaN(valor)) { alert('❌ Digite um valor válido.'); return; }
+        dados[idx] = valor;
+    }
+
+    salvarDadosClientes();
+    renderizarCliente();
 }
 
 function fecharModalEditar() {
@@ -1288,8 +1547,8 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
         var entrada = 0;
         var aporte = cliente.dados[i][1] || 0;
         var txMes = cliente.dados[i][2] || 0;
-        var txAdmPct = cliente.dados[i][4] || 50.00;
-        var irPct = cliente.dados[i][5] || 20.00;
+        var txAdmPct = (cliente.dados[i][4] !== undefined && cliente.dados[i][4] !== null) ? cliente.dados[i][4] : 50.00;
+        var irPct = (cliente.dados[i][5] !== undefined && cliente.dados[i][5] !== null) ? cliente.dados[i][5] : 20.00;
         
         if (i === 0) {
             entrada = cliente.valorInicial || 0;
@@ -1327,14 +1586,20 @@ function exportarHistorico() {
     var cliente = dadosClientes[clienteAtual];
     if (!cliente) return;
     
-    var calc = calcularHistoricoIndividual(cliente, anoAtual);
-    
-    var csv = 'Mês,Entrada,Aporte,Tx./Mês,Total,Tx. Adm. (%),I.R. (%),Líquido,Tx. Nominal\n';
+    var calc = calcularHistoricoIndividual(cliente, anoAtual, clienteAtual);
+
+    // Excel em português espera ";" como separador de coluna e "," como
+    // separador decimal — com "," e "." (padrão americano) o Excel abria
+    // tudo numa coluna só ou lia os números errado.
+    function csvNum(v, casas) { return v.toFixed(casas).replace('.', ','); }
+
+    var csv = 'Mês;Entrada;Aporte;Tx./Mês;Total;Tx. Adm. (%);I.R. (%);Líquido;Tx. Nominal\n';
     for (var i = 0; i < calc.resultado.length; i++) {
         var r = calc.resultado[i];
-        csv += r.mes + ',' + r.entrada.toFixed(2) + ',' + r.aporte.toFixed(2) + ',' + r.txMes.toFixed(4) + ',' + r.total.toFixed(2) + ',' + r.txAdmPercentual.toFixed(2) + ',' + r.irPercentual.toFixed(2) + ',' + r.liquido.toFixed(2) + ',' + r.txNominal.toFixed(4) + '\n';
+        csv += r.mes + ';' + csvNum(r.entrada, 2) + ';' + csvNum(r.aporte, 2) + ';' + csvNum(r.txMes, 4) + ';' + csvNum(r.total, 2) + ';' + csvNum(r.txAdmPercentual, 2) + ';' + csvNum(r.irPercentual, 2) + ';' + csvNum(r.liquido, 2) + ';' + csvNum(r.txNominal, 4) + '\n';
     }
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'historico_' + cliente.nome.replace(' ', '_') + '_' + new Date().toISOString().split('T')[0] + '.csv';

@@ -113,25 +113,25 @@ body.tema-escuro .editable-value:hover {
 }
 
 .logo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 0 16px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  margin-bottom: 12px;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    width: 100%;
+    background: var(--azul-escuro);
+    overflow: hidden;
 }
 .logo-img-sidebar {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  border-radius: 7px;
-  background: #fff;
-  padding: 3px;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
 }
-.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
-.logo h1 span { color: var(--azul-card); }
-.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+.logo-fallback { display: none; text-align: center; padding: 14px 8px; color: #fff; }
 
 .sidebar-nav { list-style: none; padding: 0 10px; }
 .sidebar-nav li {
@@ -391,10 +391,12 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    SIDEBAR
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
-  <div class="logo">
-    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
+    <div class="logo">
+    <img src="/static/Logo%20Newex.png" alt="Newex" class="logo-img-sidebar" data-tentativa="1" onerror="if(this.dataset.tentativa==='1'){this.dataset.tentativa='2';this.src='/static/Logo%20Newex.ico';}else{this.style.display='none';document.getElementById('logoFallback').style.display='block';}">
+    <div class="logo-fallback" id="logoFallback">
+      <div style="font-size:13px;font-weight:800;">CARTEIRA<span style="color:var(--azul-card);">PESSOAL</span></div>
+      <strong style="display:block;font-size:8px;color:#ff8080;margin-top:4px;">⚠ Logo não encontrada</strong>
+    </div>
   </div>
   <ul class="sidebar-nav">
     <li class="grupo">GERAL</li>
@@ -403,10 +405,10 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
     <li onclick="window.location.href='renda-variavel.html'"><span class="icone">📈</span> Renda Variável</li>
     <li onclick="window.location.href='renda-fixa.html'"><span class="icone">🏦</span> Renda Fixa</li>
     <li class="active"><span class="icone">💳</span> Caixa</li>
+    <li onclick="window.location.href='proventos.html'"><span class="icone">📊</span> Proventos</li>
     <li class="grupo">GESTÃO</li>
     <li onclick="window.location.href='clientes.html'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='movimentacoes.html'"><span class="icone">💵</span> Movimentações</li>
-    <li onclick="window.location.href='proventos.html'"><span class="icone">📊</span> Proventos</li>
     <li onclick="window.location.href='historico-mensal.html'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='instituicoes.html'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='relatorios.html'"><span class="icone">📄</span> Relatórios</li>
@@ -606,7 +608,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           </tfoot>
         </table>
       </div>
-      <div class="info-box"><span>ℹ️</span><div>Clique em uma descrição ou no valor em BRL para editar diretamente. Valores negativos (débito) aparecem em vermelho.</div></div>
+      <div class="info-box"><span>ℹ️</span><div>Clique em uma descrição ou no valor em BRL para editar diretamente. Valores negativos (débito) aparecem em vermelho. As cotações de câmbio podem sofrer atraso de até 30 minutos.</div></div>
     </div>
 
   </div>
@@ -649,9 +651,26 @@ var CHAVE_ARMAZENAMENTO = 'saldosCaixa'; // mesma chave usada em todas as leitur
 // ============================================================
 // COTAÇÕES DE MOEDAS
 // ============================================================
+const API_KEY = 'qPiP4M3LH838DDhxuFVPHY';
+const API_BASE = 'https://brapi.dev/api';
+
 function obterCotacaoMoeda(moeda) {
     var cotacoes = { 'BRL': 1.00, 'USD': 5.80, 'EUR': 6.20, 'GBP': 7.40, 'JPY': 0.038, 'CAD': 4.20, 'AUD': 3.80, 'CHF': 6.50, 'CNY': 0.80, 'ARS': 0.006 };
     return cotacoes[moeda] || 1.00;
+}
+
+async function obterCotacaoMoedaReal(moeda) {
+    if (moeda === 'BRL') return obterCotacaoMoeda(moeda);
+    try {
+        var resp = await fetch(API_BASE + '/quote/' + moeda + 'BRL=X?token=' + API_KEY);
+        if (resp.ok) {
+            var dados = await resp.json();
+            if (dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
+                return dados.results[0].regularMarketPrice;
+            }
+        }
+    } catch(e) { console.warn('Erro ao buscar câmbio real de ' + moeda + ':', e.message); }
+    return obterCotacaoMoeda(moeda);
 }
 
 // ============================================================
@@ -757,22 +776,25 @@ function removerSaldo(index) {
     }
 }
 
-function atualizarTodasMoedas() {
+async function atualizarTodasMoedas() {
     if (saldos.length === 0) { alert('Nenhum saldo cadastrado.'); return; }
     var btn = document.getElementById('btnAtualizarCambio');
     if (btn) { btn.textContent = '⏳ Atualizando...'; btn.disabled = true; }
-    setTimeout(function() {
+    try {
         for (var i = 0; i < saldos.length; i++) {
             var s = saldos[i];
-            s.cotacao = obterCotacaoMoeda(s.moeda);
+            s.cotacao = await obterCotacaoMoedaReal(s.moeda);
             s.valorBRL = s.valor * s.cotacao;
         }
         persistirSaldos();
         renderizar();
         atualizarKPIs();
-        if (btn) { btn.textContent = '🔄 Atualizar Câmbio'; btn.disabled = false; }
-        alert('✅ Cotações atualizadas!');
-    }, 500);
+        alert('✅ Cotações atualizadas com dados reais da Brapi!');
+    } catch(e) {
+        alert('❌ Erro ao atualizar cotações. Tente novamente.');
+        console.error(e);
+    }
+    if (btn) { btn.textContent = '🔄 Atualizar Câmbio'; btn.disabled = false; }
 }
 
 // ============================================================
@@ -886,10 +908,31 @@ function carregarDados() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
+function popularSelectsInstituicoes() {
+    var instituicoes = [];
+    try { instituicoes = JSON.parse(localStorage.getItem('instituicoes') || '[]'); } catch(e) {}
+    if (instituicoes.length === 0) return;
+
+    var ids = ['inputInstituicao', 'editInputInstituicao'];
+    for (var i = 0; i < ids.length; i++) {
+        var select = document.getElementById(ids[i]);
+        if (!select) continue;
+        var valorAtual = select.value;
+        var html = '';
+        for (var j = 0; j < instituicoes.length; j++) {
+            html += '<option value="' + instituicoes[j].nome + '">' + instituicoes[j].nome + '</option>';
+        }
+        html += '<option value="Outro">Outro</option>';
+        select.innerHTML = html;
+        if (valorAtual) select.value = valorAtual;
+    }
+}
+
 function init() {
     carregarDados();
     renderizar();
     atualizarKPIs();
+    popularSelectsInstituicoes();
 }
 
 init();

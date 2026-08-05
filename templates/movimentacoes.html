@@ -56,7 +56,8 @@ body.tema-escuro .modal {
   border-color: #30363d;
 }
 body.tema-escuro .panel-head h3,
-body.tema-escuro .modal h2 {
+body.tema-escuro .modal h2,
+body.tema-escuro .topbar h2 {
   color: #f0f6fc;
 }
 body.tema-escuro .info-box {
@@ -90,8 +91,26 @@ body.tema-escuro .sidebar {
   z-index: 100;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
+.logo {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    width: 100%;
+    background: var(--azul-escuro);
+    overflow: hidden;
+}
+.logo-img-sidebar {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
+}
+.logo-fallback { display: none; text-align: center; padding: 14px 8px; color: #fff; }
 .logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
 .logo h1 span { color: var(--azul-card); }
 .logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
@@ -333,7 +352,7 @@ table tr:last-child td { border-bottom: none; }
 
 .col-positivo { color: var(--verde-card); font-weight: 700; }
 .col-negativo { color: var(--vermelho); font-weight: 700; }
-.col-credito { color: var(--azul-escuro); font-weight: 700; }
+.col-credito { color: var(--verde-card); font-weight: 700; }
 .col-debito { color: var(--vermelho); font-weight: 700; }
 
 @media (max-width: 1024px) {
@@ -354,9 +373,11 @@ table tr:last-child td { border-bottom: none; }
 
 <aside class="sidebar" id="sidebar">
   <div class="logo">
-    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
+    <img src="/static/Logo%20Newex.png" alt="Newex" class="logo-img-sidebar" data-tentativa="1" onerror="if(this.dataset.tentativa==='1'){this.dataset.tentativa='2';this.src='/static/Logo%20Newex.ico';}else{this.style.display='none';document.getElementById('logoFallback').style.display='block';}">
+    <div class="logo-fallback" id="logoFallback">
+      <div style="font-size:13px;font-weight:800;">CARTEIRA<span style="color:var(--azul-card);">PESSOAL</span></div>
+      <strong style="display:block;font-size:8px;color:#ff8080;margin-top:4px;">⚠ Logo não encontrada</strong>
+    </div>
   </div>
   <ul class="sidebar-nav">
     <li class="grupo">GERAL</li>
@@ -365,10 +386,10 @@ table tr:last-child td { border-bottom: none; }
     <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
     <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
     <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
     <li class="grupo">GESTÃO</li>
     <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
     <li class="active"><span class="icone">💵</span> Movimentações</li>
-    <li onclick="window.location.href='/proventos'"><span class="icone">📊</span> Proventos</li>
     <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
@@ -401,7 +422,7 @@ table tr:last-child td { border-bottom: none; }
     <div class="logo-img">💵</div>
     <div><h2>Movimentações</h2><p>Extrato completo de aportes e retiradas · Integrado com Caixa</p></div>
     <div class="spacer"></div>
-    <div class="usuario"><div class="avatar">RS</div><div><div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div><div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div></div></div>
+    <div class="usuario"><div class="avatar" id="avatarUsuarioTopo">RS</div><div><div style="font-weight:700;font-size:9.5px;" id="nomeUsuarioTopo">Rogério Simieri</div><div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div></div></div>
   </header>
 
   <div class="content">
@@ -430,6 +451,8 @@ table tr:last-child td { border-bottom: none; }
       <div class="panel-head">
         <h3>Histórico de Movimentações <small>Extrato completo</small></h3>
         <div>
+          <input type="date" id="filtroData" onchange="aplicarFiltros()" class="select-cliente" title="Ver todas as movimentações de um dia específico">
+          <button class="btn btn-ghost" id="btnLimparFiltroData" onclick="document.getElementById('filtroData').value=''; aplicarFiltros();" title="Limpar filtro de data">✕ Data</button>
           <select id="filtroMes" onchange="aplicarFiltros()" class="select-cliente">
             <option value="">Todos os meses</option><option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option><option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option><option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option><option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
           </select>
@@ -437,7 +460,9 @@ table tr:last-child td { border-bottom: none; }
             <option value="">Todos os anos</option><option value="2025">2025</option><option value="2026">2026</option>
           </select>
           <button class="btn btn-ghost" onclick="exportarMovimentacoes()">📤 Exportar</button>
-          <button class="btn btn-ghost" onclick="filtrarPorCliente()">🔍 Cliente</button>
+          <select id="filtroClienteSelect" onchange="filtrarPorCliente()" class="select-cliente">
+            <option value="">Todos os clientes</option>
+          </select>
         </div>
       </div>
       <div class="table-wrap">
@@ -451,6 +476,25 @@ table tr:last-child td { border-bottom: none; }
 </main>
 
 <script>
+// ============================================================
+// USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
+// ============================================================
+function aplicarUsuarioAdmin() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        var nome = (config && config.nome) ? config.nome : 'Rogério Simieri';
+        var elNome = document.getElementById('nomeUsuarioTopo');
+        var elAvatar = document.getElementById('avatarUsuarioTopo');
+        if (elNome) elNome.textContent = nome;
+        if (elAvatar) {
+            var partes = nome.trim().split(/\s+/);
+            var iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : 'AD');
+            elAvatar.textContent = iniciais.toUpperCase();
+        }
+    } catch(e) { console.warn('Erro ao aplicar usuário admin:', e); }
+}
+aplicarUsuarioAdmin();
+
 // ============================================================
 // CONFIGURAÇÕES - CARREGAR TEMA
 // ============================================================
@@ -484,15 +528,25 @@ function fmtMoeda(valor) {
     return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Corrige bug clássico do JS: new Date('2026-08-01') é interpretado como
+// meia-noite em UTC, e em fusos negativos (Brasil, UTC-3) isso "volta" um
+// dia ao converter para hora local. Este parser lê a data como hora local.
+function parseDataLocal(data) {
+    if (!data) return null;
+    var partes = String(data).split('-');
+    if (partes.length !== 3) return new Date(data);
+    return new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
+}
+
 function fmtData(data) {
     if (!data) return '-';
-    var d = new Date(data);
+    var d = parseDataLocal(data);
     return d.toLocaleDateString('pt-BR');
 }
 
 function getMesFromDate(data) {
     if (!data) return 0;
-    var d = new Date(data);
+    var d = parseDataLocal(data);
     return d.getMonth();
 }
 
@@ -580,20 +634,23 @@ function carregarDadosDoLocalStorage() {
         }
     }
     
-    // 2. Se não houver clientes, usar dados padrão
+    // 2. Se não houver clientes, usar dados padrão — MESMAS chaves curtas
+    // usadas no historico-mensal.html (vitoria, rogerio, etc.), sem gerar
+    // a chave a partir do nome (isso removia acentos e criava uma chave
+    // diferente da usada lá, quebrando a sincronização entre os módulos).
     if (Object.keys(dadosClientes).length === 0) {
         console.log('📂 Nenhum cliente encontrado, usando dados padrão');
         var clientesPadrao = [
-            { nome: 'Rogério Simieri', valorInicial: 50958.37 },
-            { nome: 'Vitória Simieri', valorInicial: 85814.40 },
-            { nome: 'Manuella Cardoso', valorInicial: 6230.46 },
-            { nome: 'João Paulo Simieri', valorInicial: 27.09 },
-            { nome: 'Pedro Henrique Simieri', valorInicial: 1396.04 },
-            { nome: 'Josepha Simieri', valorInicial: 10698.91 }
+            { key: 'rogerio', nome: 'Rogério Simieri', valorInicial: 50958.37 },
+            { key: 'vitoria', nome: 'Vitória Simieri', valorInicial: 85814.40 },
+            { key: 'manuella', nome: 'Manuella Cardoso', valorInicial: 6230.46 },
+            { key: 'joao', nome: 'João Paulo Simieri', valorInicial: 27.09 },
+            { key: 'pedro', nome: 'Pedro Henrique Simieri', valorInicial: 1396.04 },
+            { key: 'josepha', nome: 'Josepha Simieri', valorInicial: 10698.91 }
         ];
         for (var i = 0; i < clientesPadrao.length; i++) {
             var c = clientesPadrao[i];
-            var key = c.nome.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '');
+            var key = c.key;
             dadosClientes[key] = {
                 nome: c.nome,
                 b5: 175253.61,
@@ -629,6 +686,7 @@ function carregarDadosDoLocalStorage() {
     
     // 4. ATUALIZAR OS SELETORES
     atualizarSelectsClientes();
+    popularFiltroClienteSelect();
     
     console.log('👤 Total de clientes carregados:', Object.keys(dadosClientes).length);
 }
@@ -811,11 +869,13 @@ function editarMovimentacao(id, novaData, novoCliente, novoTipo, novoValor, nova
 }
 
 function aplicarFiltros() {
+    var dataFiltro = document.getElementById('filtroData').value;
     var mesFiltro = document.getElementById('filtroMes').value;
     var anoFiltro = document.getElementById('filtroAno').value;
     var lista = movimentacoes;
-    if (mesFiltro !== '') { lista = lista.filter(function(m) { var data = new Date(m.data); return data.getMonth() === parseInt(mesFiltro); }); }
-    if (anoFiltro !== '') { lista = lista.filter(function(m) { var data = new Date(m.data); return data.getFullYear() === parseInt(anoFiltro); }); }
+    if (dataFiltro) { lista = lista.filter(function(m) { return m.data === dataFiltro; }); }
+    if (mesFiltro !== '') { lista = lista.filter(function(m) { var data = parseDataLocal(m.data); return data.getMonth() === parseInt(mesFiltro); }); }
+    if (anoFiltro !== '') { lista = lista.filter(function(m) { var data = parseDataLocal(m.data); return data.getFullYear() === parseInt(anoFiltro); }); }
     if (filtroCliente) { lista = lista.filter(function(m) { return m.cliente === filtroCliente; }); }
     renderizarMovimentacoesLista(lista);
 }
@@ -824,7 +884,7 @@ function renderizarMovimentacoesLista(lista) {
     var tbody = document.getElementById('movimentacoesTableBody');
     if (!tbody) return;
     if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhuma movimentação encontrada.</td></tr>'; return; }
-    lista.sort(function(a, b) { return new Date(b.data) - new Date(a.data); });
+    lista.sort(function(a, b) { return parseDataLocal(b.data) - parseDataLocal(a.data); });
     var html = '';
     for (var i = 0; i < lista.length; i++) {
         var m = lista[i];
@@ -847,7 +907,7 @@ function atualizarKPIs() {
     for (var i = 0; i < movimentacoes.length; i++) {
         var m = movimentacoes[i];
         if (m.tipo === 'credito') { totalCreditos += m.valor; qtdCreditos++; } else { totalDebitos += m.valor; qtdDebitos++; }
-        if (!ultima || new Date(m.data) > new Date(ultima.data)) { ultima = m; }
+        if (!ultima || parseDataLocal(m.data) > parseDataLocal(ultima.data)) { ultima = m; }
     }
     var saldo = totalCreditos - totalDebitos;
     document.getElementById('totalCreditos').textContent = fmtMoeda(totalCreditos);
@@ -876,7 +936,14 @@ function excluirMovimentacao(id) {
     atualizarKPIs();
 }
 
-document.getElementById('inputData').valueAsDate = new Date();
+function obterDataLocalISO() {
+    var hoje = new Date();
+    var ano = hoje.getFullYear();
+    var mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    var dia = String(hoje.getDate()).padStart(2, '0');
+    return ano + '-' + mes + '-' + dia;
+}
+document.getElementById('inputData').value = obterDataLocalISO();
 
 document.getElementById('formMovimentacao').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -893,7 +960,7 @@ document.getElementById('formMovimentacao').addEventListener('submit', function(
     btn.disabled = true;
     try {
         var sucesso = salvarMovimentacao(data, cliente, tipo, valor, descricao);
-        if (sucesso) { document.getElementById('formMovimentacao').reset(); document.getElementById('inputData').valueAsDate = new Date(); }
+        if (sucesso) { document.getElementById('formMovimentacao').reset(); document.getElementById('inputData').value = obterDataLocalISO(); }
     } catch (error) { alert('❌ Erro ao salvar movimentação. Tente novamente.'); console.error(error); }
     btn.textContent = '💾 Salvar';
     btn.disabled = false;
@@ -941,19 +1008,23 @@ document.getElementById('formEditar').addEventListener('submit', function(e) {
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharModalEditar(); });
 document.getElementById('modalEditar').addEventListener('click', function(e) { if (e.target === this) fecharModalEditar(); });
 
-function filtrarPorCliente() {
+function popularFiltroClienteSelect() {
+    var select = document.getElementById('filtroClienteSelect');
+    if (!select) return;
     var keys = Object.keys(dadosClientes);
-    var opcoes = 'Selecione um cliente:\n0. Todos\n';
+    var valorAtual = select.value;
+    var html = '<option value="">Todos os clientes</option>';
     for (var i = 0; i < keys.length; i++) {
-        opcoes += (i + 1) + '. ' + dadosClientes[keys[i]].nome + '\n';
+        html += '<option value="' + keys[i] + '">' + dadosClientes[keys[i]].nome + '</option>';
     }
-    var escolha = prompt(opcoes);
-    if (escolha === null) return;
-    if (escolha === '0' || escolha === '') { filtroCliente = null; } else {
-        var index = parseInt(escolha) - 1;
-        if (index >= 0 && index < keys.length) { filtroCliente = keys[index]; } else { alert('Opção inválida.'); return; }
-    }
-    renderizarMovimentacoes();
+    select.innerHTML = html;
+    if (valorAtual) select.value = valorAtual;
+}
+
+function filtrarPorCliente() {
+    var select = document.getElementById('filtroClienteSelect');
+    filtroCliente = select && select.value ? select.value : null;
+    aplicarFiltros();
 }
 
 function exportarMovimentacoes() {

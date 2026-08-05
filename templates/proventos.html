@@ -97,11 +97,26 @@ body.tema-escuro .sidebar {
   z-index: 100;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
-.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
-.logo h1 span { color: var(--azul-card); }
-.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+.logo {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    width: 100%;
+    background: var(--azul-escuro);
+    overflow: hidden;
+}
+.logo-img-sidebar {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
+}
+.logo-fallback { display: none; text-align: center; padding: 14px 8px; color: #fff; }
 
 .sidebar-nav { list-style: none; padding: 0 10px; }
 .sidebar-nav li {
@@ -407,10 +422,12 @@ table tr:last-child td { border-bottom: none; }
    SIDEBAR
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
-  <div class="logo">
-    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
+    <div class="logo">
+    <img src="/static/Logo%20Newex.png" alt="Newex" class="logo-img-sidebar" data-tentativa="1" onerror="if(this.dataset.tentativa==='1'){this.dataset.tentativa='2';this.src='/static/Logo%20Newex.ico';}else{this.style.display='none';document.getElementById('logoFallback').style.display='block';}">
+    <div class="logo-fallback" id="logoFallback">
+      <div style="font-size:13px;font-weight:800;">CARTEIRA<span style="color:var(--azul-card);">PESSOAL</span></div>
+      <strong style="display:block;font-size:8px;color:#ff8080;margin-top:4px;">⚠ Logo não encontrada</strong>
+    </div>
   </div>
 
   <ul class="sidebar-nav">
@@ -421,11 +438,11 @@ table tr:last-child td { border-bottom: none; }
     <li onclick="window.location.href='/'"><span class="icone">📈</span> Renda Variável</li>
     <li onclick="window.location.href='/'"><span class="icone">🏦</span> Renda Fixa</li>
     <li onclick="window.location.href='/'"><span class="icone">💳</span> Caixa</li>
+    <li class="active"><span class="icone">📊</span> Proventos</li>
 
     <li class="grupo">GESTÃO</li>
     <li onclick="window.location.href='/clientes'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='/movimentacoes'"><span class="icone">💵</span> Movimentações</li>
-    <li class="active"><span class="icone">📊</span> Proventos</li>
     <li onclick="window.location.href='/historico-mensal'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='/instituicoes'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='/relatorios'"><span class="icone">📄</span> Relatórios</li>
@@ -495,9 +512,9 @@ table tr:last-child td { border-bottom: none; }
     </div>
     <div class="spacer"></div>
     <div class="usuario">
-      <div class="avatar">RS</div>
+      <div class="avatar" id="avatarUsuarioTopo">RS</div>
       <div>
-        <div style="font-weight:700;font-size:9.5px;">Rogério Simieri</div>
+        <div style="font-weight:700;font-size:9.5px;" id="nomeUsuarioTopo">Rogério Simieri</div>
         <div style="font-size:8.5px;color:var(--cinza-claro);">Administrador</div>
       </div>
     </div>
@@ -602,24 +619,29 @@ table tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
-    <!-- GRÁFICOS -->
-    <div class="grid-2">
-      <div class="panel">
-        <div class="panel-head"><h3>Distribuição por Tipo</h3></div>
-        <div class="chart-container"><canvas id="chartDistribuicaoTipo" height="220"></canvas></div>
-        <div class="info-box"><span>ℹ️</span><div>Distribuição dos proventos por tipo (Dividendos, JCP, Rendimentos).</div></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3>Distribuição por Cliente</h3></div>
-        <div class="chart-container"><canvas id="chartDistribuicaoCliente" height="220"></canvas></div>
-        <div class="info-box"><span>ℹ️</span><div>Distribuição dos proventos por cliente.</div></div>
-      </div>
-    </div>
-
   </div>
 </main>
 
 <script>
+// ============================================================
+// USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
+// ============================================================
+function aplicarUsuarioAdmin() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes'));
+        var nome = (config && config.nome) ? config.nome : 'Rogério Simieri';
+        var elNome = document.getElementById('nomeUsuarioTopo');
+        var elAvatar = document.getElementById('avatarUsuarioTopo');
+        if (elNome) elNome.textContent = nome;
+        if (elAvatar) {
+            var partes = nome.trim().split(/\s+/);
+            var iniciais = partes.length > 1 ? (partes[0][0] + partes[partes.length - 1][0]) : (partes[0] ? partes[0].substring(0, 2) : 'AD');
+            elAvatar.textContent = iniciais.toUpperCase();
+        }
+    } catch(e) { console.warn('Erro ao aplicar usuário admin:', e); }
+}
+aplicarUsuarioAdmin();
+
 // ============================================================
 // CONFIGURAÇÕES - CARREGAR TEMA
 // ============================================================
@@ -927,99 +949,10 @@ function atualizarKPIs() {
 }
 
 // ============================================================
-// GRÁFICOS
+// GRÁFICOS (removidos a pedido do usuário)
 // ============================================================
 function atualizarGraficos() {
-    if (typeof Chart === 'undefined') return;
-    
-    var ctxTipo = document.getElementById('chartDistribuicaoTipo');
-    if (ctxTipo) {
-        if (chartDistribuicaoTipo) { chartDistribuicaoTipo.destroy(); chartDistribuicaoTipo = null; }
-        
-        var tipos = { 'dividendo': 0, 'jcp': 0, 'rendimento': 0, 'outro': 0 };
-        for (var i = 0; i < proventos.length; i++) {
-            var t = proventos[i].tipo;
-            if (tipos[t] !== undefined) tipos[t] += proventos[i].valor;
-        }
-        
-        var labels = [];
-        var data = [];
-        var cores = [];
-        var labelMap = { 'dividendo': 'Dividendos', 'jcp': 'JCP', 'rendimento': 'Rendimentos', 'outro': 'Outros' };
-        var colorMap = { 'dividendo': '#28a745', 'jcp': '#2d6fb0', 'rendimento': '#b8790f', 'outro': '#dc3545' };
-        
-        for (var key in tipos) {
-            if (tipos[key] > 0) {
-                labels.push(labelMap[key] || key);
-                data.push(tipos[key]);
-                cores.push(colorMap[key] || '#6c757d');
-            }
-        }
-        
-        if (labels.length > 0) {
-            try {
-                chartDistribuicaoTipo = new Chart(ctxTipo, {
-                    type: 'doughnut',
-                    data: { labels: labels, datasets: [{ data: data, backgroundColor: cores, borderWidth: 0 }] },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        cutout: '60%',
-                        plugins: {
-                            legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 12 } },
-                            tooltip: { callbacks: { label: function(context) {
-                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                                var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0;
-                                return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct + '%)';
-                            } } }
-                        }
-                    }
-                });
-            } catch(e) { console.warn('Erro gráfico tipo:', e); }
-        }
-    }
-    
-    var ctxCliente = document.getElementById('chartDistribuicaoCliente');
-    if (ctxCliente) {
-        if (chartDistribuicaoCliente) { chartDistribuicaoCliente.destroy(); chartDistribuicaoCliente = null; }
-        
-        var clientes = {};
-        for (var i = 0; i < proventos.length; i++) {
-            var c = proventos[i].cliente;
-            clientes[c] = (clientes[c] || 0) + proventos[i].valor;
-        }
-        
-        var labels = [];
-        var data = [];
-        var cores = ['#2d6fb0', '#28a745', '#6f42c1', '#ffc107', '#dc3545', '#17a2b8', '#fd7e14'];
-        
-        for (var key in clientes) {
-            labels.push(getClienteNome(key));
-            data.push(clientes[key]);
-        }
-        
-        if (labels.length > 0) {
-            try {
-                chartDistribuicaoCliente = new Chart(ctxCliente, {
-                    type: 'doughnut',
-                    data: { labels: labels, datasets: [{ data: data, backgroundColor: cores.slice(0, data.length), borderWidth: 0 }] },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        cutout: '60%',
-                        plugins: {
-                            legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 12 } },
-                            tooltip: { callbacks: { label: function(context) {
-                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                                var pct = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0;
-                                return context.label + ': ' + fmtMoeda(context.parsed) + ' (' + pct + '%)';
-                            } } }
-                        }
-                    }
-                });
-            } catch(e) { console.warn('Erro gráfico cliente:', e); }
-        }
-    }
+    // Os gráficos "Distribuição por Tipo" e "Distribuição por Cliente" foram removidos.
 }
 
 // ============================================================
@@ -1214,9 +1147,18 @@ function carregarDadosExemplo() {
 carregarClientesProventos();
 carregarProventos();
 
-if (proventos.length === 0) {
+if (proventos.length === 0 && !localStorage.getItem('proventosExemploJaCarregado')) {
     carregarDadosExemplo();
+    localStorage.setItem('proventosExemploJaCarregado', 'true');
 }
+
+// Recarrega os dados caso a página volte do cache do navegador
+// (bfcache) ao usar o botão "voltar" entre módulos.
+window.addEventListener('pageshow', function(evento) {
+    if (evento.persisted) {
+        carregarProventos();
+    }
+});
 
 console.log('📊 Módulo Proventos carregado!');
 console.log('👤 Clientes disponíveis:', Object.keys(clientesNomes).length);

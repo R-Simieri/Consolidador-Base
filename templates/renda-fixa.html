@@ -106,11 +106,26 @@ body.tema-escuro .sidebar {
   transition: background 0.3s;
 }
 
-.logo { padding: 0 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
-.logo-img-sidebar { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
-.logo h1 { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
-.logo h1 span { color: var(--azul-card); }
-.logo small { font-size: 8px; color: #6a8db5; letter-spacing: 1.5px; font-weight: 600; display: block; }
+.logo {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    width: 100%;
+    background: var(--azul-escuro);
+    overflow: hidden;
+}
+.logo-img-sidebar {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    image-rendering: auto;
+}
+.logo-fallback { display: none; text-align: center; padding: 14px 8px; color: #fff; }
 
 .sidebar-nav { list-style: none; padding: 0 10px; }
 .sidebar-nav li {
@@ -387,10 +402,12 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
    SIDEBAR
    ============================================================ -->
 <aside class="sidebar" id="sidebar">
-  <div class="logo">
-    <img src="/static/images/Newex_-_Logo.ico" alt="Newex" class="logo-img-sidebar" onerror="this.style.display='none'">
-    <h1>CARTEIRA<span>PESSOAL</span></h1>
-    <small>GESTÃO PATRIMONIAL</small>
+    <div class="logo">
+    <img src="/static/Logo%20Newex.png" alt="Newex" class="logo-img-sidebar" data-tentativa="1" onerror="if(this.dataset.tentativa==='1'){this.dataset.tentativa='2';this.src='/static/Logo%20Newex.ico';}else{this.style.display='none';document.getElementById('logoFallback').style.display='block';}">
+    <div class="logo-fallback" id="logoFallback">
+      <div style="font-size:13px;font-weight:800;">CARTEIRA<span style="color:var(--azul-card);">PESSOAL</span></div>
+      <strong style="display:block;font-size:8px;color:#ff8080;margin-top:4px;">⚠ Logo não encontrada</strong>
+    </div>
   </div>
   <ul class="sidebar-nav">
     <li class="grupo">GERAL</li>
@@ -399,10 +416,10 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
     <li onclick="window.location.href='renda-variavel.html'"><span class="icone">📈</span> Renda Variável</li>
     <li class="active"><span class="icone">🏦</span> Renda Fixa</li>
     <li onclick="window.location.href='caixa.html'"><span class="icone">💳</span> Caixa</li>
+    <li onclick="window.location.href='proventos.html'"><span class="icone">📊</span> Proventos</li>
     <li class="grupo">GESTÃO</li>
     <li onclick="window.location.href='clientes.html'"><span class="icone">👥</span> Clientes</li>
     <li onclick="window.location.href='movimentacoes.html'"><span class="icone">💵</span> Movimentações</li>
-    <li onclick="window.location.href='proventos.html'"><span class="icone">📊</span> Proventos</li>
     <li onclick="window.location.href='historico-mensal.html'"><span class="icone">📅</span> Histórico Mensal</li>
     <li onclick="window.location.href='instituicoes.html'"><span class="icone">🏛️</span> Instituições</li>
     <li onclick="window.location.href='relatorios.html'"><span class="icone">📄</span> Relatórios</li>
@@ -639,6 +656,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           </tfoot>
         </table>
       </div>
+      <div class="info-box"><span>ℹ️</span><div>Quando aplicável, cotações e indexadores usados aqui podem sofrer atraso de até 30 minutos.</div></div>
     </div>
 
     <!-- GRÁFICOS -->
@@ -990,8 +1008,29 @@ function carregarDados() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
+function popularSelectsInstituicoes() {
+    var instituicoes = [];
+    try { instituicoes = JSON.parse(localStorage.getItem('instituicoes') || '[]'); } catch(e) {}
+    if (instituicoes.length === 0) return;
+
+    var ids = ['inputInstituicao', 'editInputInstituicao'];
+    for (var i = 0; i < ids.length; i++) {
+        var select = document.getElementById(ids[i]);
+        if (!select) continue;
+        var valorAtual = select.value;
+        var html = '';
+        for (var j = 0; j < instituicoes.length; j++) {
+            html += '<option value="' + instituicoes[j].nome + '">' + instituicoes[j].nome + '</option>';
+        }
+        html += '<option value="Outro">Outro</option>';
+        select.innerHTML = html;
+        if (valorAtual) select.value = valorAtual;
+    }
+}
+
 function init() {
     carregarDados();
+    popularSelectsInstituicoes();
     // Atualização automática a cada 60 segundos
     setInterval(function() {
         if (aplicacoes.length > 0) {
