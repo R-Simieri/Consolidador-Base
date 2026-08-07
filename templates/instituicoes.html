@@ -492,7 +492,7 @@ table tr:last-child td { border-bottom: none; }
       </div>
       <div class="form-group">
         <label>CNPJ</label>
-        <input type="text" id="editCnpj" placeholder="00.000.000/0000-00">
+        <input type="text" id="editCnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="aplicarMascaraCnpj(this)">
       </div>
       <div class="form-group">
         <label>Site</label>
@@ -585,7 +585,7 @@ table tr:last-child td { border-bottom: none; }
           </div>
           <div class="form-group">
             <label>CNPJ</label>
-            <input type="text" id="inputCnpj" placeholder="00.000.000/0000-00">
+            <input type="text" id="inputCnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="aplicarMascaraCnpj(this)">
           </div>
           <div class="form-group">
             <label>Site</label>
@@ -624,6 +624,14 @@ table tr:last-child td { border-bottom: none; }
 </main>
 
 <script>
+function aplicarMascaraCnpj(input) {
+    var v = input.value.replace(/\D/g, '').slice(0, 14);
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+    input.value = v;
+}
 // ============================================================
 // USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
 // ============================================================

@@ -564,10 +564,12 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
             <option value="2025">2025</option>
             <option value="2026">2026</option>
           </select>
+          &nbsp;&nbsp;
+          <label style="font-size:11px;font-weight:600;cursor:pointer;" title="Este cliente recebe automaticamente a Tx.Adm.+I.R. de todos os outros clientes, todo mês">
+            <input type="checkbox" id="checkRecebeTaxas" onchange="alternarRecebeTaxasAdm()"> 💰 Recebe as taxas ADM dos outros
+          </label>
         </h3>
         <div>
-          <button class="btn btn-success" onclick="receberTaxasAdm()" title="Soma a Tx. Adm. de todos os outros clientes ao Total do cliente selecionado, em todos os meses do ano">💰 Receber Taxas ADM</button>
-          <button class="btn btn-ghost" onclick="limparTaxasAdmRecebidas()" title="Remove qualquer Tx. Adm. recebida do cliente selecionado, em todos os meses (caso tenha sido aplicada no cliente errado)">🧹 Limpar Taxas Recebidas</button>
           <button class="btn btn-ghost" onclick="exportarHistorico()">📤 Exportar CSV</button>
           <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimir / PDF</button>
           <button class="btn btn-ghost" onclick="recarregarDados()">🔄 Recarregar</button>
@@ -712,6 +714,7 @@ var dadosClientesIniciais = {
         b5: 175253.61,
         b17: 178605.56,
         valorInicial: 50958.37,
+        recebeTaxasAdm: true,
         dados: [
             [50958.37, -3700.00, 2.7907, 0, 50.00, 20.00, 0, 0],
             [0, -2856.35, 2.5490, 0, 50.00, 20.00, 0, 0],
@@ -720,7 +723,7 @@ var dadosClientesIniciais = {
             [0, -1716.37, 3.2135, 0, 50.00, 20.00, 0, 0],
             [0, -577.77, 3.0640, 0, 50.00, 20.00, 0, 0],
             [0, -2319.08, 0, 0, 50.00, 20.00, 0, 0],
-            [0, 61.45, 0, 0, 50.00, 20.00, 0, 0],
+            [0, 0, 0, 0, 50.00, 20.00, 0, 0],
             [0, 0, 0, 0, 50.00, 20.00, 0, 0],
             [0, 0, 0, 0, 50.00, 20.00, 0, 0],
             [0, 0, 0, 0, 50.00, 20.00, 0, 0],
@@ -1001,7 +1004,7 @@ function obterDadosAno(cliente, ano) {
     return cliente.porAno[ano];
 }
 
-function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnterior) {
+function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnterior, apenasPatrimonio, emSomaAutomaticaTaxas) {
     var dados = obterDadosAno(cliente, ano);
     var b5 = cliente.b5 || 175253.61;
     var b17 = cliente.b17 || 178605.56;
@@ -1063,19 +1066,41 @@ function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnt
             entrada = entradaAnterior + liquidoAnterior + aporte;
         }
 
-        // Tx./Mês do mês corrente: usa a MESMA taxa do fundo (já calculada
-        // ao vivo no Dashboard, com base no patrimônio total real),
+        // Tx./Mês: usa a MESMA taxa do fundo (já calculada e salva pelo
+        // Dashboard, com base no patrimônio total real daquele mês),
         // aplicada sobre a Entrada individual deste cliente — a menos que
-        // o administrador tenha sobrescrito manualmente esse cliente.
+        // o administrador tenha sobrescrito manualmente esse cliente. Isso
+        // vale tanto pro mês corrente (taxa ao vivo, recalculada todo dia)
+        // quanto pra meses já FECHADOS (a taxa salva não muda mais sozinha,
+        // então funciona como "travar" o resultado quando o mês vira —
+        // sem isso, um mês fechado sem edição manual voltaria a mostrar 0%).
         var txMes;
-        if (ehMesAtualReal && txMesManual === 0) {
+        if (txMesManual === 0) {
             txMes = obterTxMesFundoMesAtual(ano, i);
         } else {
             txMes = txMesManual;
         }
-        
+
         var total = entrada * (txMes / 100);
-        var taxasAdmRecebidas = dados[i][6] || 0;
+        var taxasAdmRecebidas = 0;
+        if (cliente.recebeTaxasAdm && !emSomaAutomaticaTaxas && !apenasPatrimonio) {
+            // Este cliente é o recebedor das taxas (Tx.Adm.=0%): soma AO
+            // VIVO, automaticamente, a Tx.Adm.+I.R. de TODOS os outros
+            // clientes naquele mesmo mês — sem precisar clicar em nenhum
+            // botão. A trava emSomaAutomaticaTaxas evita recursão infinita.
+            for (var ckTaxa in dadosClientes) {
+                if (ckTaxa === clienteKey) continue;
+                var outroCalc = calcularHistoricoIndividual(dadosClientes[ckTaxa], ano, ckTaxa, false, false, true);
+                var rOutro = outroCalc.resultado[i];
+                if (rOutro) taxasAdmRecebidas += rOutro.txAdm + rOutro.ir;
+            }
+        } else if (dados[i][6]) {
+            // Compatibilidade: se ainda houver um valor manual antigo
+            // gravado (do botão "Receber Taxas ADM" de versões anteriores),
+            // soma ele também — mas o cálculo automático acima já cobre o
+            // caso normal sozinho.
+            taxasAdmRecebidas = dados[i][6];
+        }
         total += taxasAdmRecebidas;
         var txAdm = total * (txAdmPercentual / 100);
         // I.R. normalmente é % da Tx.Adm. — mas quem RECEBE as taxas (Tx.Adm.
@@ -1117,6 +1142,9 @@ function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnt
         // nesse caso carrega só Total − Tx.Adm. (sem tirar o I.R.).
         // Confirmado com os dados reais de 2025 (Vitória usa líquido
         // completo; Rogério, que recebe as taxas, não desconta o I.R.).
+        // O que carrega pro mês seguinte: cliente normal usa o Líquido
+        // completo; quem recebe as taxas ADM (Tx.Adm.=0%) não desconta o
+        // I.R. (DARF pessoal, pago à parte, não reduz o saldo investido).
         liquidoAnterior = (txAdm > 0) ? liquido : (total - txAdm);
     }
 
@@ -1131,16 +1159,9 @@ function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnt
         } catch(e) {}
     }
     
-    // Cota do cliente = valor inicial dele ÷ soma dos valores iniciais de
-    // TODOS os clientes (mesma lógica usada no quadro "Cotas dos Clientes"
-    // do Dashboard) — usada só como % de participação no fundo.
-    var somaInicialTodos = 0;
-    for (var ck in dadosClientes) somaInicialTodos += dadosClientes[ck].valorInicial || 0;
-    var cotas = somaInicialTodos > 0 ? ((cliente.valorInicial || 0) / somaInicialTodos) : 0;
-
     // Patrimônio Líquido e Resultado Mensal = valores do MÊS VIGENTE deste
     // cliente, já com Tx.Adm. e I.R. descontados (Entrada do mês + Líquido
-    // do mês) — não mais uma fatia bruta do patrimônio total do fundo.
+    // do mês).
     var hojeParaKPI = new Date();
     var mesAtualIdx = (ano === hojeParaKPI.getFullYear()) ? hojeParaKPI.getMonth() : (resultado.length - 1);
     var resultadoMesVigente = resultado[mesAtualIdx] || { entrada: 0, liquido: 0, txNominal: 0 };
@@ -1148,11 +1169,24 @@ function calcularHistoricoIndividual(cliente, ano, clienteKey, jaRecalculandoAnt
     var resultadoMensalValor = resultadoMesVigente.liquido;
     var resultadoMensalPct = resultadoMesVigente.txNominal / 100;
 
+    // Se essa chamada é só pra pegar o patrimônio (usada em outros lugares
+    // que precisam só desse valor, sem o resto do cálculo), retorna cedo.
+    if (apenasPatrimonio) {
+        return { patrimonio: patrimonioLiquido };
+    }
+
+    // Cota do cliente = Patrimônio Líquido dele ÷ Patrimônio Total REAL do
+    // fundo (Caixa+RF+RV, sempre correto) — não mais a soma calculada dos
+    // outros clientes, que podia divergir do patrimônio real se algum
+    // cliente tivesse uma base de ano anterior mal configurada.
+    var patrimonioTotalRealParaCota = obterPatrimonioTotalAtual();
+    var cotas = patrimonioTotalRealParaCota > 0 ? (patrimonioLiquido / patrimonioTotalRealParaCota) : 0;
+
     var b78 = resultado.length > 0 ? (resultado[resultado.length - 1].entrada + resultado[resultado.length - 1].liquido) : 0;
 
     var totalTxAdmIR = totalTxAdm + totalIR;
-    var txNominalTotal = (resultado.length > 0 && resultado[0].entrada > 0) ? 
-        ((patrimonioLiquido - resultado[0].entrada) / resultado[0].entrada * 100) : 0;
+    var txNominalTotal = (resultado.length > 0 && resultado[0].entrada > 0) ?
+        (totalLiquido / resultado[0].entrada * 100) : 0;
     
     return {
         resultado: resultado,
@@ -1194,6 +1228,9 @@ function carregarDadosDoLocalStorage() {
                 }
                 if (parsed[key] && parsed[key].porAno) {
                     dadosClientes[key].porAno = parsed[key].porAno;
+                }
+                if (parsed[key] && parsed[key].recebeTaxasAdm !== undefined) {
+                    dadosClientes[key].recebeTaxasAdm = parsed[key].recebeTaxasAdm;
                 }
             }
             console.log('📂 Dados carregados do localStorage');
@@ -1288,6 +1325,9 @@ function salvarDadosClientes() {
     } catch(e) {
         console.warn('Erro ao salvar dados:', e);
     }
+    if (typeof atualizarCachePatrimonioTodosClientes === 'function') {
+        atualizarCachePatrimonioTodosClientes();
+    }
 }
 
 // ============================================================
@@ -1360,6 +1400,32 @@ function carregarCliente() {
     renderizarCliente();
 }
 
+function alternarRecebeTaxasAdm() {
+    var checkbox = document.getElementById('checkRecebeTaxas');
+    var cliente = dadosClientes[clienteAtual];
+    if (!cliente) return;
+
+    if (checkbox.checked) {
+        // Garante que só um cliente por vez é o recebedor
+        var outroJaEra = null;
+        for (var k in dadosClientes) {
+            if (k !== clienteAtual && dadosClientes[k].recebeTaxasAdm) outroJaEra = dadosClientes[k].nome;
+        }
+        if (outroJaEra) {
+            if (!confirm('Atualmente "' + outroJaEra + '" é quem recebe as taxas ADM. Trocar para "' + cliente.nome + '"?\n\n(Só pode haver um recebedor por vez)')) {
+                checkbox.checked = false;
+                return;
+            }
+            for (var k2 in dadosClientes) dadosClientes[k2].recebeTaxasAdm = false;
+        }
+        cliente.recebeTaxasAdm = true;
+    } else {
+        cliente.recebeTaxasAdm = false;
+    }
+    salvarDadosClientes();
+    renderizarCliente();
+}
+
 function renderizarCliente() {
     var cliente = dadosClientes[clienteAtual];
     if (!cliente) {
@@ -1368,6 +1434,8 @@ function renderizarCliente() {
     }
     
     document.getElementById('clienteNome').textContent = cliente.nome;
+    var checkRecebe = document.getElementById('checkRecebeTaxas');
+    if (checkRecebe) checkRecebe.checked = !!cliente.recebeTaxasAdm;
     
     // USAR LÓGICA INDIVIDUAL PARA TODOS OS CLIENTES
     var calc = calcularHistoricoIndividual(cliente, anoAtual, clienteAtual);
@@ -1612,7 +1680,29 @@ function exportarHistorico() {
 function recarregarDados() { 
     carregarDadosDoLocalStorage();
     renderizarCliente(); 
+    atualizarCachePatrimonioTodosClientes();
     alert('✅ Dados recarregados com sucesso!'); 
+}
+
+// ============================================================
+// CACHE DE PATRIMÔNIO PARA O DASHBOARD
+// ============================================================
+// Salva o resultado JÁ CALCULADO (a fonte de verdade) de TODOS os
+// clientes, não só o selecionado — assim o quadro "Cotas dos Clientes"
+// do Dashboard pode LER esse valor pronto em vez de reimplementar o
+// cálculo inteiro numa função separada, que sempre corre o risco de
+// divergir por pequenas diferenças que se acumulam (já aconteceu
+// mais de uma vez).
+function atualizarCachePatrimonioTodosClientes() {
+    var ano = new Date().getFullYear();
+    var cache = {};
+    for (var chave in dadosClientes) {
+        try {
+            var c = calcularHistoricoIndividual(dadosClientes[chave], ano, chave);
+            cache[chave] = { entrada: c.patrimonio - c.resultadoMensalValor, liquido: c.resultadoMensalValor, patrimonio: c.patrimonio, atualizadoEm: Date.now() };
+        } catch(e) {}
+    }
+    try { localStorage.setItem('cachePatrimonioClientes_' + ano, JSON.stringify(cache)); } catch(e) {}
 }
 
 // ============================================================
@@ -1637,6 +1727,7 @@ function init() {
     
     carregarDadosDoLocalStorage();
     renderizarCliente();
+    atualizarCachePatrimonioTodosClientes();
     
     console.log('📅 Módulo Histórico Mensal carregado!');
     console.log('📅 Ano vigente:', anoVigente);

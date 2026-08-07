@@ -99,6 +99,11 @@ body.tema-escuro .table-wrap table .total-row td {
 body.tema-escuro .sidebar {
   background: #0a1628;
 }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+.sidebar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+
 
 body.tema-escuro .sidebar-footer {
   border-top-color: #30363d;
@@ -1968,7 +1973,7 @@ function obterAportesClientePorMesDash(nomeCliente, ano) {
     return aportes;
 }
 
-function calcularEntradaLiquidoClienteAtual(clienteKey, clienteDados, ano) {
+function calcularEntradaLiquidoClienteAtual(clienteKey, clienteDados, ano, todosClientes, emSomaAutomaticaTaxas) {
     var hoje = new Date();
     var mesAtual = (ano === hoje.getFullYear()) ? hoje.getMonth() : 11;
     var dadosFundo = {};
@@ -1982,30 +1987,73 @@ function calcularEntradaLiquidoClienteAtual(clienteKey, clienteDados, ano) {
         if (fech && fech.entrada !== undefined) entrada = fech.entrada + (fech.liquido || 0);
     } catch(e) {}
 
+    var carga = 0;
     var liquido = 0;
+    var porMes = [];
+
+    // Se este cliente recebe as taxas ADM, busca o array completo (mês a
+    // mês) de Tx.Adm.+I.R. de cada outro cliente UMA VEZ, antes do loop —
+    // evita recalcular tudo de novo a cada mês, e permite usar o valor do
+    // MÊS CERTO em cada iteração (antes só existia o valor do mês atual,
+    // e ele era somado igualzinho em todos os meses por engano).
+    var contribuicoesPorMes = null;
+    if (clienteDados.recebeTaxasAdm && todosClientes && !emSomaAutomaticaTaxas) {
+        contribuicoesPorMes = new Array(mesAtual + 1).fill(0);
+        for (var ckOutro in todosClientes) {
+            if (ckOutro === clienteKey) continue;
+            var rOutro = calcularEntradaLiquidoClienteAtual(ckOutro, todosClientes[ckOutro], ano, todosClientes, true);
+            if (rOutro && rOutro.porMes) {
+                for (var m = 0; m < rOutro.porMes.length && m <= mesAtual; m++) {
+                    contribuicoesPorMes[m] += rOutro.porMes[m].txAdm + rOutro.porMes[m].ir;
+                }
+            }
+        }
+    }
+
     for (var i = 0; i <= mesAtual; i++) {
         var linha = dados[i] || [0, 0, 0, 0, 50, 20, 0, 0];
         var aporteManual = linha[1];
         var aporte = aporteManual ? aporteManual : (aportesReais[i] || 0);
-        if (i > 0) entrada = entrada + liquido + aporte;
+        if (i > 0) entrada = entrada + carga + aporte;
         else entrada = entrada + aporte;
 
         var entradaManual = linha[7];
         if (entradaManual) entrada = entradaManual;
 
         var txMesManual = linha[2] || 0;
-        var ehMesAtual = (i === mesAtual && ano === hoje.getFullYear());
-        var txMes = (ehMesAtual && txMesManual === 0 && dadosFundo[i] && dadosFundo[i].txMes !== undefined) ? dadosFundo[i].txMes : txMesManual;
+        // A taxa do fundo trava em QUALQUER mês sem valor manual (passado
+        // ou corrente), não só o mês corrente — mesma regra do
+        // historico-mensal.html.
+        var txMes = (txMesManual === 0 && dadosFundo[i] && dadosFundo[i].txMes !== undefined) ? dadosFundo[i].txMes : txMesManual;
+
+        var txAdmPct = (linha[4] !== undefined && linha[4] !== null) ? linha[4] : 50;
+        var irPct = (linha[5] !== undefined && linha[5] !== null) ? linha[5] : 20;
 
         var total = entrada * (txMes / 100);
-        total += linha[6] || 0; // taxas ADM recebidas, se houver
-        var txAdmPct = linha[4] || 50;
-        var irPct = linha[5] || 20;
+        if (contribuicoesPorMes) {
+            total += contribuicoesPorMes[i] || 0;
+        } else {
+            total += linha[6] || 0; // compatibilidade com valor manual antigo
+        }
         var txAdmValor = total * (txAdmPct / 100);
-        var irValor = txAdmValor * (irPct / 100);
+        // I.R. normalmente é % da Tx.Adm. — mas quem RECEBE as taxas
+        // (Tx.Adm.=0%) não tem base pra isso, e paga DARF sobre o próprio
+        // Total. Mesma regra usada no historico-mensal.html.
+        var baseIR = txAdmValor > 0 ? txAdmValor : total;
+        var irValor = baseIR * (irPct / 100);
         liquido = total - txAdmValor - irValor;
+        // O que carrega pro mês seguinte: cliente normal usa o líquido
+        // completo; quem recebe as taxas (Tx.Adm.=0%) não desconta o I.R.
+        // (DARF pago à parte, não sai do saldo investido).
+        // O que carrega pro mês seguinte é sempre o Líquido completo,
+        // pra TODOS os clientes igual — inclusive quem recebe as taxas ADM.
+        // O que carrega pro mês seguinte: cliente normal usa o líquido
+        // completo; quem recebe as taxas (Tx.Adm.=0%) não desconta o I.R.
+        // (DARF pago à parte, não sai do saldo investido).
+        carga = (txAdmValor > 0) ? liquido : (total - txAdmValor);
+        porMes.push({ txAdm: txAdmValor, ir: irValor });
     }
-    return { entrada: entrada, liquido: liquido };
+    return { entrada: entrada, liquido: liquido, porMes: porMes };
 }
 
 function atualizarCotasClientes(clientesData, somaInicial) {
@@ -2017,29 +2065,51 @@ function atualizarCotasClientes(clientesData, somaInicial) {
     try { dadosClientesSalvos = JSON.parse(localStorage.getItem('dadosClientes') || '{}'); } catch(e) {}
     var ano = new Date().getFullYear();
 
-    var html = '';
-    var somaCotas = 0, somaTotal = 0;
+    // Lê o cache calculado pelo historico-mensal.html — é a fonte de
+    // verdade (mesma lógica que você vê na tela de cada cliente). Só
+    // recalcula aqui (lógica própria, mais simples) se o cache ainda não
+    // existir, ex.: se o usuário nunca abriu o Histórico Mensal.
+    var cachePatrimonio = {};
+    try { cachePatrimonio = JSON.parse(localStorage.getItem('cachePatrimonioClientes_' + ano) || '{}'); } catch(e) {}
+
+    // 1ª passada: calcula o Total (Entrada+Líquido atual) de cada cliente.
+    var totais = [];
+    var somaTotal = 0;
     for (var i = 0; i < clientesData.length; i++) {
         var c = clientesData[i];
-        var cota = somaInicial > 0 ? ((c.valorInicial || 0) / somaInicial) : 0;
-
         var chaveCliente = null;
         for (var k in dadosClientesSalvos) {
             if (dadosClientesSalvos[k].nome === c.nome) { chaveCliente = k; break; }
         }
-
         var totalCliente;
-        if (chaveCliente) {
-            var r = calcularEntradaLiquidoClienteAtual(chaveCliente, dadosClientesSalvos[chaveCliente], ano);
+        if (chaveCliente && cachePatrimonio[chaveCliente] && cachePatrimonio[chaveCliente].patrimonio !== undefined) {
+            totalCliente = cachePatrimonio[chaveCliente].patrimonio;
+        } else if (chaveCliente) {
+            var r = calcularEntradaLiquidoClienteAtual(chaveCliente, dadosClientesSalvos[chaveCliente], ano, dadosClientesSalvos);
             totalCliente = r.entrada + r.liquido;
         } else {
-            // Sem histórico individual salvo ainda: usa a fatia proporcional como estimativa
-            totalCliente = cota * obterPatrimonioTotalAtual();
+            // Sem histórico individual salvo ainda: usa a fatia proporcional do valor inicial como estimativa
+            var cotaEstimada = somaInicial > 0 ? ((c.valorInicial || 0) / somaInicial) : 0;
+            totalCliente = cotaEstimada * obterPatrimonioTotalAtual();
         }
-
-        somaCotas += cota;
+        totais.push({ nome: c.nome, total: totalCliente });
         somaTotal += totalCliente;
-        html += '<tr><td>' + c.nome + '</td><td>' + cota.toFixed(4) + '</td><td>' + fmtMoeda(totalCliente) + '</td></tr>';
+    }
+
+    // 2ª passada: a cota de cada cliente = Patrimônio Líquido dele ÷
+    // Patrimônio Total REAL do fundo (Caixa+RF+RV, sempre correto) — não
+    // mais dividido pela soma calculada dos 6 clientes, que podia divergir
+    // do patrimônio real por causa de bases de anos anteriores não
+    // configuradas em algum cliente. Assim cada cota fica sempre honesta
+    // em relação ao patrimônio de verdade, mesmo que a soma de todos os
+    // clientes ainda não feche 100% com ele.
+    var patrimonioTotalReal = obterPatrimonioTotalAtual();
+    var html = '';
+    var somaCotas = 0;
+    for (var j = 0; j < totais.length; j++) {
+        var cota = patrimonioTotalReal > 0 ? (totais[j].total / patrimonioTotalReal) : 0;
+        somaCotas += cota;
+        html += '<tr><td>' + totais[j].nome + '</td><td>' + cota.toFixed(4) + '</td><td>' + fmtMoeda(totais[j].total) + '</td></tr>';
     }
     tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;color:var(--cinza-claro);">Nenhum cliente cadastrado.</td></tr>';
     tfoot.innerHTML = '<tr class="total-row"><td><strong>TOTAL GERAL</strong></td><td><strong>' + somaCotas.toFixed(4) + '</strong></td><td><strong>' + fmtMoeda(somaTotal) + '</strong></td></tr>';
@@ -3606,6 +3676,11 @@ function init() {
     atualizarPrecosRVComBrapi();
     setInterval(atualizarTickerCotacoes, 120000);
     setInterval(atualizarPrecosRVComBrapi, 120000);
+    // Antes o Patrimônio Total (e tudo que depende dele: Histórico Mensal
+    // do fundo, Cotas dos Clientes) só era calculado uma vez, no
+    // carregamento da página — ficava parado mesmo com os preços do
+    // ticker mudando a cada 2 minutos. Agora recalcula junto.
+    setInterval(atualizarPatrimonioTotal, 120000);
     setTimeout(function() {
         atualizarEvolucaoPatrimonio();
         atualizarGraficoRentabilidade();

@@ -86,6 +86,11 @@ body.tema-escuro .table-wrap table .total-row td {
 body.tema-escuro .sidebar {
   background: #0a1628;
 }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+.sidebar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+
 
 body.tema-escuro .editable-value {
   color: #f0f6fc;
@@ -455,6 +460,11 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           <input type="number" id="inputValor" placeholder="0,00 (negativo p/ débito)" step="0.01" required>
         </div>
       </div>
+      <div class="form-group" id="grupoTaxaCambio" style="display:none;">
+        <label>Taxa de câmbio (1 unidade = R$)</label>
+        <input type="number" id="inputTaxaCambio" step="0.0001" placeholder="Ex: 5,45">
+        <small style="color:var(--cinza-claro);font-size:11px;">Pré-preenchido com uma taxa aproximada — confira e ajuste pro valor real do dia antes de salvar.</small>
+      </div>
       <div class="form-group">
         <label>Instituição</label>
         <select id="inputInstituicao">
@@ -689,8 +699,8 @@ function persistirSaldos() {
 // ============================================================
 // CRUD
 // ============================================================
-function salvarSaldo(descricao, moeda, valor, instituicao) {
-    var cotacao = obterCotacaoMoeda(moeda);
+function salvarSaldo(descricao, moeda, valor, instituicao, taxaManual) {
+    var cotacao = (taxaManual !== undefined && taxaManual !== null && !isNaN(taxaManual) && taxaManual > 0) ? taxaManual : obterCotacaoMoeda(moeda);
     valor = parseFloat(valor);
     if (isNaN(valor)) valor = 0;
     var valorBRL = valor * cotacao;
@@ -807,19 +817,32 @@ function abrirModal() {
 }
 function fecharModal() { document.getElementById('modalNovoSaldo').classList.remove('active'); }
 
+document.getElementById('inputMoeda').addEventListener('change', function() {
+    var grupo = document.getElementById('grupoTaxaCambio');
+    var campoTaxa = document.getElementById('inputTaxaCambio');
+    if (this.value === 'BRL') {
+        grupo.style.display = 'none';
+    } else {
+        grupo.style.display = 'block';
+        campoTaxa.value = obterCotacaoMoeda(this.value).toFixed(4);
+    }
+});
+
 document.getElementById('formNovoSaldo').addEventListener('submit', function(e) {
     e.preventDefault();
     var descricao = document.getElementById('inputDescricao').value.trim();
     var moeda = document.getElementById('inputMoeda').value;
     var valor = parseFloat(document.getElementById('inputValor').value);
     var instituicao = document.getElementById('inputInstituicao').value;
+    var taxaManual = moeda !== 'BRL' ? parseFloat(document.getElementById('inputTaxaCambio').value) : null;
     if (!descricao) { alert('Digite uma descrição'); return; }
     if (isNaN(valor) || valor === 0) { alert('Digite um valor válido (pode ser negativo para débito)'); return; }
+    if (moeda !== 'BRL' && (isNaN(taxaManual) || taxaManual <= 0)) { alert('Digite uma taxa de câmbio válida'); return; }
     var btn = document.getElementById('btnSalvarSaldo');
     btn.textContent = '⏳ Salvando...';
     btn.disabled = true;
     try {
-        salvarSaldo(descricao, moeda, valor, instituicao);
+        salvarSaldo(descricao, moeda, valor, instituicao, taxaManual);
         fecharModal();
         alert('✅ Saldo salvo!');
     } catch (error) {
