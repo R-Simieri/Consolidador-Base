@@ -648,8 +648,24 @@ carregarTema();
 // ============================================================
 // FUNÇÕES AUXILIARES
 // ============================================================
-function fmtMoeda(v) { if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00'; return (v < 0 ? '-' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function fmtMoedaCaixa(v) { if (v === undefined || v === null || isNaN(v)) return '0,00'; return Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
+function fmtMoeda(v) { if (v === undefined || v === null || isNaN(v)) return SIMBOLO_MOEDA_CONFIG + ' 0,00'; return (v < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtMoedaCaixa(v) { if (v === undefined || v === null || isNaN(v)) return '0,00'; return Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function obterSimboloMoeda(m) { var s = { 'BRL':'R$','USD':'US$','EUR':'€','GBP':'£','JPY':'¥','CAD':'C$','AUD':'A$','CHF':'Fr','CNY':'¥','ARS':'$' }; return s[m] || m; }
 
 // ============================================================
@@ -813,6 +829,7 @@ async function atualizarTodasMoedas() {
 function abrirModal() {
     document.getElementById('inputDescricao').value = '';
     document.getElementById('inputValor').value = '';
+    popularSelectsInstituicoes();
     document.getElementById('modalNovoSaldo').classList.add('active');
 }
 function fecharModal() { document.getElementById('modalNovoSaldo').classList.remove('active'); }
@@ -860,6 +877,7 @@ var editIndex = -1;
 function abrirModalEditar(index) {
     editIndex = index;
     var s = saldos[index];
+    popularSelectsInstituicoes();
     document.getElementById('editInputDescricao').value = s.descricao;
     document.getElementById('editInputMoeda').value = s.moeda;
     document.getElementById('editInputValor').value = s.valor;
@@ -934,7 +952,6 @@ function carregarDados() {
 function popularSelectsInstituicoes() {
     var instituicoes = [];
     try { instituicoes = JSON.parse(localStorage.getItem('instituicoes') || '[]'); } catch(e) {}
-    if (instituicoes.length === 0) return;
 
     var ids = ['inputInstituicao', 'editInputInstituicao'];
     for (var i = 0; i < ids.length; i++) {
@@ -942,10 +959,14 @@ function popularSelectsInstituicoes() {
         if (!select) continue;
         var valorAtual = select.value;
         var html = '';
-        for (var j = 0; j < instituicoes.length; j++) {
-            html += '<option value="' + instituicoes[j].nome + '">' + instituicoes[j].nome + '</option>';
+        if (instituicoes.length === 0) {
+            html = '<option value="Outro">Outro (cadastre no módulo Instituições)</option>';
+        } else {
+            for (var j = 0; j < instituicoes.length; j++) {
+                html += '<option value="' + instituicoes[j].nome + '">' + instituicoes[j].nome + '</option>';
+            }
+            html += '<option value="Outro">Outro</option>';
         }
-        html += '<option value="Outro">Outro</option>';
         select.innerHTML = html;
         if (valorAtual) select.value = valorAtual;
     }

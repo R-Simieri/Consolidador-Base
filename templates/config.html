@@ -462,6 +462,42 @@ body {
       </div>
     </div>
 
+    <!-- MANUAL DO USUÁRIO -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>📖 Manual do Usuário</h3>
+        <span style="font-size:9px;color:var(--cinza-claro);">Guia rápido para iniciar no sistema</span>
+      </div>
+
+      <div style="margin-top:12px;">
+        <details open style="margin-bottom:10px;">
+          <summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--azul-card);padding:6px 0;">🚀 Primeiros Passos (Configuração Inicial)</summary>
+          <ol style="padding-left:20px;font-size:10px;line-height:1.9;margin-top:8px;">
+            <li><strong>👤 Cadastre o Administrador:</strong> preencha seu nome, e-mail e função aqui em cima, no painel "Perfil do Usuário". <span style="color:var(--cinza-claro);">O nome cadastrado aparece no topo do Dashboard e em todo o sistema.</span></li>
+            <li><strong>🎨 Escolha o Tema:</strong> selecione Claro, Escuro ou Sistema — a aparência que preferir.</li>
+            <li><strong>🌐 Escolha o Idioma:</strong> Português (BR), Inglês (US) ou Espanhol — define o idioma dos textos e da formatação de números.</li>
+            <li><strong>💰 Escolha o Formato de Moeda:</strong> BRL (R$), USD (US$) ou EUR (€) — usado em todos os valores do sistema.</li>
+            <li><strong>💾 Salve as Configurações:</strong> clique no botão "Salvar Configurações" pra aplicar todas as alterações.</li>
+          </ol>
+        </details>
+
+        <details style="margin-bottom:10px;">
+          <summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--azul-card);padding:6px 0;">📋 Cadastro de Dados (Módulos)</summary>
+          <ul style="padding-left:20px;font-size:10px;line-height:1.9;margin-top:8px;">
+            <li><strong>👥 Clientes:</strong> acesse <a href="/clientes" style="color:var(--azul-card);">Clientes</a>, clique em "Novo Cliente" e preencha os dados do cotista.</li>
+            <li><strong>📈 Ativos (Renda Variável):</strong> acesse <a href="/" style="color:var(--azul-card);">Renda Variável</a>, clique em "Novo Ativo" e informe o código, quantidade e preço.</li>
+            <li><strong>🏦 Aplicações (Renda Fixa):</strong> acesse <a href="/" style="color:var(--azul-card);">Renda Fixa</a>, clique em "Nova Aplicação" e preencha os dados do investimento.</li>
+            <li><strong>💳 Saldo em Caixa:</strong> acesse <a href="/" style="color:var(--azul-card);">Caixa</a>, clique em "Novo Saldo" e informe a moeda e o valor disponível.</li>
+            <li><strong>📊 Proventos:</strong> acesse <a href="/proventos" style="color:var(--azul-card);">Proventos</a>, clique em "Novo Provento" e registre dividendos, JCP ou rendimentos.</li>
+          </ul>
+        </details>
+
+        <div style="margin-top:14px;padding:12px;background:var(--cinza-fundo);border-radius:6px;font-size:9px;color:var(--cinza-claro);">
+          <strong style="color:var(--azul-card);">💡 Acompanhamento:</strong> depois de cadastrar os dados, acompanhe a evolução patrimonial em tempo real no <a href="/" style="color:var(--azul-card);">📊 Dashboard</a>, e o desempenho individual de cada cotista no <a href="/historico-mensal" style="color:var(--azul-card);">📅 Histórico Mensal</a>.
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 
@@ -549,7 +585,10 @@ function salvarConfiguracoes() {
     try {
         localStorage.setItem('configuracoes', JSON.stringify(config));
         aplicarTema(config.tema);
-        alert('✅ Configurações salvas com sucesso!');
+        if (typeof aplicarConfiguracoesFormatacao === 'function') {
+            aplicarConfiguracoesFormatacao();
+        }
+        alert('✅ Configurações salvas com sucesso! Outras telas abertas vão usar a moeda/idioma novos ao serem recarregadas.');
     } catch(e) {
         alert('❌ Erro ao salvar configurações.');
         console.error(e);

@@ -543,21 +543,26 @@ function coletarDados(tipo) {
         } else if (tipo === 'proventos') {
             dados = JSON.parse(localStorage.getItem('proventos') || '[]');
         } else if (tipo === 'carteira' || tipo === 'completo') {
-            // Coletar dados de todos os módulos
-            var clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+            // Consolida RF + RV + Caixa + Proventos numa lista de linhas
+            // (precisa ser um ARRAY, não um objeto, pra gerarTabelaPreview
+            // conseguir exibir e pro preview não achar "sem dados").
             var rf = JSON.parse(localStorage.getItem('rendaFixa') || '[]');
             var rv = JSON.parse(localStorage.getItem('rendaVariavel') || '[]');
             var caixa = JSON.parse(localStorage.getItem('saldosCaixa') || '[]');
-            dados = {
-                clientes: clientes,
-                rendaFixa: rf,
-                rendaVariavel: rv,
-                caixa: caixa,
-                totalClientes: clientes.length,
-                totalRF: rf.length,
-                totalRV: rv.length,
-                totalCaixa: caixa.length
-            };
+            var proventosLista = JSON.parse(localStorage.getItem('proventos') || '[]');
+
+            var totalRF = rf.reduce(function(s, a) { return s + (a.valorAtual || 0); }, 0);
+            var totalRV = rv.reduce(function(s, a) { return s + (a.saldo || 0); }, 0);
+            var totalCaixa = caixa.reduce(function(s, c) { return s + (c.valorBRL || 0); }, 0);
+            var totalProventos = proventosLista.reduce(function(s, p) { return s + (p.valor || 0); }, 0);
+
+            dados = [
+                { categoria: 'Renda Fixa', quantidadeItens: rf.length, valorTotal: totalRF },
+                { categoria: 'Renda Variável', quantidadeItens: rv.length, valorTotal: totalRV },
+                { categoria: 'Caixa', quantidadeItens: caixa.length, valorTotal: totalCaixa },
+                { categoria: 'Proventos', quantidadeItens: proventosLista.length, valorTotal: totalProventos },
+                { categoria: 'PATRIMÔNIO TOTAL', quantidadeItens: rf.length + rv.length + caixa.length + proventosLista.length, valorTotal: totalRF + totalRV + totalCaixa + totalProventos }
+            ];
             return dados;
         } else if (tipo === 'historico') {
             var hist = JSON.parse(localStorage.getItem('dadosClientes') || '{}');
@@ -581,19 +586,28 @@ function coletarDados(tipo) {
 function gerarTabelaPreview(dados) {
     if (!dados || dados.length === 0) return '<p style="color:var(--cinza-claro);padding:20px 0;text-align:center;">Nenhum dado disponível.</p>';
     
+    // Remove a coluna "id" (uso interno, não faz sentido no relatório)
+    var dadosFiltrados = dados.map(function(item) {
+        var copia = {};
+        for (var chave in item) {
+            if (chave !== 'id') copia[chave] = item[chave];
+        }
+        return copia;
+    });
+
     var html = '<table style="width:100%;font-size:9px;border-collapse:collapse;">';
-    var headers = Object.keys(dados[0]);
+    var headers = Object.keys(dadosFiltrados[0]);
     html += '<thead><tr>';
     for (var h = 0; h < headers.length; h++) {
         html += '<th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">' + headers[h] + '</th>';
     }
     html += '</tr></thead><tbody>';
     
-    var maxRows = Math.min(dados.length, 10);
+    var maxRows = Math.min(dadosFiltrados.length, 10);
     for (var i = 0; i < maxRows; i++) {
         html += '<tr>';
         for (var h = 0; h < headers.length; h++) {
-            var val = dados[i][headers[h]];
+            var val = dadosFiltrados[i][headers[h]];
             if (typeof val === 'number') {
                 val = 'R$ ' + val.toFixed(2);
             } else if (typeof val === 'object') {
@@ -604,8 +618,8 @@ function gerarTabelaPreview(dados) {
         html += '</tr>';
     }
     
-    if (dados.length > 10) {
-        html += '<tr><td colspan="' + headers.length + '" style="padding:4px 6px;text-align:center;color:var(--cinza-claro);">+' + (dados.length - 10) + ' registros adicionais...</td></tr>';
+    if (dadosFiltrados.length > 10) {
+        html += '<tr><td colspan="' + headers.length + '" style="padding:4px 6px;text-align:center;color:var(--cinza-claro);">+' + (dadosFiltrados.length - 10) + ' registros adicionais...</td></tr>';
     }
     
     html += '</tbody></table>';
@@ -619,23 +633,21 @@ function fecharPreview() {
 function baixarPreview() {
     var content = document.getElementById('previewContent');
     var html = content.innerHTML;
-    
-    // Criar arquivo HTML para download (simula PDF)
-    var blob = new Blob([
-        '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório</title>' +
-        '<style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:6px;text-align:left;}th{background:#f0f2f5;}</style>' +
+
+    // Gera o PDF via impressão do navegador (window.print), numa janela
+    // separada só com o conteúdo do relatório — o usuário escolhe
+    // "Salvar como PDF" no diálogo de impressão.
+    var janela = window.open('', '_blank');
+    janela.document.write(
+        '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório - ' + new Date().toISOString().split('T')[0] + '</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px;color:#222;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:6px;text-align:left;}th{background:#f0f2f5;}@media print{body{padding:0;}}</style>' +
         '</head><body>' + html + '</body></html>'
-    ], { type: 'text/html;charset=utf-8;' });
-    
-    var link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'relatorio_' + new Date().toISOString().split('T')[0] + '.html';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-    
-    alert('📥 Download do relatório iniciado!\n\nFormato: HTML (pronto para impressão)\nArquivo: relatorio_' + new Date().toISOString().split('T')[0] + '.html');
+    );
+    janela.document.close();
+    janela.onload = function() {
+        janela.focus();
+        janela.print();
+    };
 }
 
 // ============================================================

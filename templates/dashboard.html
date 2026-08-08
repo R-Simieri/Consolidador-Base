@@ -3272,7 +3272,7 @@ function atualizarPatrimonioTotal() {
     }
 
     atualizarKPIsPrincipais(total);
-    atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa);
+    atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa, totalProventos);
 
     // Mantém o Histórico Mensal (Entrada/Tx.Mês do mês corrente) sempre em
     // sincronia com o Patrimônio Total — antes ele só recalculava ao trocar
@@ -3364,7 +3364,7 @@ function atualizarKPIsPrincipais(totalPatrimonioAtual) {
 }
 
 var chartDistribuicaoCarteira = null;
-function atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa) {
+function atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa, totalProventos) {
     var ctx = document.getElementById('chartDistribuicaoCarteira');
     if (!ctx) return;
     if (typeof Chart === 'undefined') return;
@@ -3373,6 +3373,7 @@ function atualizarDistribuicaoDashboard(totalRV, totalRF, totalCaixa) {
     if (totalRV > 0) { labels.push('Renda Variável'); valores.push(totalRV); cores.push('#2d6fb0'); }
     if (totalRF > 0) { labels.push('Renda Fixa'); valores.push(totalRF); cores.push('#28a745'); }
     if (totalCaixa > 0) { labels.push('Caixa'); valores.push(totalCaixa); cores.push('#fd7e14'); }
+    if (totalProventos > 0) { labels.push('Proventos'); valores.push(totalProventos); cores.push('#b8790f'); }
 
     if (chartDistribuicaoCarteira) { chartDistribuicaoCarteira.destroy(); chartDistribuicaoCarteira = null; }
     if (valores.length === 0) return;

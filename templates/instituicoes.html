@@ -691,9 +691,25 @@ var chartTopInstituicoes = null;
 // ============================================================
 // FUNÇÕES AUXILIARES
 // ============================================================
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
 function fmtMoeda(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
-    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (valor === undefined || valor === null || isNaN(valor)) return SIMBOLO_MOEDA_CONFIG + ' 0,00';
+    return (valor < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(valor).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function badgeTipo(tipo) {
@@ -964,19 +980,21 @@ document.getElementById('modalEditar').addEventListener('click', function(e) { i
 // ============================================================
 function exportarInstituicoes() {
     if (instituicoesData.length === 0) { alert('Nenhuma instituição para exportar.'); return; }
-    var csv = 'Nome,Tipo,CNPJ,Site\n';
+    var linhas = '';
     for (var i = 0; i < instituicoesData.length; i++) {
         var inst = instituicoesData[i];
-        csv += '"' + inst.nome + '","' + inst.tipo + '","' + inst.cnpj + '","' + inst.site + '"\n';
+        linhas += '<tr><td>' + (inst.nome || '-') + '</td><td>' + (inst.tipo || '-') + '</td><td>' + (inst.cnpj || '-') + '</td><td>' + (inst.site || '-') + '</td></tr>';
     }
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    var link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'instituicoes_' + new Date().toISOString().split('T')[0] + '.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    var janela = window.open('', '_blank');
+    janela.document.write(
+        '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Instituições - ' + new Date().toISOString().split('T')[0] + '</title>' +
+        '<style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px;color:#222;}h2{font-size:16px;}table{width:100%;border-collapse:collapse;margin-top:12px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;}th{background:#f0f2f5;}@media print{body{padding:0;}}</style>' +
+        '</head><body><h2>Instituições Cadastradas</h2><p>Gerado em: ' + new Date().toLocaleString('pt-BR') + '</p>' +
+        '<table><thead><tr><th>Nome</th><th>Tipo</th><th>CNPJ</th><th>Site</th></tr></thead><tbody>' + linhas + '</tbody></table>' +
+        '</body></html>'
+    );
+    janela.document.close();
+    janela.onload = function() { janela.focus(); janela.print(); };
 }
 
 // ============================================================

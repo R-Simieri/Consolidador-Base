@@ -409,7 +409,7 @@ table tr:last-child td { border-bottom: none; }
       <input type="hidden" id="editId">
       <div class="form-group"><label>Data</label><input type="date" id="editData"></div>
       <div class="form-group"><label>Cliente</label><select id="editCliente"></select></div>
-      <div class="form-group"><label>Tipo</label><select id="editTipo"><option value="credito">Crédito (+) Aporte</option><option value="debito">Débito (-) Resgate</option></select></div>
+      <div class="form-group"><label>Tipo</label><select id="editTipo"><option value="credito" style="color:green;">Crédito (+) Aporte</option><option value="debito" style="color:red;">Débito (-) Resgate</option></select></div>
       <div class="form-group"><label>Valor (R$)</label><input type="number" id="editValor" step="0.01" min="0.01"></div>
       <div class="form-group"><label>Descrição</label><input type="text" id="editDescricao" placeholder="Ex: Aporte mensal..."></div>
       <div class="btn-group"><button type="button" class="btn btn-ghost" onclick="fecharModalEditar()">Cancelar</button><button type="submit" class="btn btn-success">💾 Atualizar</button></div>
@@ -439,7 +439,7 @@ table tr:last-child td { border-bottom: none; }
         <div class="form-grid">
           <div class="form-group"><label>Data</label><input type="date" id="inputData" required></div>
           <div class="form-group"><label>Cliente</label><select id="inputCliente" required></select></div>
-          <div class="form-group"><label>Tipo</label><select id="inputTipo" required><option value="credito">Crédito (+) Aporte</option><option value="debito">Débito (-) Resgate</option></select></div>
+          <div class="form-group"><label>Tipo</label><select id="inputTipo" required><option value="credito" style="color:green;">Crédito (+) Aporte</option><option value="debito" style="color:red;">Débito (-) Resgate</option></select></div>
           <div class="form-group"><label>Valor (R$)</label><input type="number" id="inputValor" step="0.01" min="0.01" placeholder="0,00" required></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="inputDescricao" placeholder="Ex: Aporte mensal..."></div>
           <div class="form-group"><label>&nbsp;</label><button type="submit" class="btn btn-success">💾 Salvar</button></div>
@@ -476,6 +476,18 @@ table tr:last-child td { border-bottom: none; }
 </main>
 
 <script>
+function colorirSelectTipo(select) {
+    select.style.color = select.value === 'credito' ? 'green' : 'red';
+    select.style.fontWeight = '700';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    ['inputTipo', 'editTipo'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        colorirSelectTipo(el);
+        el.addEventListener('change', function() { colorirSelectTipo(el); });
+    });
+});
 // ============================================================
 // USUÁRIO ADMIN - EXIBIR NOME CADASTRADO EM CONFIGURAÇÕES
 // ============================================================
@@ -523,9 +535,25 @@ var movimentacoes = [];
 var proximoId = 1;
 var filtroCliente = null;
 
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
 function fmtMoeda(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
-    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (valor === undefined || valor === null || isNaN(valor)) return SIMBOLO_MOEDA_CONFIG + ' 0,00';
+    return (valor < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(valor).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Corrige bug clássico do JS: new Date('2026-08-01') é interpretado como
@@ -960,7 +988,7 @@ document.getElementById('formMovimentacao').addEventListener('submit', function(
     btn.disabled = true;
     try {
         var sucesso = salvarMovimentacao(data, cliente, tipo, valor, descricao);
-        if (sucesso) { document.getElementById('formMovimentacao').reset(); document.getElementById('inputData').value = obterDataLocalISO(); }
+        if (sucesso) { document.getElementById('formMovimentacao').reset(); document.getElementById('inputData').value = obterDataLocalISO(); colorirSelectTipo(document.getElementById('inputTipo')); }
     } catch (error) { alert('❌ Erro ao salvar movimentação. Tente novamente.'); console.error(error); }
     btn.textContent = '💾 Salvar';
     btn.disabled = false;
@@ -1029,12 +1057,16 @@ function filtrarPorCliente() {
 
 function exportarMovimentacoes() {
     if (movimentacoes.length === 0) { alert('Nenhuma movimentação para exportar.'); return; }
-    var csv = 'Data,Cliente,Tipo,Valor,Descrição\n';
+    // Mesmo padrão do Histórico Mensal: ";" como separador de coluna e ","
+    // como separador decimal (Excel em português), + BOM UTF-8.
+    function csvNum(v) { return (v || 0).toFixed(2).replace('.', ','); }
+    var csv = 'Data;Cliente;Tipo;Valor;Descrição\n';
     for (var i = 0; i < movimentacoes.length; i++) {
         var m = movimentacoes[i];
-        csv += fmtData(m.data) + ',' + m.clienteNome + ',' + (m.tipo === 'credito' ? 'Crédito' : 'Débito') + ',' + m.valor.toFixed(2) + ',' + (m.descricao || '') + '\n';
+        csv += fmtData(m.data) + ';' + m.clienteNome + ';' + (m.tipo === 'credito' ? 'Crédito' : 'Débito') + ';' + csvNum(m.valor) + ';' + (m.descricao || '') + '\n';
     }
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'movimentacoes_' + new Date().toISOString().split('T')[0] + '.csv';

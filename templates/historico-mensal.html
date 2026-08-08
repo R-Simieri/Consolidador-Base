@@ -824,12 +824,28 @@ var chartComposicao = null;
 // ============================================================
 // FUNÇÕES AUXILIARES
 // ============================================================
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
 function fmtMoeda(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
+    if (valor === undefined || valor === null || isNaN(valor)) return SIMBOLO_MOEDA_CONFIG + ' 0,00';
     if (valor < 0) {
-        return '<span class="valor-negativo">-R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
+        return '<span class="valor-negativo">-' + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(valor).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
     }
-    return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return SIMBOLO_MOEDA_CONFIG + ' ' + valor.toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function fmtPct(valor) {

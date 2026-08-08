@@ -476,9 +476,25 @@ var clientesData = [
 
 var proximoId = 7;
 
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
 function fmtMoeda(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
-    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (valor === undefined || valor === null || isNaN(valor)) return SIMBOLO_MOEDA_CONFIG + ' 0,00';
+    return (valor < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(valor).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function fmtPct(valor) {
@@ -753,12 +769,14 @@ document.getElementById('modalCliente').addEventListener('click', function(e) { 
 
 function exportarClientes() {
     if (clientesData.length === 0) { alert('Nenhum cliente para exportar.'); return; }
-    var csv = 'Nome,CPF/CNPJ,Data Entrada,Participação,Valor Inicial,Patrimônio,Status\n';
+    function csvNum(v) { return (v || 0).toFixed(2).replace('.', ','); }
+    var csv = 'Nome;CPF/CNPJ;Data Entrada;Participação;Valor Inicial;Patrimônio;Status\n';
     for (var i = 0; i < clientesData.length; i++) {
         var c = clientesData[i];
-        csv += '"' + c.nome + '","' + c.documento + '","' + formatarData(c.dataEntrada) + '",' + c.participacao + ',"' + fmtMoeda(c.valorInicial || 0) + '","' + fmtMoeda(c.patrimonio || 0) + '","' + c.status + '"\n';
+        csv += c.nome + ';' + (c.documento || '') + ';' + formatarData(c.dataEntrada) + ';' + (c.participacao || '') + ';' + csvNum(c.valorInicial) + ';' + csvNum(c.patrimonio) + ';' + (c.status || '') + '\n';
     }
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'clientes_' + new Date().toISOString().split('T')[0] + '.csv';

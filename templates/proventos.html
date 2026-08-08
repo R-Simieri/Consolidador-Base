@@ -604,7 +604,9 @@ table tr:last-child td { border-bottom: none; }
         <h3>Histórico de Proventos <small>Dividendos, JCP e rendimentos recebidos</small></h3>
         <div>
           <button class="btn btn-ghost" onclick="exportarProventos()">📤 Exportar</button>
-          <button class="btn btn-ghost" onclick="filtrarPorCliente()">🔍 Filtrar</button>
+          <select id="selectFiltroCliente" onchange="filtrarPorCliente()" style="padding:6px 10px;border-radius:6px;border:1px solid var(--cinza-borda);font-size:10px;">
+            <option value="">🔍 Todos os clientes</option>
+          </select>
         </div>
       </div>
       <div class="table-wrap">
@@ -750,14 +752,37 @@ var chartDistribuicaoCliente = null;
 // ============================================================
 // FUNÇÕES AUXILIARES
 // ============================================================
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
 function fmtMoeda(valor) {
-    if (valor === undefined || valor === null || isNaN(valor)) return 'R$ 0,00';
-    return (valor < 0 ? '-' : '') + 'R$ ' + Math.abs(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (valor === undefined || valor === null || isNaN(valor)) return SIMBOLO_MOEDA_CONFIG + ' 0,00';
+    return (valor < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(valor).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function parseDataLocal(data) {
+    if (!data) return null;
+    var partes = String(data).split('-');
+    if (partes.length !== 3) return new Date(data);
+    return new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
 }
 
 function fmtData(data) {
     if (!data) return '-';
-    var d = new Date(data);
+    var d = parseDataLocal(data);
     return d.toLocaleDateString('pt-BR');
 }
 
@@ -970,7 +995,14 @@ function atualizarPatrimonioTotal() {
 // ============================================================
 // FORMULÁRIO
 // ============================================================
-document.getElementById('inputData').valueAsDate = new Date();
+function obterDataLocalISO() {
+    var hoje = new Date();
+    var ano = hoje.getFullYear();
+    var mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    var dia = String(hoje.getDate()).padStart(2, '0');
+    return ano + '-' + mes + '-' + dia;
+}
+document.getElementById('inputData').value = obterDataLocalISO();
 
 document.getElementById('formProvento').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -992,7 +1024,7 @@ document.getElementById('formProvento').addEventListener('submit', function(e) {
         salvarProvento(data, ativo, cliente, tipo, valor);
         // Limpa os campos do formulário
         document.getElementById('formProvento').reset();
-        document.getElementById('inputData').valueAsDate = new Date();
+        document.getElementById('inputData').value = obterDataLocalISO();
         document.getElementById('inputAtivo').value = '';
         document.getElementById('inputValor').value = '';
         alert('✅ Provento salvo com sucesso!');
@@ -1068,30 +1100,34 @@ document.getElementById('modalEditar').addEventListener('click', function(e) { i
 // FILTRO E EXPORTAÇÃO
 // ============================================================
 function filtrarPorCliente() {
-    var keys = Object.keys(clientesNomes);
-    var opcoes = 'Selecione um cliente:\n0. Todos\n';
-    for (var i = 0; i < keys.length; i++) {
-        opcoes += (i + 1) + '. ' + clientesNomes[keys[i]] + '\n';
-    }
-    var escolha = prompt(opcoes);
-    if (escolha === null) return;
-    if (escolha === '0' || escolha === '') { filtroCliente = null; }
-    else {
-        var index = parseInt(escolha) - 1;
-        if (index >= 0 && index < keys.length) { filtroCliente = keys[index]; }
-        else { alert('Opção inválida.'); return; }
-    }
+    var select = document.getElementById('selectFiltroCliente');
+    var valor = select ? select.value : '';
+    filtroCliente = valor || null;
     renderizarProventos();
+}
+
+function popularSelectFiltroCliente() {
+    var select = document.getElementById('selectFiltroCliente');
+    if (!select) return;
+    var valorAtual = select.value;
+    var html = '<option value="">🔍 Todos os clientes</option>';
+    for (var key in clientesNomes) {
+        html += '<option value="' + key + '">' + clientesNomes[key] + '</option>';
+    }
+    select.innerHTML = html;
+    select.value = valorAtual;
 }
 
 function exportarProventos() {
     if (proventos.length === 0) { alert('Nenhum provento para exportar.'); return; }
-    var csv = 'Data,Ativo,Cliente,Tipo,Valor\n';
+    function csvNum(v) { return (v || 0).toFixed(2).replace('.', ','); }
+    var csv = 'Data;Ativo;Cliente;Tipo;Valor\n';
     for (var i = 0; i < proventos.length; i++) {
         var p = proventos[i];
-        csv += fmtData(p.data) + ',' + p.ativo + ',' + p.clienteNome + ',' + p.tipo + ',' + p.valor.toFixed(2) + '\n';
+        csv += fmtData(p.data) + ';' + (p.ativo || '') + ';' + (p.clienteNome || '') + ';' + (p.tipo || '') + ';' + csvNum(p.valor) + '\n';
     }
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'proventos_' + new Date().toISOString().split('T')[0] + '.csv';
@@ -1145,6 +1181,7 @@ function carregarDadosExemplo() {
 // INICIALIZAÇÃO
 // ============================================================
 carregarClientesProventos();
+popularSelectFiltroCliente();
 carregarProventos();
 
 if (proventos.length === 0 && !localStorage.getItem('proventosExemploJaCarregado')) {

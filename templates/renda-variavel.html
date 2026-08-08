@@ -450,6 +450,10 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
         <label>Código do Ativo (ex: VALE3, PETR4, ITUB4)</label>
         <input type="text" id="inputAtivo" placeholder="Ex: VALE3" required style="text-transform:uppercase;">
       </div>
+      <div class="form-group">
+        <label>Instituição</label>
+        <select id="inputInstituicao"></select>
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label>Quantidade</label>
@@ -480,6 +484,10 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
       <div class="form-group">
         <label>Código do Ativo</label>
         <input type="text" id="editInputAtivo" style="text-transform:uppercase;">
+      </div>
+      <div class="form-group">
+        <label>Instituição</label>
+        <select id="editInputInstituicao"></select>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -558,7 +566,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Ativo</th><th>Tipo</th><th>Qtd.</th><th>Preço</th><th>Custo</th><th>Último</th><th>Var./Dia</th><th>Variação</th><th>Saldo</th><th>Ações</th></tr>
+            <tr><th>Ativo</th><th>Tipo</th><th>Instituição</th><th>Qtd.</th><th>Preço</th><th>Custo</th><th>Último</th><th>Var./Dia</th><th>Variação</th><th>Saldo</th><th>Ações</th></tr>
           </thead>
           <tbody id="rvTableBody">
             <tr><td colspan="10" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum ativo cadastrado. Clique em <b>+ Novo Ativo</b> para começar.</td></tr>
@@ -624,10 +632,49 @@ const ATIVOS_MONITORADOS = ['VALE3', 'PETR4', 'ITUB4', 'BBAS3', 'BBDC4', 'WEGE3'
 // ============================================================
 // FUNÇÕES AUXILIARES
 // ============================================================
-function fmtMoedaRV(v) { if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00'; return (v < 0 ? '-' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas ao carregar e usadas
+// nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
+function fmtMoedaRV(v) { if (v === undefined || v === null || isNaN(v)) return SIMBOLO_MOEDA_CONFIG + ' 0,00'; return (v < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtPctRV(v) { if (v === undefined || v === null || isNaN(v)) return '0,00%'; return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
 function badgeClasse(t) { if (t === 'FII') return 'badge-fii'; if (t === 'ETF') return 'badge-etf'; if (t === 'CDB' || t === 'LCI' || t === 'LCA' || t === 'Tesouro Direto' || t === 'Debênture' || t === 'Fundo' || t === 'Poupança') return 'badge-cdb'; return 'badge-acao'; }
 function detectarTipo(c) { if (c.endsWith('11')) return 'FII'; if (c.endsWith('BDR')) return 'BDR'; if (c.endsWith('ETF')) return 'ETF'; return 'Ação'; }
+
+function popularSelectsInstituicoesRV() {
+    var instituicoes = [];
+    try { instituicoes = JSON.parse(localStorage.getItem('instituicoes') || '[]'); } catch(e) {}
+
+    var ids = ['inputInstituicao', 'editInputInstituicao'];
+    for (var i = 0; i < ids.length; i++) {
+        var select = document.getElementById(ids[i]);
+        if (!select) continue;
+        var valorAtual = select.value;
+        var html = '';
+        if (instituicoes.length === 0) {
+            html = '<option value="Outro">Outro (cadastre no módulo Instituições)</option>';
+        } else {
+            for (var j = 0; j < instituicoes.length; j++) {
+                html += '<option value="' + instituicoes[j].nome + '">' + instituicoes[j].nome + '</option>';
+            }
+            html += '<option value="Outro">Outro</option>';
+        }
+        select.innerHTML = html;
+        if (valorAtual) select.value = valorAtual;
+    }
+}
 
 // ============================================================
 // VARIÁVEIS GLOBAIS
@@ -693,9 +740,10 @@ function atualizarCotacao(ativo) {
     return ativo;
 }
 
-function salvarAtivo(codigo, qtd, preco) {
+function salvarAtivo(codigo, qtd, preco, instituicao) {
     var novoAtivo = {
         codigo: codigo.toUpperCase(),
+        instituicao: instituicao || 'Outro',
         qtd: qtd,
         preco: preco,
         custo: qtd * preco,
@@ -723,7 +771,7 @@ function renderizar() {
     var tbody = document.getElementById('rvTableBody');
     if (!tbody) return;
     if (ativos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum ativo cadastrado. Clique em <b>+ Novo Ativo</b> para começar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--cinza-claro);padding:20px 0;">Nenhum ativo cadastrado. Clique em <b>+ Novo Ativo</b> para começar.</td></tr>';
         var tf = document.getElementById('rvTableFoot');
         if (tf) tf.style.display = 'none';
         return;
@@ -739,7 +787,7 @@ function renderizar() {
         totalCusto += a.custo;
         totalSaldo += a.saldo;
         if (a.variacao > melhorUpside) { melhorUpside = a.variacao; melhorAtivo = a.codigo; }
-        html += '<tr><td class="tk"><span class="editable-value" onclick="abrirModalEditar(' + i + ')">' + a.codigo + '</span></td><td><span class="badge ' + badgeClasse(a.tipo) + '">' + a.tipo + '</span></td><td>' + a.qtd + '</td><td>' + fmtMoedaRV(a.preco) + '</td><td>' + fmtMoedaRV(a.custo) + '</td><td>' + fmtMoedaRV(a.ultimo) + '</td><td class="' + (isPositiveDia ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(a.varDia * 100) + '</td><td class="' + (isPositive ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(a.variacao * 100) + '</td><td>' + fmtMoedaRV(a.saldo) + '</td><td><button class="btn btn-sm btn-ghost" onclick="atualizarCotacaoUnica(' + i + ')">🔄</button><button class="btn btn-sm btn-ghost" onclick="abrirModalEditar(' + i + ')">✏️</button><button class="btn btn-sm btn-danger" onclick="removerAtivo(' + i + ')">✕</button></td></tr>';
+        html += '<tr><td class="tk"><span class="editable-value" onclick="abrirModalEditar(' + i + ')">' + a.codigo + '</span></td><td><span class="badge ' + badgeClasse(a.tipo) + '">' + a.tipo + '</span></td><td>' + (a.instituicao || '—') + '</td><td>' + a.qtd + '</td><td>' + fmtMoedaRV(a.preco) + '</td><td>' + fmtMoedaRV(a.custo) + '</td><td>' + fmtMoedaRV(a.ultimo) + '</td><td class="' + (isPositiveDia ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(a.varDia * 100) + '</td><td class="' + (isPositive ? 'col-positivo' : 'col-negativo') + '">' + fmtPctRV(a.variacao * 100) + '</td><td>' + fmtMoedaRV(a.saldo) + '</td><td><button class="btn btn-sm btn-ghost" onclick="atualizarCotacaoUnica(' + i + ')">🔄</button><button class="btn btn-sm btn-ghost" onclick="abrirModalEditar(' + i + ')">✏️</button><button class="btn btn-sm btn-danger" onclick="removerAtivo(' + i + ')">✕</button></td></tr>';
     }
     tbody.innerHTML = html;
     var variacaoMedia = totalCusto > 0 ? (totalSaldo - totalCusto) / totalCusto : 0;
@@ -888,6 +936,7 @@ function abrirModal() {
     document.getElementById('inputQtd').value = '';
     document.getElementById('inputPreco').value = '';
     document.getElementById('custoPreview').textContent = 'R$ 0,00';
+    popularSelectsInstituicoesRV();
     document.getElementById('modalNovoAtivo').classList.add('active');
 }
 function fecharModal() { document.getElementById('modalNovoAtivo').classList.remove('active'); }
@@ -906,6 +955,7 @@ document.getElementById('inputPreco').addEventListener('input', function() {
 document.getElementById('formNovoAtivo').addEventListener('submit', function(e) {
     e.preventDefault();
     var codigo = document.getElementById('inputAtivo').value.trim().toUpperCase();
+    var instituicao = document.getElementById('inputInstituicao').value;
     var qtd = parseInt(document.getElementById('inputQtd').value);
     var preco = parseFloat(document.getElementById('inputPreco').value);
     if (!codigo) { alert('Digite o código do ativo'); return; }
@@ -918,7 +968,7 @@ document.getElementById('formNovoAtivo').addEventListener('submit', function(e) 
     btn.textContent = '⏳ Salvando...';
     btn.disabled = true;
     try {
-        salvarAtivo(codigo, qtd, preco);
+        salvarAtivo(codigo, qtd, preco, instituicao);
         fecharModal();
         alert('✅ Ativo ' + codigo + ' salvo!');
     } catch (error) {
@@ -936,7 +986,9 @@ var editIndex = -1;
 function abrirModalEditar(index) {
     editIndex = index;
     var a = ativos[index];
+    popularSelectsInstituicoesRV();
     document.getElementById('editInputAtivo').value = a.codigo;
+    document.getElementById('editInputInstituicao').value = a.instituicao || 'Outro';
     document.getElementById('editInputQtd').value = a.qtd;
     document.getElementById('editInputPreco').value = a.preco;
     document.getElementById('modalEditarAtivo').classList.add('active');
@@ -951,6 +1003,7 @@ document.getElementById('formEditarAtivo').addEventListener('submit', function(e
         return;
     }
     var codigo = document.getElementById('editInputAtivo').value.trim().toUpperCase();
+    var instituicao = document.getElementById('editInputInstituicao').value;
     var qtd = parseInt(document.getElementById('editInputQtd').value);
     var preco = parseFloat(document.getElementById('editInputPreco').value);
     if (!codigo) { alert('Digite o código do ativo'); return; }
@@ -964,6 +1017,7 @@ document.getElementById('formEditarAtivo').addEventListener('submit', function(e
     }
     var a = ativos[editIndex];
     a.codigo = codigo;
+    a.instituicao = instituicao;
     a.qtd = qtd;
     a.preco = preco;
     a.custo = qtd * preco;
