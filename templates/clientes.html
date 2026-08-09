@@ -165,7 +165,7 @@ body.tema-escuro .sidebar {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -219,7 +219,7 @@ body.tema-escuro .sidebar {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
 
 .table-wrap { overflow-x: auto; margin: 0 -2px; }
@@ -517,18 +517,19 @@ function badgeStatus(status) {
 // MÁSCARAS CPF/CNPJ
 // ============================================================
 function aplicarMascaraCPF(valor) {
-    valor = valor.replace(/\D/g, '');
-    if (valor.length <= 11) {
-        return valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
+    valor = valor.replace(/\D/g, '').slice(0, 11);
+    valor = valor.replace(/^(\d{3})(\d)/, '$1.$2');
+    valor = valor.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+    valor = valor.replace(/\.(\d{3})(\d)/, '.$1-$2');
     return valor;
 }
 
 function aplicarMascaraCNPJ(valor) {
-    valor = valor.replace(/\D/g, '');
-    if (valor.length <= 14) {
-        return valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-    }
+    valor = valor.replace(/\D/g, '').slice(0, 14);
+    valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+    valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
     return valor;
 }
 

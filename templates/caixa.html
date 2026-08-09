@@ -195,7 +195,7 @@ body.tema-escuro .editable-value:hover {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -259,7 +259,7 @@ body.tema-escuro .editable-value:hover {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
 
 /* ============================================================
@@ -618,7 +618,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
           </tfoot>
         </table>
       </div>
-      <div class="info-box"><span>ℹ️</span><div>Clique em uma descrição ou no valor em BRL para editar diretamente. Valores negativos (débito) aparecem em vermelho. As cotações de câmbio podem sofrer atraso de até 30 minutos.</div></div>
+      <div class="info-box"><span>ℹ️</span><div>Clique em uma descrição ou no valor em BRL para editar diretamente. Valores negativos (débito) aparecem em vermelho. As cotações de câmbio são referentes ao fechamento do dia anterior.</div></div>
     </div>
 
   </div>
@@ -680,13 +680,41 @@ var CHAVE_ARMAZENAMENTO = 'saldosCaixa'; // mesma chave usada em todas as leitur
 const API_KEY = 'qPiP4M3LH838DDhxuFVPHY';
 const API_BASE = 'https://brapi.dev/api';
 
+// A Brapi fornece cotação confiável só pra essas moedas — as outras do
+// select (JPY, CAD, AUD, CHF, CNY, ARS) não têm dado confiável vindo de
+// lá, então pedimos a taxa manual em vez de usar uma tabela fixa
+// desatualizada silenciosamente.
+var MOEDAS_SUPORTADAS_BRAPI = ['USD', 'EUR', 'GBP'];
+
 function obterCotacaoMoeda(moeda) {
+    // Tenta primeiro a última taxa que o usuário confirmou manualmente
+    // pra essa moeda (moedas que a Brapi não cobre).
+    try {
+        var manual = localStorage.getItem('cotacaoManual_' + moeda);
+        if (manual) return parseFloat(manual);
+    } catch(e) {}
     var cotacoes = { 'BRL': 1.00, 'USD': 5.80, 'EUR': 6.20, 'GBP': 7.40, 'JPY': 0.038, 'CAD': 4.20, 'AUD': 3.80, 'CHF': 6.50, 'CNY': 0.80, 'ARS': 0.006 };
     return cotacoes[moeda] || 1.00;
 }
 
 async function obterCotacaoMoedaReal(moeda) {
     if (moeda === 'BRL') return obterCotacaoMoeda(moeda);
+    if (MOEDAS_SUPORTADAS_BRAPI.indexOf(moeda) === -1) {
+        // Moeda que a Brapi não cobre de forma confiável: usa a última
+        // taxa manual salva, ou avisa e pede pra digitar.
+        var manualSalva = null;
+        try { manualSalva = localStorage.getItem('cotacaoManual_' + moeda); } catch(e) {}
+        if (manualSalva) return parseFloat(manualSalva);
+        var digitado = prompt('⚠️ A Brapi não fornece cotação confiável para ' + moeda + '.\n\nDigite a última cotação conhecida de 1 ' + moeda + ' em R$ (ex: 4,20):');
+        if (digitado) {
+            var valorDigitado = parseFloat(digitado.replace(',', '.'));
+            if (!isNaN(valorDigitado) && valorDigitado > 0) {
+                try { localStorage.setItem('cotacaoManual_' + moeda, valorDigitado); } catch(e) {}
+                return valorDigitado;
+            }
+        }
+        return obterCotacaoMoeda(moeda);
+    }
     try {
         var resp = await fetch(API_BASE + '/quote/' + moeda + 'BRL=X?token=' + API_KEY);
         if (resp.ok) {
@@ -807,15 +835,38 @@ async function atualizarTodasMoedas() {
     var btn = document.getElementById('btnAtualizarCambio');
     if (btn) { btn.textContent = '⏳ Atualizando...'; btn.disabled = true; }
     try {
+        // Fechamento do dia anterior: busca só 1x por dia (cache local),
+        // e só as moedas ÚNICAS realmente usadas — não 1 requisição por
+        // saldo — pra não estourar o limite de chamadas da Brapi.
+        var hojeISO = new Date().toISOString().split('T')[0];
+        var chaveCache = 'cambioFechamentoAnterior_' + hojeISO;
+        var cache = {};
+        try { cache = JSON.parse(localStorage.getItem(chaveCache) || '{}'); } catch(e) {}
+
+        var moedasUnicas = [];
         for (var i = 0; i < saldos.length; i++) {
-            var s = saldos[i];
-            s.cotacao = await obterCotacaoMoedaReal(s.moeda);
+            var m = saldos[i].moeda;
+            if (m !== 'BRL' && moedasUnicas.indexOf(m) === -1 && cache[m] === undefined) moedasUnicas.push(m);
+        }
+
+        if (moedasUnicas.length > 0) {
+            var promises = moedasUnicas.map(function(moeda) {
+                return obterCotacaoMoedaReal(moeda).then(function(cot) { return { moeda: moeda, cotacao: cot }; });
+            });
+            var resultados = await Promise.all(promises);
+            resultados.forEach(function(r) { cache[r.moeda] = r.cotacao; });
+            localStorage.setItem(chaveCache, JSON.stringify(cache));
+        }
+
+        for (var j = 0; j < saldos.length; j++) {
+            var s = saldos[j];
+            s.cotacao = (s.moeda === 'BRL') ? 1 : (cache[s.moeda] || obterCotacaoMoeda(s.moeda));
             s.valorBRL = s.valor * s.cotacao;
         }
         persistirSaldos();
         renderizar();
         atualizarKPIs();
-        alert('✅ Cotações atualizadas com dados reais da Brapi!');
+        alert('✅ Cotações atualizadas! (fechamento do dia anterior — atualiza no máximo 1x por dia, pra não sobrecarregar a Brapi)');
     } catch(e) {
         alert('❌ Erro ao atualizar cotações. Tente novamente.');
         console.error(e);

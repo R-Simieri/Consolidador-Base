@@ -240,7 +240,7 @@ body.tema-escuro .editable-cell:hover {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -304,7 +304,7 @@ body.tema-escuro .editable-cell:hover {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
 
 /* ============================================================
@@ -1432,11 +1432,37 @@ function alternarRecebeTaxasAdm() {
                 checkbox.checked = false;
                 return;
             }
-            for (var k2 in dadosClientes) dadosClientes[k2].recebeTaxasAdm = false;
+            // O cliente que estava recebendo as taxas volta a pagar
+            // Tx.Adm. e I.R. normalmente (padrão 50%/20%) — sem isso, ele
+            // ficaria isento pra sempre mesmo depois de perder o status.
+            for (var k2 in dadosClientes) {
+                if (dadosClientes[k2].recebeTaxasAdm) {
+                    dadosClientes[k2].recebeTaxasAdm = false;
+                    var dadosAntigo = obterDadosAno(dadosClientes[k2], anoAtual);
+                    for (var i = 0; i < dadosAntigo.length; i++) {
+                        dadosAntigo[i][4] = 50.00;
+                        dadosAntigo[i][5] = 20.00;
+                    }
+                }
+            }
         }
+
+        // Marca o novo recebedor e zera a Tx.Adm./I.R. dele (ele não paga
+        // taxa — recebe a dos outros).
         cliente.recebeTaxasAdm = true;
+        var dadosNovo = obterDadosAno(cliente, anoAtual);
+        for (var j = 0; j < dadosNovo.length; j++) {
+            dadosNovo[j][4] = 0;
+            dadosNovo[j][5] = 0;
+        }
     } else {
+        // Ao desmarcar, volta a pagar Tx.Adm./I.R. normalmente.
         cliente.recebeTaxasAdm = false;
+        var dadosAtual = obterDadosAno(cliente, anoAtual);
+        for (var m = 0; m < dadosAtual.length; m++) {
+            dadosAtual[m][4] = 50.00;
+            dadosAtual[m][5] = 20.00;
+        }
     }
     salvarDadosClientes();
     renderizarCliente();
@@ -1545,7 +1571,16 @@ function abrirModalEditar(index, campo) {
     };
     var indicesPorCampo = { 'entrada': 7, 'aporte': 1, 'txMes': 2, 'txAdmPct': 4, 'irPct': 5 };
     var idx = indicesPorCampo[campo];
-    var valorAtual = campo === 'entrada' ? (dados[idx] || dados[0]) : dados[idx];
+    var valorAtual;
+    if (campo === 'entrada' && !dados[idx]) {
+        // Sem edição manual: mostra o valor CALCULADO de verdade (o mesmo
+        // que já aparece na tabela) — nunca dados[0], que é um resquício
+        // dos dados de exemplo originais, sem relação com o cálculo atual.
+        var calcParaEntrada = calcularHistoricoIndividual(cliente, anoAtual, clienteAtual);
+        valorAtual = calcParaEntrada.resultado[index] ? calcParaEntrada.resultado[index].entrada : 0;
+    } else {
+        valorAtual = dados[idx];
+    }
     var label = titulos[campo] || 'Valor';
 
     if (campo === 'irPct' || campo === 'txAdmPct') {
@@ -1673,15 +1708,21 @@ function exportarHistorico() {
     var calc = calcularHistoricoIndividual(cliente, anoAtual, clienteAtual);
 
     // Excel em português espera ";" como separador de coluna e "," como
-    // separador decimal — com "," e "." (padrão americano) o Excel abria
-    // tudo numa coluna só ou lia os números errado.
-    function csvNum(v, casas) { return v.toFixed(casas).replace('.', ','); }
+    // separador decimal — e pontuação de milhar de verdade (1.234,56),
+    // não só toFixed() (que dá 1234,56 sem separador de milhar).
+    function csvNum(v, casas) {
+        return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+    }
 
     var csv = 'Mês;Entrada;Aporte;Tx./Mês;Total;Tx. Adm. (%);I.R. (%);Líquido;Tx. Nominal\n';
     for (var i = 0; i < calc.resultado.length; i++) {
         var r = calc.resultado[i];
         csv += r.mes + ';' + csvNum(r.entrada, 2) + ';' + csvNum(r.aporte, 2) + ';' + csvNum(r.txMes, 4) + ';' + csvNum(r.total, 2) + ';' + csvNum(r.txAdmPercentual, 2) + ';' + csvNum(r.irPercentual, 2) + ';' + csvNum(r.liquido, 2) + ';' + csvNum(r.txNominal, 4) + '\n';
     }
+    // Linha T.GERAL — mesmos valores que aparecem no rodapé da tabela na tela.
+    var totalResultado = calc.resultado.reduce(function(s, r) { return s + r.total; }, 0);
+    csv += 'T. GERAL;' + csvNum(calc.b78, 2) + ';' + csvNum(calc.totalAporte, 2) + ';;' + csvNum(totalResultado, 2) + ';;;' + csvNum(calc.totalLiquido, 2) + ';' + csvNum(calc.txNominalTotal, 4) + '\n';
+
     var BOM = '\uFEFF';
     var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');

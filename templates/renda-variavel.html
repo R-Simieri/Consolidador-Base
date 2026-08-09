@@ -189,7 +189,7 @@ body.tema-escuro .sidebar {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -253,7 +253,7 @@ body.tema-escuro .sidebar {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
 
 /* ============================================================
@@ -716,20 +716,15 @@ async function buscarCotacaoRealUnica(codigo) {
 }
 
 function atualizarCotacao(ativo) {
+    // Placeholder honesto até a busca real (fechamento do dia anterior)
+    // preencher o valor de verdade — sem mais simular uma variação
+    // aleatória, que não tinha nenhuma relação com o preço real.
     try {
-        if (precosBase[ativo.codigo]) {
-            var variacao = (Math.random() - 0.5) * 0.04;
-            var preco = precosBase[ativo.codigo] * (1 + variacao);
-            ativo.ultimo = Math.round(preco * 100) / 100;
-            ativo.varDia = (Math.random() - 0.5) * 0.03;
-        } else {
-            var precoBase = 5 + Math.random() * 145;
-            ativo.ultimo = Math.round(precoBase * 100) / 100;
-            ativo.varDia = (Math.random() - 0.5) * 0.04;
-        }
+        ativo.ultimo = ativo.preco;
+        ativo.varDia = 0;
         ativo.saldo = ativo.qtd * ativo.ultimo;
         ativo.custo = ativo.qtd * ativo.preco;
-        ativo.variacao = (ativo.ultimo / ativo.preco) - 1;
+        ativo.variacao = 0;
     } catch (error) {
         ativo.ultimo = ativo.preco;
         ativo.varDia = 0;
@@ -1062,21 +1057,68 @@ function carregarDados() {
     }
 }
 
+async function atualizarCotacoesReaisRV() {
+    if (ativos.length === 0) return;
+    // Fechamento do dia anterior — mesma chave de cache que o Dashboard usa,
+    // pra não duplicar chamadas à Brapi se os dois módulos forem abertos.
+    var hojeISO = new Date().toISOString().split('T')[0];
+    var chaveCache = 'precosRVFechamentoAnterior_' + hojeISO;
+    var cache = {};
+    try { cache = JSON.parse(localStorage.getItem(chaveCache) || '{}'); } catch(e) {}
+
+    var pendentes = ativos.filter(function(a) { return cache[a.codigo] === undefined; });
+    if (pendentes.length > 0) {
+        var tarefas = pendentes.map(function(ativo) {
+            return fetch(API_BASE + '/quote/' + ativo.codigo + '?token=' + API_KEY)
+                .then(function(resp) { return resp.ok ? resp.json() : null; })
+                .then(function(dados) {
+                    if (dados && dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
+                        var r = dados.results[0];
+                        cache[ativo.codigo] = { ultimo: r.regularMarketPrice, varDia: (r.regularMarketChangePercent || 0) / 100 };
+                    }
+                })
+                .catch(function(e) { console.warn('Erro ao buscar preço real de ' + ativo.codigo + ':', e.message); });
+        });
+        await Promise.all(tarefas);
+        try { localStorage.setItem(chaveCache, JSON.stringify(cache)); } catch(e) {}
+    }
+
+    ativos.forEach(function(ativo) {
+        var c = cache[ativo.codigo];
+        if (c) {
+            ativo.ultimo = c.ultimo;
+            ativo.varDia = c.varDia;
+            ativo.saldo = ativo.qtd * ativo.ultimo;
+            ativo.custo = ativo.qtd * ativo.preco;
+            ativo.variacao = ativo.preco > 0 ? (ativo.ultimo / ativo.preco) - 1 : 0;
+        }
+    });
+}
+
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
 function init() {
     carregarDados();
-    // Atualização automática a cada 60 segundos
+    atualizarCotacoesReaisRV().then(function() {
+        try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(ativos)); } catch(e) {}
+        renderizar();
+        atualizarKPIs();
+        atualizarGraficos();
+    });
+    // Confere o cache a cada 2 minutos — só busca de novo na Brapi se
+    // ainda não tiver o fechamento de hoje (é raro fazer alguma chamada
+    // de fato depois da primeira vez do dia).
     setInterval(function() {
         if (ativos.length > 0) {
-            for (var i = 0; i < ativos.length; i++) { atualizarCotacao(ativos[i]); }
-            try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(ativos)); } catch(e) {}
-            renderizar();
-            atualizarKPIs();
-            atualizarGraficos();
+            atualizarCotacoesReaisRV().then(function() {
+                try { localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(ativos)); } catch(e) {}
+                renderizar();
+                atualizarKPIs();
+                atualizarGraficos();
+            });
         }
-    }, 60000);
+    }, 120000);
 }
 
 init();
@@ -1091,7 +1133,7 @@ window.addEventListener('pageshow', function(evento) {
 
 console.log('📈 Módulo Renda Variável carregado!');
 console.log('🧹 Campos dos modais são limpos automaticamente ao abrir!');
-console.log('🔄 Atualização automática de cotações a cada 60 segundos!');
+console.log('🔄 Cotações reais (fechamento do dia anterior) — atualiza no máximo 1x por dia.');
 </script>
 </body>
 </html>

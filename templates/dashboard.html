@@ -211,7 +211,7 @@ body.tema-escuro .sidebar-footer {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -325,7 +325,7 @@ body.tema-escuro .sidebar-footer {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
 
 .dash-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
@@ -652,9 +652,9 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
   </ul>
 
   <div class="sidebar-footer">
-    <div class="label">Patrimônio Total</div>
-    <div class="valor" id="patrimonioTotal">R$ 178.605,56</div>
-    <div class="delta">↑ 18,96% no ano</div>
+    <div class="label" id="patrimonioAnteriorLabel">Patrimônio Anterior</div>
+    <div class="valor" id="patrimonioAnteriorValor">R$ 0,00</div>
+    <div class="delta" id="patrimonioAnteriorDelta">↑ 0,00% no ano</div>
   </div>
 </aside>
 
@@ -989,7 +989,7 @@ table .total-row td { font-weight: 700; background: #f8f9fa; border-top: 2px sol
       </div>
     </div>
   </header>
-  <div style="padding:2px 20px;font-size:8px;color:var(--cinza-claro);text-align:right;">As cotações do ticker podem sofrer atraso de até 30 minutos.</div>
+  <div style="padding:2px 20px;font-size:8px;color:var(--cinza-claro);text-align:right;">As cotações são referentes ao fechamento do dia anterior.</div>
 
   <div class="content">
 
@@ -1609,14 +1609,30 @@ function parseDataLocal(data) {
     return new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
 }
 
-function fmtMoeda(v) { if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00'; return (v < 0 ? '-' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+// ============================================================
+// CONFIGURAÇÕES GLOBAIS (moeda/idioma) — lidas uma vez ao carregar e
+// usadas nas funções de formatação abaixo.
+// ============================================================
+var SIMBOLO_MOEDA_CONFIG = 'R$';
+var LOCALE_NUMERO_CONFIG = 'pt-BR';
+function aplicarConfiguracoesFormatacao() {
+    try {
+        var config = JSON.parse(localStorage.getItem('configuracoes') || '{}');
+        var simbolos = { BRL: 'R$', USD: 'US$', EUR: '€' };
+        SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
+        LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
+    } catch(e) {}
+}
+aplicarConfiguracoesFormatacao();
+
+function fmtMoeda(v) { if (v === undefined || v === null || isNaN(v)) return SIMBOLO_MOEDA_CONFIG + ' 0,00'; return (v < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtPct(v) { if (v === undefined || v === null || isNaN(v)) return '0,00%'; return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
 function fmtPct4(v) { if (v === undefined || v === null || isNaN(v)) return '0,0000%'; return (v > 0 ? '+' : '') + v.toFixed(4) + '%'; }
-function fmtMoedaRV(v) { if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00'; return (v < 0 ? '-' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtMoedaRV(v) { if (v === undefined || v === null || isNaN(v)) return SIMBOLO_MOEDA_CONFIG + ' 0,00'; return (v < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtPctRV(v) { if (v === undefined || v === null || isNaN(v)) return '0,00%'; return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
-function fmtMoedaRF(v) { if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00'; return (v < 0 ? '-' : '') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtMoedaRF(v) { if (v === undefined || v === null || isNaN(v)) return SIMBOLO_MOEDA_CONFIG + ' 0,00'; return (v < 0 ? '-' : '') + SIMBOLO_MOEDA_CONFIG + ' ' + Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtPctRF(v) { if (v === undefined || v === null || isNaN(v)) return '0,00%'; return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
-function fmtMoedaCaixa(v) { if (v === undefined || v === null || isNaN(v)) return '0,00'; return Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtMoedaCaixa(v) { if (v === undefined || v === null || isNaN(v)) return '0,00'; return Math.abs(v).toLocaleString(LOCALE_NUMERO_CONFIG, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function obterSimboloMoeda(m) { var s = { 'BRL':'R$','USD':'US$','EUR':'€','GBP':'£','JPY':'¥','CAD':'C$','AUD':'A$','CHF':'Fr','CNY':'¥','ARS':'$' }; return s[m] || m; }
 function badgeClasse(t) { if (t === 'FII') return 'badge-fii'; if (t === 'ETF') return 'badge-etf'; if (t === 'CDB' || t === 'LCI' || t === 'LCA' || t === 'Tesouro Direto' || t === 'Debênture' || t === 'Fundo' || t === 'Poupança') return 'badge-cdb'; return 'badge-acao'; }
 function detectarTipo(c) { if (c.endsWith('11')) return 'FII'; if (c.endsWith('BDR')) return 'BDR'; if (c.endsWith('ETF')) return 'ETF'; return 'Ação'; }
@@ -2256,22 +2272,54 @@ function editarIR(mesIndex) {
 // EXPORTAR HISTÓRICO
 // ============================================================
 function exportarHistorico() {
-    var tbody = document.getElementById('dashHistTableBody');
-    if (!tbody) return;
-    var rows = tbody.querySelectorAll('tr');
-    var csv = 'Mês,Entrada,Aporte,Tx./Mês,Total,Tx. Adm.,I.R. (20%),Líquido,Tx. Nominal\n';
-    for (var i = 0; i < rows.length; i++) {
-        var cells = rows[i].querySelectorAll('td');
-        var rowData = [];
-        for (var j = 0; j < cells.length; j++) {
-            rowData.push(cells[j].textContent.trim());
-        }
-        csv += rowData.join(',') + '\n';
+    var ano = anoAtual || new Date().getFullYear();
+    var hist = {};
+    try { hist = JSON.parse(localStorage.getItem('historicoDados_' + ano) || '{}'); } catch(e) {}
+    var txAdmPorMes = {};
+    try {
+        var txAdmSalvas = JSON.parse(localStorage.getItem('txAdmPorMes_' + ano) || '{}');
+        for (var k1 in txAdmSalvas) txAdmPorMes[parseInt(k1)] = txAdmSalvas[k1];
+    } catch(e) {}
+    var irPorMes = {};
+    try {
+        var irSalvas = JSON.parse(localStorage.getItem('irPorMes_' + ano) || '{}');
+        for (var k2 in irSalvas) irPorMes[parseInt(k2)] = irSalvas[k2];
+    } catch(e) {}
+    var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    function csvNum(v, casas) {
+        return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
     }
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+    var csv = 'Mês;Entrada;Aporte;Tx./Mês;Total;Tx. Adm.;I.R. (20%);Líquido;Tx. Nominal\n';
+    var totalAporte = 0, totalResultado = 0, totalTxAdm = 0, totalIR = 0, totalLiquido = 0;
+    var entradaJaneiro = 0, entradaFinal = 0;
+    for (var i = 0; i < 12; i++) {
+        var m = hist[i] || { entrada: 0, aporte: 0, txMes: 0, total: 0, liquido: 0 };
+        var txAdmPct = txAdmPorMes[i] !== undefined ? txAdmPorMes[i] : 0;
+        var txAdmValor = (m.total || 0) * (txAdmPct / 100);
+        var irPct = irPorMes[i] !== undefined ? irPorMes[i] : (txAdmPct * 0.20);
+        var irValor = (m.total || 0) * (irPct / 100);
+        var liquido = m.liquido !== undefined ? m.liquido : ((m.total || 0) - txAdmValor - irValor);
+        var txNominal = m.entrada > 0 ? (liquido / m.entrada * 100) : 0;
+
+        csv += meses[i] + ';' + csvNum(m.entrada, 2) + ';' + csvNum(m.aporte, 2) + ';' + csvNum(m.txMes, 4) + ';' + csvNum(m.total, 2) + ';' + csvNum(txAdmValor, 2) + ';' + csvNum(irValor, 2) + ';' + csvNum(liquido, 2) + ';' + csvNum(txNominal, 4) + '\n';
+        if (i === 0) entradaJaneiro = m.entrada || 0;
+        entradaFinal = m.entrada || entradaFinal;
+        totalAporte += m.aporte || 0;
+        totalResultado += m.total || 0;
+        totalTxAdm += txAdmValor;
+        totalIR += irValor;
+        totalLiquido += liquido;
+    }
+    var txNominalTotal = entradaJaneiro > 0 ? (totalLiquido / entradaJaneiro * 100) : 0;
+    csv += 'T. GERAL;' + csvNum(entradaFinal, 2) + ';' + csvNum(totalAporte, 2) + ';;' + csvNum(totalResultado, 2) + ';' + csvNum(totalTxAdm, 2) + ';' + csvNum(totalIR, 2) + ';' + csvNum(totalLiquido, 2) + ';' + csvNum(txNominalTotal, 4) + '\n';
+
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'historico_mensal_' + new Date().toISOString().split('T')[0] + '.csv';
+    link.download = 'historico_mensal_fundo_' + new Date().toISOString().split('T')[0] + '.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2988,9 +3036,87 @@ function salvarSaldosCaixaNoLocalStorage() {
     } catch(e) { console.warn('Erro ao salvar saldos do Caixa:', e); }
 }
 
+// A Brapi fornece cotação confiável só pra essas moedas — as outras do
+// select (JPY, CAD, AUD, CHF, CNY, ARS) não têm dado confiável vindo de
+// lá, então pedimos a taxa manual em vez de usar uma tabela fixa
+// desatualizada silenciosamente.
+var MOEDAS_SUPORTADAS_BRAPI = ['USD', 'EUR', 'GBP'];
+
 function obterCotacaoMoeda(moeda) {
+    try {
+        var manual = localStorage.getItem('cotacaoManual_' + moeda);
+        if (manual) return parseFloat(manual);
+    } catch(e) {}
     var cotacoes = { 'BRL': 1.00, 'USD': 5.80, 'EUR': 6.20, 'GBP': 7.40, 'JPY': 0.038, 'CAD': 4.20, 'AUD': 3.80, 'CHF': 6.50, 'CNY': 0.80, 'ARS': 0.006 };
     return cotacoes[moeda] || 1.00;
+}
+
+async function obterCotacaoMoedaReal(moeda) {
+    if (moeda === 'BRL') return obterCotacaoMoeda(moeda);
+    if (MOEDAS_SUPORTADAS_BRAPI.indexOf(moeda) === -1) {
+        var manualSalva = null;
+        try { manualSalva = localStorage.getItem('cotacaoManual_' + moeda); } catch(e) {}
+        if (manualSalva) return parseFloat(manualSalva);
+        var digitado = prompt('⚠️ A Brapi não fornece cotação confiável para ' + moeda + '.\n\nDigite a última cotação conhecida de 1 ' + moeda + ' em R$ (ex: 4,20):');
+        if (digitado) {
+            var valorDigitado = parseFloat(digitado.replace(',', '.'));
+            if (!isNaN(valorDigitado) && valorDigitado > 0) {
+                try { localStorage.setItem('cotacaoManual_' + moeda, valorDigitado); } catch(e) {}
+                return valorDigitado;
+            }
+        }
+        return obterCotacaoMoeda(moeda);
+    }
+    try {
+        var resp = await fetch(API_BASE + '/quote/' + moeda + 'BRL=X?token=' + API_KEY);
+        if (resp.ok) {
+            var dados = await resp.json();
+            if (dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
+                return dados.results[0].regularMarketPrice;
+            }
+        }
+    } catch(e) { console.warn('Erro ao buscar câmbio real de ' + moeda + ':', e.message); }
+    return obterCotacaoMoeda(moeda);
+}
+
+async function atualizarTodasMoedas() {
+    if (saldosCaixa.length === 0) { alert('Nenhum saldo cadastrado.'); return; }
+    var btn = document.getElementById('btnAtualizarCambio');
+    if (btn) { btn.textContent = '⏳ Atualizando...'; btn.disabled = true; }
+    try {
+        // Fechamento do dia anterior: busca só 1x por dia (cache local) —
+        // mesma chave usada pelo caixa.html, pra não duplicar chamadas.
+        var hojeISO = new Date().toISOString().split('T')[0];
+        var chaveCache = 'cambioFechamentoAnterior_' + hojeISO;
+        var cache = {};
+        try { cache = JSON.parse(localStorage.getItem(chaveCache) || '{}'); } catch(e) {}
+
+        var moedasUnicas = [];
+        for (var i = 0; i < saldosCaixa.length; i++) {
+            var mo = saldosCaixa[i].moeda;
+            if (mo !== 'BRL' && moedasUnicas.indexOf(mo) === -1 && cache[mo] === undefined) moedasUnicas.push(mo);
+        }
+        for (var j = 0; j < moedasUnicas.length; j++) {
+            cache[moedasUnicas[j]] = await obterCotacaoMoedaReal(moedasUnicas[j]);
+        }
+        if (moedasUnicas.length > 0) localStorage.setItem(chaveCache, JSON.stringify(cache));
+
+        for (var k = 0; k < saldosCaixa.length; k++) {
+            var s = saldosCaixa[k];
+            s.cotacao = (s.moeda === 'BRL') ? 1 : (cache[s.moeda] || obterCotacaoMoeda(s.moeda));
+            s.valorBRL = s.valor * s.cotacao;
+        }
+        salvarSaldosCaixaNoLocalStorage();
+        renderizarCaixa();
+        atualizarGraficosCaixa();
+        atualizarDashboardCaixa();
+        atualizarKPIsCaixa();
+        alert('✅ Cotações atualizadas! (fechamento do dia anterior — atualiza no máximo 1x por dia)');
+    } catch(e) {
+        alert('❌ Erro ao atualizar cotações.');
+        console.error(e);
+    }
+    if (btn) { btn.textContent = '🔄 Atualizar Câmbio'; btn.disabled = false; }
 }
 
 function salvarSaldo(descricao, moeda, valor, instituicao) {
@@ -3079,26 +3205,6 @@ function removerSaldo(index) {
         atualizarDashboardCaixa();
         atualizarKPIsCaixa();
     }
-}
-
-function atualizarTodasMoedas() {
-    if (saldosCaixa.length === 0) { alert('Nenhum saldo cadastrado.'); return; }
-    var btn = document.getElementById('btnAtualizarCambio');
-    if (btn) { btn.textContent = '⏳ Atualizando...'; btn.disabled = true; }
-    setTimeout(function() {
-        for (var i = 0; i < saldosCaixa.length; i++) {
-            var s = saldosCaixa[i];
-            s.cotacao = obterCotacaoMoeda(s.moeda);
-            s.valorBRL = s.valor * s.cotacao;
-        }
-        salvarSaldosCaixaNoLocalStorage();
-        renderizarCaixa();
-        atualizarGraficosCaixa();
-        atualizarDashboardCaixa();
-        atualizarKPIsCaixa();
-        if (btn) { btn.textContent = '🔄 Atualizar Câmbio'; btn.disabled = false; }
-        alert('✅ Cotações atualizadas!');
-    }, 500);
 }
 
 function atualizarGraficosCaixa() {
@@ -3261,6 +3367,42 @@ function atualizarPatrimonioTotal() {
 
     var elSidebar = document.getElementById('patrimonioTotal');
     if (elSidebar) elSidebar.textContent = fmtMoeda(total);
+
+    // Patrimônio Total do mês anterior — pra dar uma referência de
+    // comparação além do "ao vivo" de agora. O percentual "no ano" de
+    // cada um usa a mesma fórmula do card "Lucro Acumulado": soma do
+    // Líquido de Janeiro até aquele mês ÷ soma inicial dos clientes.
+    try {
+        var somaInicialParaDelta = obterSomaInicialClientes();
+        var hojeParaAnterior = new Date();
+        var mesAtualIdx = hojeParaAnterior.getMonth();
+        var anoParaAnterior = hojeParaAnterior.getFullYear();
+        var mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+        // Mês anterior — único bloco mostrado no rodapé do sidebar agora.
+        var mesAnteriorIdx = mesAtualIdx - 1;
+        var anoAnterior = anoParaAnterior;
+        if (mesAnteriorIdx < 0) { mesAnteriorIdx = 11; anoAnterior -= 1; }
+        var histAnoAnterior = JSON.parse(localStorage.getItem('historicoDados_' + anoAnterior) || '{}');
+        var elLabelAnt = document.getElementById('patrimonioAnteriorLabel');
+        var elValorAnt = document.getElementById('patrimonioAnteriorValor');
+        var elDeltaAnt = document.getElementById('patrimonioAnteriorDelta');
+        if (histAnoAnterior[mesAnteriorIdx] && elLabelAnt && elValorAnt) {
+            elLabelAnt.textContent = 'Patrimônio Anterior (' + mesesNomes[mesAnteriorIdx] + '/' + String(anoAnterior).slice(-2) + ')';
+            elValorAnt.textContent = fmtMoeda(histAnoAnterior[mesAnteriorIdx].entrada || 0);
+            if (elDeltaAnt) {
+                var dadosAnoAnteriorCompleto = garantirDadosAno(anoAnterior);
+                var lucroAteAnterior = 0;
+                if (dadosAnoAnteriorCompleto) {
+                    for (var n = 0; n <= mesAnteriorIdx; n++) {
+                        if (dadosAnoAnteriorCompleto[n] !== undefined) lucroAteAnterior += dadosAnoAnteriorCompleto[n].liquido || 0;
+                    }
+                }
+                var pctAnterior = somaInicialParaDelta > 0 ? (lucroAteAnterior / somaInicialParaDelta * 100) : 0;
+                elDeltaAnt.innerHTML = (pctAnterior >= 0 ? '↑' : '↓') + ' ' + Math.abs(pctAnterior).toFixed(2).replace('.', ',') + '% no ano';
+            }
+        }
+    } catch(e) {}
 
     var elDash = document.getElementById('dashPatrimonioTotal');
     if (elDash) elDash.textContent = fmtMoeda(total);
@@ -3635,21 +3777,39 @@ function atualizarGraficoRentabilidade() {
 // ============================================================
 async function atualizarPrecosRVComBrapi() {
     if (ativosRV.length === 0) return;
-    var tarefas = ativosRV.map(function(ativo) {
-        return fetch(API_BASE + '/quote/' + ativo.codigo + '?token=' + API_KEY)
-            .then(function(resp) { return resp.ok ? resp.json() : null; })
-            .then(function(dados) {
-                if (dados && dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
-                    var r = dados.results[0];
-                    ativo.ultimo = r.regularMarketPrice;
-                    ativo.varDia = (r.regularMarketChangePercent || 0) / 100;
-                    ativo.saldo = ativo.qtd * ativo.ultimo;
-                    ativo.variacao = ativo.preco > 0 ? (ativo.ultimo / ativo.preco) - 1 : 0;
-                }
-            })
-            .catch(function(e) { console.warn('Erro ao buscar preço real de ' + ativo.codigo + ':', e.message); });
+    // Fechamento do dia anterior: busca só 1x por dia (cache local) —
+    // evita chamar a Brapi de novo a cada 2 minutos pro mesmo ativo.
+    var hojeISO = new Date().toISOString().split('T')[0];
+    var chaveCache = 'precosRVFechamentoAnterior_' + hojeISO;
+    var cache = {};
+    try { cache = JSON.parse(localStorage.getItem(chaveCache) || '{}'); } catch(e) {}
+
+    var pendentes = ativosRV.filter(function(a) { return cache[a.codigo] === undefined; });
+    if (pendentes.length > 0) {
+        var tarefas = pendentes.map(function(ativo) {
+            return fetch(API_BASE + '/quote/' + ativo.codigo + '?token=' + API_KEY)
+                .then(function(resp) { return resp.ok ? resp.json() : null; })
+                .then(function(dados) {
+                    if (dados && dados.results && dados.results[0] && dados.results[0].regularMarketPrice != null) {
+                        var r = dados.results[0];
+                        cache[ativo.codigo] = { ultimo: r.regularMarketPrice, varDia: (r.regularMarketChangePercent || 0) / 100 };
+                    }
+                })
+                .catch(function(e) { console.warn('Erro ao buscar preço real de ' + ativo.codigo + ':', e.message); });
+        });
+        await Promise.all(tarefas);
+        localStorage.setItem(chaveCache, JSON.stringify(cache));
+    }
+
+    ativosRV.forEach(function(ativo) {
+        var c = cache[ativo.codigo];
+        if (c) {
+            ativo.ultimo = c.ultimo;
+            ativo.varDia = c.varDia;
+            ativo.saldo = ativo.qtd * ativo.ultimo;
+            ativo.variacao = ativo.preco > 0 ? (ativo.ultimo / ativo.preco) - 1 : 0;
+        }
     });
-    await Promise.all(tarefas);
     persistirAtivosRV();
     renderizarRV();
     atualizarDashboardRV();

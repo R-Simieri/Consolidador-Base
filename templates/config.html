@@ -130,7 +130,7 @@ body {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -161,7 +161,7 @@ body {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 12px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 12px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 9px; }
 
 /* ============================================================
@@ -463,39 +463,8 @@ body {
     </div>
 
     <!-- MANUAL DO USUÁRIO -->
-    <div class="panel">
-      <div class="panel-head">
-        <h3>📖 Manual do Usuário</h3>
-        <span style="font-size:9px;color:var(--cinza-claro);">Guia rápido para iniciar no sistema</span>
-      </div>
-
-      <div style="margin-top:12px;">
-        <details open style="margin-bottom:10px;">
-          <summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--azul-card);padding:6px 0;">🚀 Primeiros Passos (Configuração Inicial)</summary>
-          <ol style="padding-left:20px;font-size:10px;line-height:1.9;margin-top:8px;">
-            <li><strong>👤 Cadastre o Administrador:</strong> preencha seu nome, e-mail e função aqui em cima, no painel "Perfil do Usuário". <span style="color:var(--cinza-claro);">O nome cadastrado aparece no topo do Dashboard e em todo o sistema.</span></li>
-            <li><strong>🎨 Escolha o Tema:</strong> selecione Claro, Escuro ou Sistema — a aparência que preferir.</li>
-            <li><strong>🌐 Escolha o Idioma:</strong> Português (BR), Inglês (US) ou Espanhol — define o idioma dos textos e da formatação de números.</li>
-            <li><strong>💰 Escolha o Formato de Moeda:</strong> BRL (R$), USD (US$) ou EUR (€) — usado em todos os valores do sistema.</li>
-            <li><strong>💾 Salve as Configurações:</strong> clique no botão "Salvar Configurações" pra aplicar todas as alterações.</li>
-          </ol>
-        </details>
-
-        <details style="margin-bottom:10px;">
-          <summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--azul-card);padding:6px 0;">📋 Cadastro de Dados (Módulos)</summary>
-          <ul style="padding-left:20px;font-size:10px;line-height:1.9;margin-top:8px;">
-            <li><strong>👥 Clientes:</strong> acesse <a href="/clientes" style="color:var(--azul-card);">Clientes</a>, clique em "Novo Cliente" e preencha os dados do cotista.</li>
-            <li><strong>📈 Ativos (Renda Variável):</strong> acesse <a href="/" style="color:var(--azul-card);">Renda Variável</a>, clique em "Novo Ativo" e informe o código, quantidade e preço.</li>
-            <li><strong>🏦 Aplicações (Renda Fixa):</strong> acesse <a href="/" style="color:var(--azul-card);">Renda Fixa</a>, clique em "Nova Aplicação" e preencha os dados do investimento.</li>
-            <li><strong>💳 Saldo em Caixa:</strong> acesse <a href="/" style="color:var(--azul-card);">Caixa</a>, clique em "Novo Saldo" e informe a moeda e o valor disponível.</li>
-            <li><strong>📊 Proventos:</strong> acesse <a href="/proventos" style="color:var(--azul-card);">Proventos</a>, clique em "Novo Provento" e registre dividendos, JCP ou rendimentos.</li>
-          </ul>
-        </details>
-
-        <div style="margin-top:14px;padding:12px;background:var(--cinza-fundo);border-radius:6px;font-size:9px;color:var(--cinza-claro);">
-          <strong style="color:var(--azul-card);">💡 Acompanhamento:</strong> depois de cadastrar os dados, acompanhe a evolução patrimonial em tempo real no <a href="/" style="color:var(--azul-card);">📊 Dashboard</a>, e o desempenho individual de cada cotista no <a href="/historico-mensal" style="color:var(--azul-card);">📅 Histórico Mensal</a>.
-        </div>
-      </div>
+    <div class="panel" id="manualUsuarioContainer">
+      <!-- Preenchido dinamicamente por atualizarManual(), conforme o idioma escolhido -->
     </div>
 
   </div>
@@ -542,6 +511,7 @@ function carregarConfiguracoes() {
 
         // APLICAR TEMA
         aplicarTema(config.tema || 'claro');
+        atualizarManual(config.idioma || 'pt-BR');
     } catch(e) {
         console.warn('Erro ao carregar configurações:', e);
     }
@@ -574,6 +544,12 @@ function aplicarTema(tema) {
     }
 }
 
+function aplicarIdiomaGlobal(idioma) {
+    localStorage.setItem('idiomaSistema', idioma);
+    var evento = new CustomEvent('idiomaAlterado', { detail: { idioma: idioma } });
+    document.dispatchEvent(evento);
+}
+
 function salvarConfiguracoes() {
     var config = {
         nome: document.getElementById('configNome').value,
@@ -585,6 +561,8 @@ function salvarConfiguracoes() {
     try {
         localStorage.setItem('configuracoes', JSON.stringify(config));
         aplicarTema(config.tema);
+        aplicarIdiomaGlobal(config.idioma);
+        atualizarManual(config.idioma);
         if (typeof aplicarConfiguracoesFormatacao === 'function') {
             aplicarConfiguracoesFormatacao();
         }
@@ -639,6 +617,137 @@ function atualizarPatrimonioTotal() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
+// ============================================================
+// MANUAL DO USUÁRIO — MULTILÍNGUE
+// ============================================================
+var manualTextos = {
+    'pt-BR': {
+        titulo: '📖 Manual do Usuário',
+        subtitulo: 'Guia rápido para iniciar no sistema',
+        primeirosPassos: '🚀 Primeiros Passos',
+        cadastroDados: '📋 Cadastro de Dados',
+        acompanhamento: '📊 Acompanhamento',
+        passos: [
+            'Cadastre o Administrador: preencha seu nome e e-mail no painel "Perfil do Usuário". O nome cadastrado aparece no topo do Dashboard e em todo o sistema.',
+            'Escolha o Tema: Selecione Claro, Escuro ou Sistema para personalizar a aparência.',
+            'Escolha o Idioma: Defina o idioma dos textos do sistema.',
+            'Escolha o Formato de Moeda: Selecione BRL (R$), USD (US$) ou EUR (€).',
+            'Salve as Configurações: Clique no botão "Salvar Configurações" para aplicar todas as alterações.',
+            'Cadastre os Clientes: Acesse o módulo Clientes e clique em "Novo Cliente". Após cadastrar, faça a primeira movimentação no módulo Movimentações para que o sistema comece a rodar.'
+        ],
+        modulos: [
+            'Clientes: Cadastre os cotistas em "Novo Cliente".',
+            'Renda Variável: Cadastre ações, BDRs ou ETFs em "Novo Ativo".',
+            'Renda Fixa: Cadastre CDB, LCI, Tesouro em "Nova Aplicação".',
+            'Caixa: Registre saldos em diferentes moedas em "Novo Saldo".',
+            'Proventos: Registre dividendos, JCP e rendimentos em "Novo Provento".'
+        ],
+        dica: '💡 Após cadastrar os dados, acompanhe sua evolução patrimonial no Dashboard e de seus membros no Histórico Mensal.',
+        bonus: 'Bons Negócios $$$'
+    },
+    'en-US': {
+        titulo: '📖 User Manual',
+        subtitulo: 'Quick start guide',
+        primeirosPassos: '🚀 First Steps',
+        cadastroDados: '📋 Data Registration',
+        acompanhamento: '📊 Monitoring',
+        passos: [
+            'Register the Administrator: fill in your name and email in the "User Profile" panel.',
+            'Choose the Theme: Select Light, Dark or System.',
+            'Choose the Language: Set the system language.',
+            'Choose the Currency Format: Select BRL (R$), USD (US$) or EUR (€).',
+            'Save Settings: Click the "Save Settings" button.',
+            'Register Clients: Access the Clients module and click "New Client". After registering, make the first transaction in the Movimentações module.'
+        ],
+        modulos: [
+            'Clients: Register shareholders in "New Client".',
+            'Variable Income: Register stocks, BDRs or ETFs in "New Asset".',
+            'Fixed Income: Register CDB, LCI, Treasury in "New Application".',
+            'Cash: Record balances in different currencies in "New Balance".',
+            'Dividends: Record dividends, JCP and income in "New Dividend".'
+        ],
+        dica: '💡 After registering data, track your equity evolution on the Dashboard and your members on the Monthly History.',
+        bonus: 'Good Business $$$'
+    },
+    'es': {
+        titulo: '📖 Manual de Usuario',
+        subtitulo: 'Guía rápida',
+        primeirosPassos: '🚀 Primeros Pasos',
+        cadastroDados: '📋 Registro de Datos',
+        acompanhamento: '📊 Seguimiento',
+        passos: [
+            'Registre el Administrador: complete su nombre y correo electrónico en el panel "Perfil de Usuario".',
+            'Elija el Tema: Seleccione Claro, Oscuro o Sistema.',
+            'Elija el Idioma: Defina el idioma del sistema.',
+            'Elija el Formato de Moneda: Seleccione BRL (R$), USD (US$) o EUR (€).',
+            'Guardar Configuraciones: Haga clic en el botón "Guardar Configuraciones".',
+            'Registre Clientes: Acceda al módulo Clientes y haga clic en "Nuevo Cliente".'
+        ],
+        modulos: [
+            'Clientes: Registre los cotistas en "Nuevo Cliente".',
+            'Renta Variable: Registre acciones, BDRs o ETFs en "Nuevo Activo".',
+            'Renta Fija: Registre CDB, LCI, Tesoro en "Nueva Aplicación".',
+            'Caja: Registre saldos en diferentes monedas en "Nuevo Saldo".',
+            'Dividendos: Registre dividendos, JCP y rendimientos en "Nuevo Dividendo".'
+        ],
+        dica: '💡 Después de registrar los datos, siga su evolución patrimonial en el Dashboard y la de sus miembros en el Historial Mensual.',
+        bonus: 'Buenos Negocios $$$'
+    }
+};
+
+function atualizarManual(idioma) {
+    var textos = manualTextos[idioma] || manualTextos['pt-BR'];
+    var container = document.getElementById('manualUsuarioContainer');
+    if (!container) return;
+
+    // As cores usam var(--azul-card) e var(--cinza-fundo) — não
+    // var(--azul-escuro) nem uma cor fixa — pra continuar legível no
+    // tema escuro (mesmo ajuste já feito no resto do painel).
+    container.innerHTML =
+        '<div class="panel-head">' +
+            '<h3>' + textos.titulo + '</h3>' +
+            '<span style="font-size:9px;color:var(--cinza-claro);">' + textos.subtitulo + '</span>' +
+        '</div>' +
+        '<div style="margin-top:12px;">' +
+            '<h4 style="font-size:11px;font-weight:700;color:var(--azul-card);margin-bottom:10px;">' + textos.primeirosPassos + '</h4>' +
+            '<ol style="padding-left:20px;font-size:10px;line-height:2;">' +
+                textos.passos.map(function(passo, index) {
+                    return '<li><strong>' + (index + 1) + '.</strong> ' + passo + '</li>';
+                }).join('') +
+            '</ol>' +
+            '<h4 style="font-size:11px;font-weight:700;color:var(--azul-card);margin:16px 0 10px;">' + textos.cadastroDados + '</h4>' +
+            '<ul style="padding-left:20px;font-size:10px;line-height:2;">' +
+                textos.modulos.map(function(modulo) {
+                    return '<li>' + modulo + '</li>';
+                }).join('') +
+            '</ul>' +
+            '<div style="margin-top:16px;padding:12px;background:var(--cinza-fundo);border-radius:6px;font-size:9px;color:var(--cinza-claro);">' +
+                textos.dica +
+                '<br><br>' +
+                '<strong style="font-size:14px;color:var(--verde-card);">' + textos.bonus + '</strong>' +
+            '</div>' +
+        '</div>';
+}
+
+// ============================================================
+// NOTIFICAÇÕES — SALVAR ESTADO E TORNAR FUNCIONAL
+// ============================================================
+function inicializarNotificacoes() {
+    var toggles = document.querySelectorAll('.toggle-group input[type="checkbox"]');
+    toggles.forEach(function(toggle) {
+        var label = toggle.closest('.toggle-group').querySelector('.toggle-label').textContent.trim();
+        var chave = 'notificacao_' + label.toLowerCase().replace(/\s+/g, '_');
+        var salvo = localStorage.getItem(chave);
+        if (salvo !== null) toggle.checked = salvo === 'true';
+
+        toggle.addEventListener('change', function() {
+            localStorage.setItem(chave, this.checked);
+            console.log(this.checked ? '🔔 Notificação ativada:' : '🔕 Notificação desativada:', label);
+        });
+    });
+}
+inicializarNotificacoes();
+
 carregarConfiguracoes();
 atualizarEstatisticas();
 atualizarPatrimonioTotal();

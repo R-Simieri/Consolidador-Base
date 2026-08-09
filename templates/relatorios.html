@@ -173,7 +173,7 @@ body.tema-escuro .sidebar {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -204,7 +204,7 @@ body.tema-escuro .sidebar {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 12px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 12px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 9px; }
 
 /* ============================================================
@@ -238,7 +238,7 @@ body.tema-escuro .sidebar {
 .card-relatorio .titulo {
   font-size: 11px;
   font-weight: 700;
-  color: var(--azul-escuro);
+  color: var(--azul-card);
 }
 .card-relatorio .descricao {
   font-size: 9px;
@@ -519,7 +519,7 @@ function gerarRelatorio(tipo) {
     };
     
     var dados = coletarDados(tipo);
-    var html = '<h4 style="font-size:12px;font-weight:700;color:var(--azul-escuro);margin-bottom:10px;">' + (titulos[tipo] || 'Relatório') + '</h4>';
+    var html = '<h4 style="font-size:12px;font-weight:700;color:var(--azul-card);margin-bottom:10px;">' + (titulos[tipo] || 'Relatório') + '</h4>';
     html += '<p style="font-size:9px;color:var(--cinza-claro);margin-bottom:8px;">Gerado em: ' + new Date().toLocaleString('pt-BR') + '</p>';
     
     if (dados && dados.length > 0) {
@@ -565,9 +565,23 @@ function coletarDados(tipo) {
             ];
             return dados;
         } else if (tipo === 'historico') {
-            var hist = JSON.parse(localStorage.getItem('dadosClientes') || '{}');
-            dados = Object.keys(hist).map(function(key) {
-                return { cliente: key, dados: hist[key].dados || [] };
+            // Mesma fonte do Histórico Mensal do Dashboard (o fundo inteiro,
+            // mês a mês) — não mais o array antigo por cliente
+            // (cliente.dados), que ficava desatualizado.
+            var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            var ano = new Date().getFullYear();
+            var histFundo = {};
+            try { histFundo = JSON.parse(localStorage.getItem('historicoDados_' + ano) || '{}'); } catch(e) {}
+            dados = meses.map(function(nomeMes, i) {
+                var m = histFundo[i] || { entrada: 0, aporte: 0, txMes: 0, total: 0, liquido: 0 };
+                return {
+                    mes: nomeMes,
+                    entrada: m.entrada || 0,
+                    aporte: m.aporte || 0,
+                    txMes: m.txMes || 0,
+                    total: m.total || 0,
+                    liquido: m.liquido || 0
+                };
             });
         } else if (tipo === 'renda-fixa') {
             dados = JSON.parse(localStorage.getItem('rendaFixa') || '[]');
@@ -595,11 +609,28 @@ function gerarTabelaPreview(dados) {
         return copia;
     });
 
+    // Rótulos legíveis pros cabeçalhos, e campos que são CONTAGEM (não
+    // dinheiro) — não devem ganhar "R$" nem casas decimais.
+    var rotulos = {
+        categoria: 'Categoria',
+        quantidadeItens: 'Qtd. de Itens',
+        valorTotal: 'Valor Total',
+        mes: 'Mês',
+        entrada: 'Entrada',
+        aporte: 'Aporte',
+        txMes: 'Tx./Mês',
+        total: 'Total',
+        liquido: 'Líquido'
+    };
+    var camposContagem = { quantidadeItens: true };
+    var camposPercentual = { txMes: true };
+    var camposTexto = { mes: true };
+
     var html = '<table style="width:100%;font-size:9px;border-collapse:collapse;">';
     var headers = Object.keys(dadosFiltrados[0]);
     html += '<thead><tr>';
     for (var h = 0; h < headers.length; h++) {
-        html += '<th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">' + headers[h] + '</th>';
+        html += '<th style="text-align:left;padding:4px 6px;border-bottom:1px solid #dce1e8;">' + (rotulos[headers[h]] || headers[h]) + '</th>';
     }
     html += '</tr></thead><tbody>';
     
@@ -607,9 +638,21 @@ function gerarTabelaPreview(dados) {
     for (var i = 0; i < maxRows; i++) {
         html += '<tr>';
         for (var h = 0; h < headers.length; h++) {
-            var val = dadosFiltrados[i][headers[h]];
-            if (typeof val === 'number') {
-                val = 'R$ ' + val.toFixed(2);
+            var chaveCol = headers[h];
+            var val = dadosFiltrados[i][chaveCol];
+            if (camposTexto[chaveCol]) {
+                // já é texto (nome do mês), não formata
+            } else if (camposPercentual[chaveCol] && typeof val === 'number') {
+                val = val.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) + '%';
+            } else if (typeof val === 'number') {
+                if (camposContagem[chaveCol]) {
+                    // Contagem simples: número inteiro, sem "R$", sem decimais.
+                    val = Math.round(val).toLocaleString('pt-BR');
+                } else {
+                    // Valor monetário: pontuação brasileira de verdade
+                    // (ponto de milhar, vírgula decimal) — não só toFixed(2).
+                    val = 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
             } else if (typeof val === 'object') {
                 val = JSON.stringify(val).substring(0, 30) + '...';
             }
@@ -668,26 +711,34 @@ function exportarRelatorio(tipo) {
         alert('Nenhum dado disponível para exportar.');
         return;
     }
-    
-    var csv = '';
-    var headers = Object.keys(dados[0]);
-    csv += headers.join(',') + '\n';
-    
+    var rotulos = { categoria: 'Categoria', quantidadeItens: 'Qtd. de Itens', valorTotal: 'Valor Total', mes: 'Mês', entrada: 'Entrada', aporte: 'Aporte', txMes: 'Tx./Mês', total: 'Total', liquido: 'Líquido' };
+    var camposContagem = { quantidadeItens: true };
+    var camposPercentual = { txMes: true };
+    var camposTexto = { mes: true };
+
+    var headers = Object.keys(dados[0]).filter(function(h) { return h !== 'id'; });
+    var csv = headers.map(function(h) { return rotulos[h] || h; }).join(';') + '\n';
+
     for (var i = 0; i < dados.length; i++) {
         var row = [];
         for (var h = 0; h < headers.length; h++) {
             var val = dados[i][headers[h]];
-            if (typeof val === 'number') {
-                val = val.toFixed(2);
+            if (camposTexto[headers[h]]) {
+                // texto puro, não formata
+            } else if (camposPercentual[headers[h]] && typeof val === 'number') {
+                val = val.toFixed(4).replace('.', ',') + '%';
+            } else if (typeof val === 'number') {
+                val = camposContagem[headers[h]] ? Math.round(val).toString() : val.toFixed(2).replace('.', ',');
             } else if (typeof val === 'object') {
                 val = JSON.stringify(val);
             }
             row.push('"' + (val || '') + '"');
         }
-        csv += row.join(',') + '\n';
+        csv += row.join(';') + '\n';
     }
-    
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+    var BOM = '\uFEFF';
+    var blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'relatorio_' + tipo + '_' + new Date().toISOString().split('T')[0] + '.csv';

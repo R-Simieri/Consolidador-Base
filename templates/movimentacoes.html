@@ -168,7 +168,7 @@ body.tema-escuro .sidebar {
   font-weight: 800;
   color: var(--azul-card);
 }
-.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-escuro); }
+.topbar h2 { font-size: 14px; font-weight: 800; color: var(--azul-card); }
 .topbar p { font-size: 9.5px; color: var(--cinza-claro); margin-top: 1px; }
 .topbar .spacer { flex: 1; }
 .topbar .usuario { display: flex; align-items: center; gap: 8px; font-size: 9.5px; font-weight: 600; }
@@ -221,7 +221,7 @@ body.tema-escuro .sidebar {
   flex-wrap: wrap;
   gap: 6px;
 }
-.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-escuro); }
+.panel-head h3 { font-size: 10.5px; font-weight: 700; color: var(--azul-card); }
 .panel-head h3 small { font-weight: 400; color: var(--cinza-claro); font-size: 8.5px; }
 
 .form-grid {
@@ -410,7 +410,7 @@ table tr:last-child td { border-bottom: none; }
       <div class="form-group"><label>Data</label><input type="date" id="editData"></div>
       <div class="form-group"><label>Cliente</label><select id="editCliente"></select></div>
       <div class="form-group"><label>Tipo</label><select id="editTipo"><option value="credito" style="color:green;">Crédito (+) Aporte</option><option value="debito" style="color:red;">Débito (-) Resgate</option></select></div>
-      <div class="form-group"><label>Valor (R$)</label><input type="number" id="editValor" step="0.01" min="0.01"></div>
+      <div class="form-group"><label id="labelValorMoedaEdit">Valor (R$)</label><input type="number" id="editValor" step="0.01" min="0.01"></div>
       <div class="form-group"><label>Descrição</label><input type="text" id="editDescricao" placeholder="Ex: Aporte mensal..."></div>
       <div class="btn-group"><button type="button" class="btn btn-ghost" onclick="fecharModalEditar()">Cancelar</button><button type="submit" class="btn btn-success">💾 Atualizar</button></div>
     </form>
@@ -440,7 +440,7 @@ table tr:last-child td { border-bottom: none; }
           <div class="form-group"><label>Data</label><input type="date" id="inputData" required></div>
           <div class="form-group"><label>Cliente</label><select id="inputCliente" required></select></div>
           <div class="form-group"><label>Tipo</label><select id="inputTipo" required><option value="credito" style="color:green;">Crédito (+) Aporte</option><option value="debito" style="color:red;">Débito (-) Resgate</option></select></div>
-          <div class="form-group"><label>Valor (R$)</label><input type="number" id="inputValor" step="0.01" min="0.01" placeholder="0,00" required></div>
+          <div class="form-group"><label id="labelValorMoeda">Valor (R$)</label><input type="number" id="inputValor" step="0.01" min="0.01" placeholder="0,00" required></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="inputDescricao" placeholder="Ex: Aporte mensal..."></div>
           <div class="form-group"><label>&nbsp;</label><button type="submit" class="btn btn-success">💾 Salvar</button></div>
         </div>
@@ -548,6 +548,10 @@ function aplicarConfiguracoesFormatacao() {
         SIMBOLO_MOEDA_CONFIG = simbolos[config.moeda] || 'R$';
         LOCALE_NUMERO_CONFIG = config.idioma || 'pt-BR';
     } catch(e) {}
+    var labelValor = document.getElementById('labelValorMoeda');
+    if (labelValor) labelValor.textContent = 'Valor (' + SIMBOLO_MOEDA_CONFIG + ')';
+    var labelValorEdit = document.getElementById('labelValorMoedaEdit');
+    if (labelValorEdit) labelValorEdit.textContent = 'Valor (' + SIMBOLO_MOEDA_CONFIG + ')';
 }
 aplicarConfiguracoesFormatacao();
 
